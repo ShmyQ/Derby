@@ -15,6 +15,8 @@ var g = {
     bounceCounter: 0,
 };
 
+
+
 var c = {
     // META
     SCREEN_WIDTH: window.innerWidth, 
@@ -36,7 +38,7 @@ var c = {
     
     // SPHERE
     SPHERE_SIZE: 50,
-    SPHERE_COLOR: 0x00FFFF,
+    SPHERE_COLOR: 0x00ff00,
     ACCEL_SPEED: 1,
     MAX_MOVE_SPEED: 8,
     DECELERATE_INTERVAL: 7, // How many keyPress() checks before actually decelerating
@@ -46,11 +48,10 @@ var c = {
     FLOOR_SIZE: 1000,
     FLOOR_COLOR: 0x0000FF,
     FLOOR_Y_OFFSET: -45,
-    FLOOR_REPEATS: 10,
+    FLOOR_REPEATS: 2,
     FLOOR_COLOR_1: 0xff0000,
     FLOOR_COLOR_2: 0x00ff00,
-    FLOOR_COLOR_3: 0x0000ff,
-    
+    FLOOR_COLOR_3: 0x0000ff,  
     
     //LIGHT
     LIGHT_POSITION: 100,
@@ -58,6 +59,9 @@ var c = {
     
     
 };
+
+init();
+animate();
 
 function init(){
     //--------------------------
@@ -120,7 +124,7 @@ function init(){
 
     // Floor
     // geometrical layout
-    var geometry = new THREE.PlaneGeometry(c.FLOOR_SIZE, c.FLOOR_SIZE, c.FLOOR_REPEATS, c.FLOOR_REPEATS );
+    var geometry = new THREE.PlaneGeometry(c.FLOOR_SIZE, c.FLOOR_SIZE, c.FLOOR_REPEATS, c.FLOOR_REPEATS);
 
     // materials
     var materials = []; 
@@ -139,8 +143,6 @@ function init(){
     plane.position.y = c.FLOOR_Y_OFFSET;
     plane.receiveShadow = true;
     scene.add(plane);
-    
-    animate();
 }
 
 //--------------------------
@@ -180,21 +182,23 @@ function adjustCamera(){
 		sphere.matrix.multiply(rotation_matrix);
 		sphere.rotation.setEulerFromRotationMatrix(sphere.matrix);
 	}
-	var relativeCameraOffset = new THREE.Vector3(c.CAM_X_OFFSET,c.CAM_YOFF_SET,c.CAM_Z_OFFSET);
-
+    
+	var relativeCameraOffset = new THREE.Vector3(c.CAM_X_OFFSET,c.CAM_Y_OFFSET,c.CAM_Z_OFFSET);
 	var cameraOffset = relativeCameraOffset.applyMatrix4(sphere.matrixWorld);
 
 	camera.position.x = cameraOffset.x;
 	camera.position.z = cameraOffset.z;
+    camera.position.y = cameraOffset.y;
 	camera.lookAt(sphere.position);
 }
 
+// Key press handler
 function checkKeyPress(){
     
     var accelerateLeft = false;
     var accelerateForward = false;
     
-	// MOVEMENT
+	// Movement
 	if(keyboard.pressed("W")){
          if(g.currentMoveSpeed.forward > -c.MAX_MOVE_SPEED){
             g.currentMoveSpeed.forward -= c.ACCEL_SPEED;
@@ -222,7 +226,7 @@ function checkKeyPress(){
         }
        
     }
-    // DECELERATION
+    // Deceleration
     if(g.decelerateCount < c.DECELERATE_INTERVAL){
         g.decelerateCount++;
     }
@@ -237,7 +241,7 @@ function checkKeyPress(){
         }
     }
     
-    // JUMP
+    // Jump
     if(keyboard.pressed("space")){
         if(g.jumping === false && g.falling === false)
             jump();
@@ -247,23 +251,31 @@ function checkKeyPress(){
     
 }
 
+// Updates the sphere's movement in X and Z
 function checkMoveState(){    
     sphere.translateZ(g.currentMoveSpeed.forward);
     sphere.translateX(g.currentMoveSpeed.left);
+    
+    // Check Y movement
     checkJumpState();
 }
 
+// Sets the sphere to be jumping
 function jump() {
     g.jumping = true;
 }
 
+// Updates the sphere's Y movement
 function checkJumpState(){
+    // Going up
     if(g.jumping === true){
+        // Keep going up
         if(g.currentJumpHeight < c.MAX_JUMP_HEIGHT[g.bounceCounter]){
             sphere.translateY(c.JUMP_SPEED);
             camera.translateY(c.JUMP_SPEED);
             g.currentJumpHeight+= c.JUMP_SPEED;
         }
+        // Start falling
         else if(g.currentJumpHeight >= c.MAX_JUMP_HEIGHT[g.bounceCounter]){
             g.jumping = false;
             g.falling = true;
@@ -274,18 +286,23 @@ function checkJumpState(){
         }
     }
     
+    // Going down
     if(g.falling === true){
+        // Keep falling
         if(g.currentJumpHeight > 0){
             sphere.translateY(-c.JUMP_SPEED);
             camera.translateY(-c.JUMP_SPEED);
             g.currentJumpHeight-= c.JUMP_SPEED;
         }
+        // Stop falling
         else if(g.currentJumpHeight === 0){
+            // Bounce
             if(g.bounceCounter < c.BOUNCE_COUNT){
                 g.jumping = true;
                 g.bounceCounter++;
                 g.falling = false;
             }
+            // Stop
             else {
                 g.falling = false;
                 g.bounceCounter = 0;
@@ -298,6 +315,7 @@ function checkJumpState(){
     }
 }
 
+// Decreases sphere movespeed forward/backward
 function decelerateForward(){
     if(g.currentMoveSpeed.forward > 0)
          g.currentMoveSpeed.forward--;
@@ -305,15 +323,10 @@ function decelerateForward(){
         g.currentMoveSpeed.forward++;
 }
 
+// Decreases sphere movespeed left/right
 function decelerateLeft(){
     if(g.currentMoveSpeed.left > 0)
          g.currentMoveSpeed.left--;
     if(g.currentMoveSpeed.left < 0)
          g.currentMoveSpeed.left++;
 }
-
-
-init();
-
-
-
