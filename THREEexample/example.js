@@ -1,11 +1,43 @@
-// standard global variables
-var container, scene, camera, renderer, stats;
-var keyboard = new THREEx.KeyboardState();
-var clock = new THREE.Clock();
+var socket = io.connect("http://localhost:8888");
 
-// custom global variables
+function sendSphere(){
+    socket.emit("sendSphere", g.sphere.position);
+    console.log("sent sphere");
+}
+$(document).ready(function() {
+    init();
+    animate();
+    socket.on("receiveSphere", function (data) {
+        console.log("sphere?");
+        if(data.player) {
+        console.log("receiving sphere");
+          // Sphere
+          if(g.enemies[data.player]){
+            g.enemies[data.player].position = data.position;
+          }
+          else {
+            var enemySphere = new THREE.Mesh(new THREE.SphereGeometry(c.SPHERE_SIZE,c.SPHERE_SIZE,c.SPHERE_SIZE), new THREE.MeshLambertMaterial({
+            color: c.ENEMY_COLOR
+            }));
+            enemySphere.overdraw = true;
+            g.enemies[data.player] = enemySphere;
+            g.enemies[data.player].position = data.position;
+            g.scene.add(enemySphere);
+          }
+        }
+    });
+    
+    setInterval(sendSphere,1);
+});
 
+// Globals
 var g = {
+    scene: null,
+    camera: null,
+    renderer: null,
+    stats: null,
+    keyboard: new THREEx.KeyboardState(),
+    clock: new THREE.Clock(),
     sphere: null,
     jumping: false,
     falling: false,
@@ -13,10 +45,11 @@ var g = {
     currentMoveSpeed: {forward: 0,left: 0},
     decelerateCount: 0,
     bounceCounter: 0,
+    enemies: [],
 };
 
 
-
+// Constants
 var c = {
     // META
     SCREEN_WIDTH: window.innerWidth, 
@@ -57,11 +90,11 @@ var c = {
     LIGHT_POSITION: 100,
     LIGHT_COLOR: 0xffffff,
     
+    //ENEMY
+    ENEMY_COLOR: 0xff0000,
+    
     
 };
-
-init();
-animate();
 
 function init(){
     //--------------------------
@@ -69,58 +102,58 @@ function init(){
     //--------------------------
  
 	if ( Detector.webgl )
-		renderer = new THREE.WebGLRenderer( {antialias:true} );
+		g.renderer = new THREE.WebGLRenderer( {antialias:true} );
 	else
-		renderer = new THREE.CanvasRenderer(); 
+		g.renderer = new THREE.CanvasRenderer(); 
         
-	renderer.setSize(c.SCREEN_WIDTH, c.SCREEN_HEIGHT);
+	g.renderer.setSize(c.SCREEN_WIDTH, c.SCREEN_HEIGHT);
     
-	document.body.appendChild(renderer.domElement);
+	document.body.appendChild(g.renderer.domElement);
     
-    renderer.setClearColorHex(c.BG_COLOR, 1.0);
-    renderer.clear();
+    g.renderer.setClearColorHex(c.BG_COLOR, 1.0);
+    g.renderer.clear();
     
     // STATS
-	stats = new Stats();
-	stats.domElement.style.position = 'absolute';
-	stats.domElement.style.bottom = '0px';
-	stats.domElement.style.zIndex = 100;
-    document.body.appendChild( stats.domElement );
+	g.stats = new Stats();
+	g.stats.domElement.style.position = 'absolute';
+	g.stats.domElement.style.bottom = '0px';
+	g.stats.domElement.style.zIndex = 100;
+    document.body.appendChild(g.stats.domElement );
     
     //--------------------------
     // Create Scene / Objects
     //--------------------------
-    scene = new THREE.Scene();
+    g.scene = new THREE.Scene();
     
     //Camera
-	camera = new THREE.PerspectiveCamera(c.VIEW_ANGLE,c.ASPECT,c.NEAR,c.FAR);
-	scene.add(camera);
-	camera.lookAt(scene.position);
+	g.camera = new THREE.PerspectiveCamera(c.VIEW_ANGLE,c.ASPECT,c.NEAR,c.FAR);
+	g.scene.add(g.camera);
+	g.camera.lookAt(g.scene.position);
     
     // Sphere
-    sphere = new THREE.Mesh(new THREE.SphereGeometry(c.SPHERE_SIZE,c.SPHERE_SIZE,c.SPHERE_SIZE), new THREE.MeshLambertMaterial({
+    g.sphere = new THREE.Mesh(new THREE.SphereGeometry(c.SPHERE_SIZE,c.SPHERE_SIZE,c.SPHERE_SIZE), new THREE.MeshLambertMaterial({
         color: c.SPHERE_COLOR
     }));
-    sphere.overdraw = true;
-    scene.add(sphere);
+    g.sphere.overdraw = true;
+    g.scene.add(g.sphere);
     
  
     // Add directional light sources
     var directionalLight1 = new THREE.DirectionalLight(c.LIGHT_COLOR);
     directionalLight1.position.set(c.LIGHT_POSITION, c.LIGHT_POSITION, c.LIGHT_POSITION).normalize();
-    scene.add(directionalLight1);
+    g.scene.add(directionalLight1);
 
     var directionalLight2 = new THREE.DirectionalLight(c.LIGHT_COLOR);
     directionalLight2.position.set(-c.LIGHT_POSITION, c.LIGHT_POSITION, c.LIGHT_POSITION).normalize();
-    scene.add(directionalLight2);
+    g.scene.add(directionalLight2);
     
     var directionalLight3 = new THREE.DirectionalLight(c.LIGHT_COLOR);
     directionalLight3.position.set(c.LIGHT_POSITION, c.LIGHT_POSITION, -c.LIGHT_POSITION).normalize();
-    scene.add(directionalLight3);
+    g.scene.add(directionalLight3);
     
     var directionalLight4 = new THREE.DirectionalLight(c.LIGHT_COLOR);
     directionalLight4.position.set(-c.LIGHT_POSITION, c.LIGHT_POSITION, -c.LIGHT_POSITION).normalize();
-    scene.add(directionalLight4);
+    g.scene.add(directionalLight4);
 
     // Floor
     // geometrical layout
@@ -142,21 +175,22 @@ function init(){
     plane.rotation.x = -Math.PI/2;
     plane.position.y = c.FLOOR_Y_OFFSET;
     plane.receiveShadow = true;
-    scene.add(plane);
+    g.scene.add(plane);
 }
 
 //--------------------------
 // Update and Render
 //--------------------------
 function render() {
-	renderer.render(scene, camera);
+	g.renderer.render(g.scene, g.camera);
 }
 
 function update() {
     checkKeyPress();
     checkMoveState();
     adjustCamera();
-	stats.update();
+	g.stats.update();
+    
 }
 
 //--------------------------
@@ -169,27 +203,27 @@ function animate() {
 }
 
 function adjustCamera(){
-    var delta = clock.getDelta(); // seconds.
+    var delta = g.clock.getDelta(); // seconds.
     var rotateAngle = Math.PI / 2 * delta;   // pi/2 radians (90 degrees) per second
     // rotate left/right/up/down
 	var rotation_matrix = new THREE.Matrix4().identity();
-	if (keyboard.pressed("A"))
+	if (g.keyboard.pressed("A"))
 		rotation_matrix = new THREE.Matrix4().makeRotationY(rotateAngle);
-	if (keyboard.pressed("D"))
+	if (g.keyboard.pressed("D"))
 		rotation_matrix = new THREE.Matrix4().makeRotationY(-rotateAngle);
 
-	if (keyboard.pressed("A") || keyboard.pressed("D")){
-		sphere.matrix.multiply(rotation_matrix);
-		sphere.rotation.setEulerFromRotationMatrix(sphere.matrix);
+	if (g.keyboard.pressed("A") || g.keyboard.pressed("D")){
+		g.sphere.matrix.multiply(rotation_matrix);
+		g.sphere.rotation.setEulerFromRotationMatrix(g.sphere.matrix);
 	}
     
 	var relativeCameraOffset = new THREE.Vector3(c.CAM_X_OFFSET,c.CAM_Y_OFFSET,c.CAM_Z_OFFSET);
-	var cameraOffset = relativeCameraOffset.applyMatrix4(sphere.matrixWorld);
+	var cameraOffset = relativeCameraOffset.applyMatrix4(g.sphere.matrixWorld);
 
-	camera.position.x = cameraOffset.x;
-	camera.position.z = cameraOffset.z;
-    camera.position.y = cameraOffset.y;
-	camera.lookAt(sphere.position);
+	g.camera.position.x = cameraOffset.x;
+	g.camera.position.z = cameraOffset.z;
+    g.camera.position.y = cameraOffset.y;
+	g.camera.lookAt(g.sphere.position);
 }
 
 // Key press handler
@@ -199,27 +233,27 @@ function checkKeyPress(){
     var accelerateForward = false;
     
 	// Movement
-	if(keyboard.pressed("W")){
+	if(g.keyboard.pressed("W")){
          if(g.currentMoveSpeed.forward > -c.MAX_MOVE_SPEED){
             g.currentMoveSpeed.forward -= c.ACCEL_SPEED;
             accelerateForward = true;
          }
     }
-	if(keyboard.pressed("S")){
+	if(g.keyboard.pressed("S")){
         if(g.currentMoveSpeed.forward < c.MAX_MOVE_SPEED){
             g.currentMoveSpeed.forward += c.ACCEL_SPEED;
             accelerateForward = true;
         }
        
     }
-	if(keyboard.pressed("Q")){
+	if(g.keyboard.pressed("Q")){
         if(g.currentMoveSpeed.left > -c.MAX_MOVE_SPEED){
             g.currentMoveSpeed.left -= c.ACCEL_SPEED;
             accelerateLeft = true;
         }
         
     }
-	if(keyboard.pressed("E")){
+	if(g.keyboard.pressed("E")){
         if(g.currentMoveSpeed.left < c.MAX_MOVE_SPEED){
             g.currentMoveSpeed.left += c.ACCEL_SPEED;
             accelerateLeft = true;
@@ -242,7 +276,7 @@ function checkKeyPress(){
     }
     
     // Jump
-    if(keyboard.pressed("space")){
+    if(g.keyboard.pressed("space")){
         if(g.jumping === false && g.falling === false)
             jump();
     }
@@ -253,8 +287,8 @@ function checkKeyPress(){
 
 // Updates the sphere's movement in X and Z
 function checkMoveState(){    
-    sphere.translateZ(g.currentMoveSpeed.forward);
-    sphere.translateX(g.currentMoveSpeed.left);
+    g.sphere.translateZ(g.currentMoveSpeed.forward);
+    g.sphere.translateX(g.currentMoveSpeed.left);
     
     // Check Y movement
     checkJumpState();
@@ -271,8 +305,8 @@ function checkJumpState(){
     if(g.jumping === true){
         // Keep going up
         if(g.currentJumpHeight < c.MAX_JUMP_HEIGHT[g.bounceCounter]){
-            sphere.translateY(c.JUMP_SPEED);
-            camera.translateY(c.JUMP_SPEED);
+            g.sphere.translateY(c.JUMP_SPEED);
+            g.camera.translateY(c.JUMP_SPEED);
             g.currentJumpHeight+= c.JUMP_SPEED;
         }
         // Start falling
@@ -290,8 +324,8 @@ function checkJumpState(){
     if(g.falling === true){
         // Keep falling
         if(g.currentJumpHeight > 0){
-            sphere.translateY(-c.JUMP_SPEED);
-            camera.translateY(-c.JUMP_SPEED);
+            g.sphere.translateY(-c.JUMP_SPEED);
+            g.camera.translateY(-c.JUMP_SPEED);
             g.currentJumpHeight-= c.JUMP_SPEED;
         }
         // Stop falling
@@ -330,3 +364,9 @@ function decelerateLeft(){
     if(g.currentMoveSpeed.left < 0)
          g.currentMoveSpeed.left++;
 }
+
+
+
+
+
+
