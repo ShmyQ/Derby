@@ -1,10 +1,14 @@
+// Taken from https://github.com/es92/CrossPlatformTodoApp
+
 module.exports = function loginRoutes(mongoExpressAuth, app){
     app.post('/login', function(req, res){
         mongoExpressAuth.login(req, res, function(err){
-            if (err)
+            if (err) {
                 res.send(err);
-            else
+            }
+            else {
                 res.send('ok');
+            }
         });
     });
 
@@ -15,10 +19,12 @@ module.exports = function loginRoutes(mongoExpressAuth, app){
 
     app.post('/register', function(req, res){
         mongoExpressAuth.register(req, function(err){
-            if (err)
+            if (err) {
                 res.send(err);
-            else
+            }
+            else {
                 res.send('ok');
+            }
         });
     });
 };

@@ -33,7 +33,7 @@ app.use(express.session({ secret: 'teamgamerssecretmsg' }));
 //===========================
 
 require('./loginRoutes.js')(mongoExpressAuth, app);
-require('./mobileRoutes.js')(mongoExpressAuth,app);
+require('./mobileDesktopRouter.js')(mongoExpressAuth,app);
 
 
 app.get('/', function(req, res){
