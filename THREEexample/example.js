@@ -119,11 +119,15 @@ function init(){
 	g.stats.domElement.style.bottom = '0px';
 	g.stats.domElement.style.zIndex = 100;
     document.body.appendChild(g.stats.domElement );
+	
+	// Initialize Physics
+	Physijs.scripts.worker = '/THREEexample/physijs_worker.js';
+	Physijs.scripts.ammo = '/THREEexample/ammo.js';
     
     //--------------------------
     // Create Scene / Objects
     //--------------------------
-    g.scene = new THREE.Scene();
+    g.scene = new Physijs.Scene();
     
     //Camera
 	g.camera = new THREE.PerspectiveCamera(c.VIEW_ANGLE,c.ASPECT,c.NEAR,c.FAR);
@@ -131,7 +135,7 @@ function init(){
 	g.camera.lookAt(g.scene.position);
     
     // Sphere
-    g.sphere = new THREE.Mesh(new THREE.SphereGeometry(c.SPHERE_SIZE,c.SPHERE_SIZE,c.SPHERE_SIZE), new THREE.MeshLambertMaterial({
+    g.sphere = new Physijs.SphereMesh(new THREE.SphereGeometry(c.SPHERE_SIZE,c.SPHERE_SIZE,c.SPHERE_SIZE), new THREE.MeshLambertMaterial({
         color: c.SPHERE_COLOR
     }));
     g.sphere.overdraw = true;
@@ -169,19 +173,21 @@ function init(){
     for( var i = 0; i < geometry.faces.length; i++ ) {
         geometry.faces[i].materialIndex = (i%3);
     }
-
+	
     // Create plane
-    var plane = new THREE.Mesh( geometry, new THREE.MeshFaceMaterial( materials ) );
+    var plane = new Physijs.PlaneMesh( geometry, new THREE.MeshFaceMaterial( materials ) );
     plane.rotation.x = -Math.PI/2;
     plane.position.y = c.FLOOR_Y_OFFSET;
     plane.receiveShadow = true;
     g.scene.add(plane);
+	
 }
 
 //--------------------------
 // Update and Render
 //--------------------------
 function render() {
+	g.scene.simulate();
 	g.renderer.render(g.scene, g.camera);
 }
 
@@ -309,6 +315,7 @@ function checkJumpState(){
             g.camera.translateY(c.JUMP_SPEED);
             g.currentJumpHeight+= c.JUMP_SPEED;
         }
+		
         // Start falling
         else if(g.currentJumpHeight >= c.MAX_JUMP_HEIGHT[g.bounceCounter]){
             g.jumping = false;
