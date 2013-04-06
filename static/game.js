@@ -1,5 +1,6 @@
 /*
-	Willy - working on drawing the game
+	Willy - can roll around on phone now
+			going to put in boundaries and bombs next
 */
 
 var canvas = document.getElementById("myCanvas");
@@ -14,16 +15,62 @@ var g = {
 
 // Constants
 var c = {
-	MAP_WIDTH: 1000,
-	MAP_HEIGHT: 1000,
+	MAP_WIDTH: 800,
+	MAP_HEIGHT: 800,
 	
 	BALL_RADIUS: 10,
 }
 
+window.addEventListener('devicemotion', function(event) {
+      var xvel = -event.accelerationIncludingGravity.x / 2;
+	  var yvel = event.accelerationIncludingGravity.y / 2;
+	  
+	  if (g.myPlayer.x + xvel < 0) {
+		if (g.myPlayer.y + yvel < 0)
+			g.myPlayer.y = 0;
+		else if (g.myPlayer.y + xvel > c.MAP_HEIGHT)
+			g.myPlayer.y = c.MAP_HEIGHT;
+		else
+			// change y position by the fraction of the distance traveled
+			// g.myPlayer.y = g.myPlayer.y + yvel * ((xvel - g.myPlayer.x) / xvel);
+			g.myPlayer.y = g.myPlayer.y + yvel;
+			
+	    g.myPlayer.x = 0;
+	  }
+	  else if (g.myPlayer.x + xvel > c.MAP_WIDTH) {
+		if (g.myPlayer.y + yvel < 0)
+			g.myPlayer.y = 0;
+		else if (g.myPlayer.y + xvel > c.MAP_HEIGHT)
+			g.myPlayer.y = c.MAP_HEIGHT;
+		else
+			// change y position by the fraction of the distance traveled
+			//g.myPlayer.y = g.mhPlayer.y + yvel * ((xvel - (c.MAP_WIDTH - g.myPlayer.x)) / xvel);
+			g.myPlayer.y = g.mhPlayer.y + yvel;
+		
+		g.myPlayer.x = c.MAP_WIDTH;
+	  }
+	  else {
+		if (g.myPlayer.y + yvel < 0) {
+			//g.myPlayer.x = g.myPlayer.x + xvel * ((yvel - g.myPlayer.y) / yvel);
+			g.myPlayer.x = g.myPlayer.x + xvel;
+			g.myPlayer.y = 0;
+		}
+		else if (g.myPlayer.y + xvel > c.MAP_HEIGHT) {
+			//g.myPlayer.x = g.mhPlayer.x + xvel * ((yvel - (c.MAP_HEIGHT - g.myPlayer.y)) / yvel);
+			g.myPlayer.x = g.mhPlayer.x + xvel;
+			g.myPlayer.y = c.MAP_HEIGHT;
+		}
+		else {
+			g.myPlayer.x = g.myPlayer.x + xvel;
+			g.myPlayer.y = g.myPlayer.y + yvel;
+		}
+	 }
+});
+
 init();
 
 function init() {
-	g.myPlayer = new Player(100, 100);
+	g.myPlayer = new Player(200, 200);
 	
 	document.onkeydown = onKeyDown;
 	
@@ -39,7 +86,7 @@ function draw() {
 		if (g.myPlayer.y < canvas.height/2) {
 			ctx.fillRect(canvas.width/2 - g.myPlayer.x, canvas.height/2 - g.myPlayer.y, canvas.width/2 + g.myPlayer.x, canvas.height/2 + g.myPlayer.y);
 		}
-		else if (myPlayer.y > c.MAP_HEIGHT - canvas.height/2) {
+		else if (g.myPlayer.y > c.MAP_HEIGHT - canvas.height/2) {
 			ctx.fillRect(canvas.width/2 - g.myPlayer.x, 0, canvas.width/2 + g.myPlayer.x, canvas.height/2 + (c.MAP_HEIGHT - g.myPlayer.y));
 		}
 		else {
@@ -50,7 +97,7 @@ function draw() {
 		if (g.myPlayer.y < canvas.height/2) {
 			ctx.fillRect(0, canvas.height/2 - g.myPlayer.y, canvas.width/2 + (c.MAP_WIDTH - g.myPlayer.x), canvas.height/2 + g.myPlayer.y);
 		}
-		else if (myPlayer.y > c.MAP_HEIGHT - canvas.height/2) {
+		else if (g.myPlayer.y > c.MAP_HEIGHT - canvas.height/2) {
 			ctx.fillRect(0, 0, canvas.width/2 + (c.MAP_WIDTH - g.myPlayer.x), canvas.height/2 + (c.MAP_HEIGHT - g.myPlayer.y));
 		}
 		else {
@@ -61,7 +108,7 @@ function draw() {
 		if (g.myPlayer.y < canvas.height/2) {
 			ctx.fillRect(0, canvas.height/2 - g.myPlayer.y, canvas.width, canvas.height/2 + g.myPlayer.y);
 		}
-		else if (myPlayer.y > c.MAP_HEIGHT - canvas.height/2) {
+		else if (g.myPlayer.y > c.MAP_HEIGHT - canvas.height/2) {
 			ctx.fillRect(0, 0, canvas.width, canvas.height/2 + (c.MAP_HEIGHT - g.myPlayer.y));
 		}
 		else {
@@ -82,7 +129,7 @@ function Player(x, y) {
 }
 
 function onKeyDown(e) {
-	console.log("keypressed");
+	console.log(g.myPlayer.x, g.myPlayer.y);
 	// move left
 	if (e.keyCode === 65) {
 		if (g.myPlayer.x > 0)
