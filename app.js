@@ -60,7 +60,14 @@ app.get('/db', function(req, res){
     });
 });
 
-
+app.get('/game', function(req, res){
+    mongoExpressAuth.checkLogin(req, res, function(err){
+        //if (err)
+        //   res.sendfile('static/login.html');
+        //else
+            res.sendfile('static/game.html');
+    });
+});
 
 app.use(express.static(__dirname + '/static/'));
 
