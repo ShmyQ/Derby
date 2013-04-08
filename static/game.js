@@ -18,11 +18,11 @@ var g = {
 var c = {
 	MAP_WIDTH: 800,
 	MAP_HEIGHT: 800,
-	
+
 	BALL_RADIUS: 30,
-	
+
 	ROCK_RADIUS: 30,
-	
+
 	BOMB_RADIUS: 50,
 	BOMB_TIME: 5,
 }
@@ -30,7 +30,7 @@ var c = {
 window.addEventListener('devicemotion', function(event) {
       var xvel = -event.accelerationIncludingGravity.x / 2;
 	  var yvel = event.accelerationIncludingGravity.y / 2;
-	  
+
 	  moveBall(xvel, yvel);
 });
 
@@ -41,16 +41,16 @@ init();
 function init() {
 	g.myPlayer = new Player(200, 200);
 	g.bombs = [];
-	
+
 	canvas.addEventListener('touchstart', onTouch, false);
 	document.onkeydown = onKeyDown;
-	
+
 	g.drawHandler = setInterval(draw, 15);
 }
 
 function draw() {
 	ctx.clearRect(0,0,canvas.width, canvas.height);
-	
+
 	// draw land
 	ctx.fillStyle = "green";
 	if (g.myPlayer.x < canvas.width/2) {
@@ -86,25 +86,25 @@ function draw() {
 			ctx.fillRect(0, 0, canvas.width, canvas.height);
 		}
 	}
-	
+
 	// draw player
 	ctx.fillStyle = "blue";
 	ctx.beginPath();
 	ctx.arc(canvas.width/2, canvas.height/2, c.BALL_RADIUS, 0, 2*Math.PI, true);
 	ctx.fill();
-	
+
 	// draw bombs
 	g.bombs.forEach( function(bomb) {
 		if (bomb.x >= g.myPlayer.x - canvas.width/2 && bomb.x < g.myPlayer.x + canvas.width/2
 			&& bomb.y >= g.myPlayer.y - canvas.height/2 && bomb.y < g.myPlayer.y + canvas.height/2) {
 			var xpos = canvas.width/2 - (g.myPlayer.x - bomb.x);
 			var ypos = canvas.height/2 - (g.myPlayer.y - bomb.y);
-			
+
 			ctx.fillStyle = "red";
 			ctx.beginPath();
 			ctx.arc(xpos, ypos, c.BOMB_RADIUS, 0, 2*Math.PI, true);
 			ctx.fill();
-			
+
 			ctx.fillStyle = "white";
 			ctx.font = "60px Arial";
 			ctx.textAlign = "center";
@@ -125,7 +125,7 @@ function explodeBomb(bomb) {
 function decrementTimer(bomb) {
 	console.log(bomb.time);
 	bomb.time--;
-	
+
 	if (bomb.time <= 0) {
 		clearInterval(bomb.timerHandler);
 		explodeBomb(bomb);
@@ -136,7 +136,7 @@ function moveBall(xvel, yvel) {
 	if (checkForCollision(xvel, yvel)) {
 		return;
 	}
-	
+
 	g.myPlayer.x = g.myPlayer.x + xvel;
 	g.myPlayer.y = g.myPlayer.y + yvel;
 }
@@ -146,7 +146,7 @@ function checkForCollision(xvel, yvel) {
 	if (checkBoundaryCollision(xvel, yvel)) {
 		return true;
 	}
-	
+
 	return false;
 }
 
@@ -160,7 +160,7 @@ function checkBoundaryCollision(xvel, yvel) {
 			// change y position by the fraction of the distance traveled
 			// g.myPlayer.y = g.myPlayer.y + yvel * ((xvel - g.myPlayer.x) / xvel);
 			g.myPlayer.y = g.myPlayer.y + yvel;
-			
+
 		g.myPlayer.x = c.BALL_RADIUS;
 		return true;
 	}
@@ -173,7 +173,7 @@ function checkBoundaryCollision(xvel, yvel) {
 			// change y position by the fraction of the distance traveled
 			//g.myPlayer.y = g.mhPlayer.y + yvel * ((xvel - (c.MAP_WIDTH - g.myPlayer.x)) / xvel);
 			g.myPlayer.y = g.mhPlayer.y + yvel;
-		
+
 		g.myPlayer.x = c.MAP_WIDTH - c.BALL_RADIUS;
 		return true;
 	}
@@ -195,7 +195,7 @@ function checkBoundaryCollision(xvel, yvel) {
 }
 
 function checkRockCollision(xvel, yvel) {
-	
+
 }
 
 function Player(x, y) {
@@ -203,10 +203,16 @@ function Player(x, y) {
 	this.y = y;
 }
 
-function Rock(x, y) {
+function Rock(x, y) { // Should we use prototypes for all obstacles?
 	this.x = x;
 	this.y = y;
 	this.radius = c.ROCK_RADIUS;
+}
+
+function Powerup(x, y, power) {
+	this.x = x;
+	this.y = y;
+	this.power = power;
 }
 
 function Bomb(x, y) {
@@ -230,28 +236,28 @@ function onKeyDown(e) {
 	else if (e.keyCode === 65) {
 		if (checkForCollision(-5, 0))
 			return;
-	
+
 		g.myPlayer.x -= 5;
 	}
 	// move right
 	else if (e.keyCode === 68) {
 		if (checkForCollision(5, 0))
 			return;
-	
+
 		g.myPlayer.x += 5;
 	}
 	// move up
 	else if (e.keyCode === 87) {
 		if (checkForCollision(0, -5))
 			return;
-	
+
 		g.myPlayer.y -= 5;
 	}
 	// move down
 	else if (e.keyCode === 83) {
 		if (checkForCollision(0, 5))
 			return;
-	
+
 		g.myPlayer.y += 5;
 	}
 }
