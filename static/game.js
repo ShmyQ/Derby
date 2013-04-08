@@ -12,6 +12,7 @@ var g = {
 	drawHandler: null,
 	myPlayer: null,
 	bombs: null,
+	rocks: null,
 }
 
 // Constants
@@ -21,10 +22,11 @@ var c = {
 
 	BALL_RADIUS: 30,
 
-	ROCK_RADIUS: 30,
+	ROCK_SIZE: 50,
 
-	BOMB_RADIUS: 50,
+	BOMB_RADIUS: 25,
 	BOMB_TIME: 5,
+	BOMB_EXPLOSION_RADIUS: 100,
 }
 
 window.addEventListener('devicemotion', function(event) {
@@ -41,6 +43,7 @@ init();
 function init() {
 	g.myPlayer = new Player(200, 200);
 	g.bombs = [];
+	g.rocks = [new Rock(100, 100), new Rock(100, 150), new Rock(100, 200), new Rock(150, 100), new Rock(200, 100)];
 
 	canvas.addEventListener('touchstart', onTouch, false);
 	document.onkeydown = onKeyDown;
@@ -87,12 +90,6 @@ function draw() {
 		}
 	}
 
-	// draw player
-	ctx.fillStyle = "blue";
-	ctx.beginPath();
-	ctx.arc(canvas.width/2, canvas.height/2, c.BALL_RADIUS, 0, 2*Math.PI, true);
-	ctx.fill();
-
 	// draw bombs
 	g.bombs.forEach( function(bomb) {
 		if (bomb.x >= g.myPlayer.x - canvas.width/2 && bomb.x < g.myPlayer.x + canvas.width/2
@@ -106,11 +103,29 @@ function draw() {
 			ctx.fill();
 
 			ctx.fillStyle = "white";
-			ctx.font = "60px Arial";
+			ctx.font = "30px Arial";
 			ctx.textAlign = "center";
 			ctx.fillText(bomb.time + "", xpos, ypos);
 		}
 	});
+
+	// draw rocks
+	g.rocks.forEach( function (rock) {
+		if (rock.x >= g.myPlayer.x - canvas.width/2 && rock.x < g.myPlayer.x + canvas.width/2
+			&& rock.y >= g.myPlayer.y - canvas.height/2 && rock.y < g.myPlayer.y + canvas.height/2) {
+			var xpos = canvas.width/2 - (g.myPlayer.x - rock.x);
+			var ypos = canvas.height/2 - (g.myPlayer.y - rock.y);
+
+			ctx.fillStyle = "grey";
+			ctx.fillRect(xpos - rock.size/2, ypos - rock.size/2, rock.size, rock.size);
+		}
+	});
+
+	// draw player
+	ctx.fillStyle = "blue";
+	ctx.beginPath();
+	ctx.arc(canvas.width/2, canvas.height/2, c.BALL_RADIUS, 0, 2*Math.PI, true);
+	ctx.fill();
 }
 
 function dropBomb(x, y) {
@@ -119,11 +134,27 @@ function dropBomb(x, y) {
 }
 
 function explodeBomb(bomb) {
+	var explodedRocks = [];
+
+	// find exploded nearby rocks
+	g.rocks.forEach( function(rock) {
+		var dist = Math.sqrt((rock.x - bomb.x)*(rock.x - bomb.x) + (rock.y - bomb.y)*(rock.y - bomb.y));
+
+		if (dist < c.BOMB_EXPLOSION_RADIUS) {
+			explodedRocks.push(rock);
+		}
+	});
+
+	// remove exploded rocks
+	explodedRocks.forEach( function(rock) {
+		g.rocks.splice(g.rocks.indexOf(rock), 1);
+	});
+
+	// remove bomb
 	g.bombs.splice(g.bombs.indexOf(bomb), 1);
 }
 
 function decrementTimer(bomb) {
-	console.log(bomb.time);
 	bomb.time--;
 
 	if (bomb.time <= 0) {
@@ -146,7 +177,9 @@ function checkForCollision(xvel, yvel) {
 	if (checkBoundaryCollision(xvel, yvel)) {
 		return true;
 	}
-
+	if (checkRockCollision(xvel, yvel)) {
+		return true;
+	}
 	return false;
 }
 
@@ -195,7 +228,15 @@ function checkBoundaryCollision(xvel, yvel) {
 }
 
 function checkRockCollision(xvel, yvel) {
+	var hitrock = false;
+	g.rocks.forEach( function(rock) {
+		if (g.myPlayer.x + c.BALL_RADIUS + xvel >= rock.x - rock.size/2 && g.myPlayer.x - c.BALL_RADIUS + xvel < rock.x + rock.size/2
+			&& g.myPlayer.y + c.BALL_RADIUS + yvel >= rock.y - rock.size/2 && g.myPlayer.y - c.BALL_RADIUS + yvel < rock.y + rock.size/2) {
+			hitrock = true;
+		}
+	});
 
+	return hitrock;
 }
 
 function Player(x, y) {
@@ -206,7 +247,7 @@ function Player(x, y) {
 function Rock(x, y) { // Should we use prototypes for all obstacles?
 	this.x = x;
 	this.y = y;
-	this.radius = c.ROCK_RADIUS;
+	this.size = c.ROCK_SIZE;
 }
 
 function Powerup(x, y, power) {
