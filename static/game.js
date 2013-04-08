@@ -13,6 +13,7 @@ var g = {
 	myPlayer: null,
 	bombs: null,
 	rocks: null,
+	powerups: null
 }
 
 // Constants
@@ -27,6 +28,8 @@ var c = {
 	BOMB_RADIUS: 25,
 	BOMB_TIME: 5,
 	BOMB_EXPLOSION_RADIUS: 100,
+
+	POWERUP_SIZE: 50,
 }
 
 window.addEventListener('devicemotion', function(event) {
@@ -44,6 +47,7 @@ function init() {
 	g.myPlayer = new Player(200, 200);
 	g.bombs = [];
 	g.rocks = [new Rock(100, 100), new Rock(100, 150), new Rock(100, 200), new Rock(150, 100), new Rock(200, 100)];
+	g.powerups = [new Powerup(300, 300, "invincible")];
 
 	canvas.addEventListener('touchstart', onTouch, false);
 	document.onkeydown = onKeyDown;
@@ -121,6 +125,18 @@ function draw() {
 		}
 	});
 
+	// draw powerups
+	g.powerups.forEach( function(powerup) {
+		if (powerup.x >= g.myPlayer.x - canvas.width/2 && powerup.x < g.myPlayer.x + canvas.width/2
+			&& powerup.y >= g.myPlayer.y - canvas.height/2 && powerup.y < g.myPlayer.y + canvas.height/2) {
+			var xpos = canvas.width/2 - (g.myPlayer.x - powerup.x);
+			var ypos = canvas.height/2 - (g.myPlayer.y - powerup.y);
+
+			ctx.fillStyle = "yellow";
+			ctx.fillRect(xpos - c.POWERUP_SIZE/2, ypos - c.POWERUP_SIZE/2, c.POWERUP_SIZE, c.POWERUP_SIZE);
+		}
+	});
+
 	// draw player
 	ctx.fillStyle = "blue";
 	ctx.beginPath();
@@ -180,6 +196,7 @@ function checkForCollision(xvel, yvel) {
 	if (checkRockCollision(xvel, yvel)) {
 		return true;
 	}
+	checkPowerupCollision(xvel, yvel);
 	return false;
 }
 
@@ -239,9 +256,26 @@ function checkRockCollision(xvel, yvel) {
 	return hitrock;
 }
 
+function checkPowerupCollision(xvel, yvel) {
+  g.powerups.forEach( function(powerup) {
+    if (g.myPlayer.x + c.BALL_RADIUS + xvel >= powerup.x - c.POWERUP_SIZE/2 && g.myPlayer.x - c.BALL_RADIUS + xvel < powerup.x + c.POWERUP_SIZE/2
+      && g.myPlayer.y + c.BALL_RADIUS + yvel >= powerup.y - c.POWERUP_SIZE/2 && g.myPlayer.y - c.BALL_RADIUS + yvel < powerup.y + c.POWERUP_SIZE/2) {
+      // Give player powerup here
+      addPowerup(powerup);
+    }
+  });
+}
+
+function addPowerup(powerup) {
+  g.myPlayer.powerups.push(powerup.power);
+  g.powerups.splice(g.powerups.indexOf(powerup), 1);
+  console.log(g.myPlayer.powerups);
+}
+
 function Player(x, y) {
 	this.x = x;
 	this.y = y;
+  this.powerups = [];
 }
 
 function Rock(x, y) { // Should we use prototypes for all obstacles?
