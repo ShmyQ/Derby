@@ -1,3 +1,5 @@
+// Taken from https://github.com/es92/mongo-express-auth
+
 /*=============================================
      self loading login manager
 
