@@ -80,14 +80,23 @@ app.use(express.static(__dirname + '/static/'));
 
 var io = require("socket.io").listen(8888,{ log: false });
 
+var playerPositions = new Object();
+
 io.sockets.on("connection", function (socket) {
-  socket.on("coords", function (data) {
-    io.sockets.emit("drawcoords", {x: data.x + 20, y: data.y + 20});
-  });
- 
+  socket.emit("connected", {id: socket.id, x: 200, y: 200, players: playerPositions});
+  playerPositions[socket.id] = {x: 200, y: 200};
 
   socket.on("sendPosition", function (data) {
-   socket.broadcast.emit("receivePosition", {player:socket.id, position:data});
+	playerPositions[data.id] = {x: data.x, y: data.y};
+	socket.broadcast.emit("receivePosition", data);
   });
   
+  socket.on("bombDropped", function (data) {
+    socket.broadcast.emit("placeBomb", data);
+  });
+  
+  socket.on("disconnect", function () {
+	delete playerPositions[socket.id];
+	socket.broadcast.emit("playerLeft", {id: socket.id});
+  });
 });
