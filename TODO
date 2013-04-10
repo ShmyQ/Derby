@@ -1,9 +1,10 @@
 ADAM
  - Creating basic UI / Login / DB Connection
+
  - Can now update acct through mongoExpressAuth
  
 JON
- - Program game itself such as rolling around and picking things up?
+ - Powerups
 
 WILL
 - Program game interface such as menu and game commands?
