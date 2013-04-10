@@ -103,16 +103,32 @@ app.use(function(req,res){
 
 var io = require("socket.io").listen(8888,{ log: false });
 
+var playerData = new Object();
+
 io.sockets.on("connection", function (socket) {
-  socket.on("coords", function (data) {
-    io.sockets.emit("drawcoords", {x: data.x + 20, y: data.y + 20});
-  });
- 
+  socket.emit("connected", {id: socket.id, x: 200, y: 200, players: playerData});
+  socket.broadcast.emit("playerConnected", {id: socket.id, x: 200, y: 200});
+  playerData[socket.id] = {x: 200, y: 200, hp: 100, powerups: []};
 
   socket.on("sendPosition", function (data) {
-   socket.broadcast.emit("receivePosition", {player:socket.id, position:data});
+	playerData[data.id] = data.player;
+	socket.broadcast.emit("receivePosition", data);
   });
   
+  socket.on("bombDropped", function (data) {
+    socket.broadcast.emit("placeBomb", data);
+  });
+  
+  socket.on("sendDeath", function (data) {
+	socket.emit("respawn", {x: 200, y: 200});
+	playerData[data.id] = {x: 200, y: 200, hp: 100, powerups: []};
+	socket.broadcast.emit("playerDied", {id: data.id, x:200, y:200});
+  });
+  
+  socket.on("disconnect", function () {
+	delete playerData[socket.id];
+	socket.broadcast.emit("playerLeft", {id: socket.id});
+  });
 });
 
 function strEndsWith(str, suffix) {
