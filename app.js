@@ -80,14 +80,15 @@ app.use(express.static(__dirname + '/static/'));
 
 var io = require("socket.io").listen(8888,{ log: false });
 
-var playerPositions = new Object();
+var playerData = new Object();
 
 io.sockets.on("connection", function (socket) {
-  socket.emit("connected", {id: socket.id, x: 200, y: 200, players: playerPositions});
-  playerPositions[socket.id] = {x: 200, y: 200};
+  socket.emit("connected", {id: socket.id, x: 200, y: 200, players: playerData});
+  socket.broadcast.emit("playerConnected", {id: socket.id, x: 200, y: 200});
+  playerData[socket.id] = {x: 200, y: 200, hp: 100, powerups: []};
 
   socket.on("sendPosition", function (data) {
-	playerPositions[data.id] = {x: data.x, y: data.y};
+	playerData[data.id] = data.player;
 	socket.broadcast.emit("receivePosition", data);
   });
   
@@ -95,8 +96,14 @@ io.sockets.on("connection", function (socket) {
     socket.broadcast.emit("placeBomb", data);
   });
   
+  socket.on("sendDeath", function (data) {
+	socket.emit("respawn", {x: 200, y: 200});
+	playerData[data.id] = {x: 200, y: 200, hp: 100, powerups: []};
+	socket.broadcast.emit("playerDied", {id: data.id, x:200, y:200});
+  });
+  
   socket.on("disconnect", function () {
-	delete playerPositions[socket.id];
+	delete playerData[socket.id];
 	socket.broadcast.emit("playerLeft", {id: socket.id});
   });
 });
