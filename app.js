@@ -76,21 +76,10 @@ app.use(express.static(__dirname + '/static/'));
 
 /* The remaining routes are to keep the app a bit safer. They are not needed. */
 
-// Do not serve raw html files
+// Do not serve incorrect html files
 app.get('*.html',function noServe(req,res,next){
     res.redirect('/');
 });
-
-// Do not serve raw js files
-app.get('*.js',function noServe(req,res,next){
-    res.redirect('/');
-});
-
-// Do not serve raw css files
-app.get('*.js',function noServe(req,res,next){
-    res.redirect('/');
-});
-
 
 //The 404 Route (ALWAYS Keep this as the last route)
 app.use(function(req,res){
@@ -130,7 +119,3 @@ io.sockets.on("connection", function (socket) {
 	socket.broadcast.emit("playerLeft", {id: socket.id});
   });
 });
-
-function strEndsWith(str, suffix) {
-    return str.match(suffix + "$") == suffix;
-}
