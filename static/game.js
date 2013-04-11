@@ -7,7 +7,7 @@ var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
 // sockets
-var socket = io.connect("http://128.237.241.44:8888");
+var socket = io.connect("http://128.237.136.83:8888");
 
 socket.on("connected", function (data) {
 	g.myPlayer = new Player(data.x, data.y);
@@ -84,8 +84,8 @@ var c = {
 
 	POWERUP_SIZE: 50,
 
-  BULLET_SIZE: 15,
-  BULLET_MOVE: 2
+	BULLET_SIZE: 15,
+	BULLET_MOVE: 2,
 
 	BASE_HP: 100,
 	
