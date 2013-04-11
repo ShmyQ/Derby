@@ -5,46 +5,48 @@
  C:\mongodb\bin\mongod.exe --dbpath c:\Users\Adam\term-project\mongo
  node app.js
 */
+
 var express = require("express");
 var app = express();
+var useragent = require('express-useragent');
 
+// Controls interaction with mongo
 var mongoExpressAuth = require('mongo-express-auth');
+
+var mongoExpressAuthConfig = {
+    mongo: { 
+        dbName: 'DerbyTT',
+        collectionName: 'accounts'
+    }
+}
 
 //===========================
 //  init
 //===========================
 
-mongoExpressAuth.init({
-    mongo: { 
-        dbName: 'myApp',
-        collectionName: 'accounts'
-    }
-}, function(){
-    console.log('mongo ready!');
-    app.listen(8889);
+mongoExpressAuth.init(mongoExpressAuthConfig, function(){
+    console.log('mongoExpressAuth initialized...');
 });
+
 
 app.use(express.bodyParser());
 app.use(express.cookieParser());
+app.use(useragent.express());
 app.use(express.session({ secret: 'teamgamerssecretmsg' }));
 
+app.listen(8889);
+
 //===========================
-//  routes
+//  Routes
 //===========================
 
 require('./loginRoutes.js')(mongoExpressAuth, app);
 require('./mobileDesktopRouter.js')(mongoExpressAuth,app);
 
-
-app.get('/', function(req, res){
-    mongoExpressAuth.checkLogin(req, res, function(err){
-        if (err)
-            res.sendfile('static/login.html');
-        else
-            res.sendfile('static/index.html');
-    });
+app.get('/',function(req,res){
+    response.sendfile('static/login.html');
 });
-
+    
 app.get('/db', function(req, res){
     mongoExpressAuth.checkLogin(req, res, function(err){
         if (err)
@@ -54,11 +56,12 @@ app.get('/db', function(req, res){
                 if (err)
                     res.send(err);
                 else 
-                    res.send(result); // NOTE: direct access to the database is a bad idea in a real app
+                    res.send(result); // NOTE: for test only, remove later
             });
         }
     });
 });
+
 
 app.get('/game', function(req, res){
     mongoExpressAuth.checkLogin(req, res, function(err){
@@ -71,8 +74,17 @@ app.get('/game', function(req, res){
 
 app.use(express.static(__dirname + '/static/'));
 
+/* The remaining routes are to keep the app a bit safer. They are not needed. */
 
+// Do not serve incorrect html files
+app.get('*.html',function noServe(req,res,next){
+    res.redirect('/');
+});
 
+//The 404 Route (ALWAYS Keep this as the last route)
+app.use(function(req,res){
+    res.redirect('/');
+});
 
 // ========================
 // === Socket.io server ===
@@ -80,14 +92,30 @@ app.use(express.static(__dirname + '/static/'));
 
 var io = require("socket.io").listen(8888,{ log: false });
 
+var playerData = new Object();
+
 io.sockets.on("connection", function (socket) {
-  socket.on("coords", function (data) {
-    io.sockets.emit("drawcoords", {x: data.x + 20, y: data.y + 20});
-  });
- 
+  socket.emit("connected", {id: socket.id, x: 200, y: 200, players: playerData});
+  socket.broadcast.emit("playerConnected", {id: socket.id, x: 200, y: 200});
+  playerData[socket.id] = {x: 200, y: 200, hp: 100, powerups: []};
 
   socket.on("sendPosition", function (data) {
-   socket.broadcast.emit("receivePosition", {player:socket.id, position:data});
+	playerData[data.id] = data.player;
+	socket.broadcast.emit("receivePosition", data);
   });
   
+  socket.on("bombDropped", function (data) {
+    socket.broadcast.emit("placeBomb", data);
+  });
+  
+  socket.on("sendDeath", function (data) {
+	socket.emit("respawn", {x: 200, y: 200});
+	playerData[data.id] = {x: 200, y: 200, hp: 100, powerups: []};
+	socket.broadcast.emit("playerDied", {id: data.id, x:200, y:200});
+  });
+  
+  socket.on("disconnect", function () {
+	delete playerData[socket.id];
+	socket.broadcast.emit("playerLeft", {id: socket.id});
+  });
 });

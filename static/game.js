@@ -6,16 +6,65 @@
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
+// sockets
+var socket = io.connect("http://128.237.241.44:8888");
+
+socket.on("connected", function (data) {
+	g.myPlayer = new Player(data.x, data.y);
+	g.myID = data.id;
+
+	g.enemies = new Object();
+	var players = data.players;
+	for (var id in players) {
+		g.enemies[id] = new Player(players[id].x, players[id].y);
+	}
+
+	init();
+});
+
+socket.on("playerConnected", function (data) {
+	g.enemies[data.id] = new Player(data.x, data.y);
+});
+
+socket.on("receivePosition", function (data) {
+	if (g.enemies[data.id] === undefined) {
+		g.enemies[data.id] = new Player(data.player.x, data.player.y);
+	}
+	else {
+		g.enemies[data.id].x = data.player.x;
+		g.enemies[data.id].y = data.player.y;
+		g.enemies[data.id].hp = data.player.hp;
+	}
+});
+
+socket.on("placeBomb", function (data) {
+	dropBomb(data.x, data.y);
+});
+
+socket.on("respawn", function (data) {
+	console.log("respawning");
+	g.myPlayer = new Player(data.x, data.y);
+});
+
+socket.on("playerDied", function (data) {
+	g.enemies[data.id] = new Player(data.x, data.y);
+});
+
+socket.on("playerLeft", function (data) {
+	delete g.enemies[data.id];
+});
 
 // Globals
 var g = {
 	drawHandler: null,
   bulletHandler: null,
 	myPlayer: null,
+	myID: 0,
 	bombs: null,
 	rocks: null,
 	powerups: null,
-  bullets: null
+  bullets: null,
+	enemies: null,
 }
 
 // Constants
@@ -35,6 +84,8 @@ var c = {
 
   BULLET_SIZE: 15,
   BULLET_MOVE: 2
+
+	BASE_HP: 100,
 }
 
 window.addEventListener('devicemotion', function(event) {
@@ -45,11 +96,7 @@ window.addEventListener('devicemotion', function(event) {
 });
 
 
-
-init();
-
 function init() {
-	g.myPlayer = new Player(200, 200);
 	g.bombs = [];
 	g.rocks = [new Rock(100, 100), new Rock(100, 150), new Rock(100, 200), new Rock(150, 100), new Rock(200, 100)];
 	g.powerups = [new Powerup(300, 300, "bullet")];
@@ -59,7 +106,7 @@ function init() {
   canvas.addEventListener('mousedown', clicked, false);
 	document.onkeydown = onKeyDown;
 
-	g.drawHandler = setInterval(draw, 15);
+	g.drawHandler = setInterval(draw, 10);
 }
 
 function draw() {
@@ -103,8 +150,8 @@ function draw() {
 
 	// draw bombs
 	g.bombs.forEach( function(bomb) {
-		if (bomb.x >= g.myPlayer.x - canvas.width/2 && bomb.x < g.myPlayer.x + canvas.width/2
-			&& bomb.y >= g.myPlayer.y - canvas.height/2 && bomb.y < g.myPlayer.y + canvas.height/2) {
+		if (bomb.x + c.BOMB_RADIUS >= g.myPlayer.x - canvas.width/2 && bomb.x - c.BOMB_RADIUS < g.myPlayer.x + canvas.width/2
+			&& bomb.y + c.BOMB_RADIUS >= g.myPlayer.y - canvas.height/2 && bomb.y - c.BOMB_RADIUS < g.myPlayer.y + canvas.height/2) {
 			var xpos = canvas.width/2 - (g.myPlayer.x - bomb.x);
 			var ypos = canvas.height/2 - (g.myPlayer.y - bomb.y);
 
@@ -122,8 +169,8 @@ function draw() {
 
 	// draw rocks
 	g.rocks.forEach( function (rock) {
-		if (rock.x >= g.myPlayer.x - canvas.width/2 && rock.x < g.myPlayer.x + canvas.width/2
-			&& rock.y >= g.myPlayer.y - canvas.height/2 && rock.y < g.myPlayer.y + canvas.height/2) {
+		if (rock.x + rock.size/2 >= g.myPlayer.x - canvas.width/2 && rock.x - rock.size/2 < g.myPlayer.x + canvas.width/2
+			&& rock.y + rock.size/2 >= g.myPlayer.y - canvas.height/2 && rock.y - rock.size/2 < g.myPlayer.y + canvas.height/2) {
 			var xpos = canvas.width/2 - (g.myPlayer.x - rock.x);
 			var ypos = canvas.height/2 - (g.myPlayer.y - rock.y);
 
@@ -158,10 +205,37 @@ function draw() {
     }
   });
 
+	// draw enemies
+	for (var enemyID in g.enemies) {
+		var enemy = g.enemies[enemyID];
+		if (enemy.x + c.BALL_RADIUS >= g.myPlayer.x - canvas.width/2 && enemy.x - c.BALL_RADIUS < g.myPlayer.x + canvas.width/2
+			&& enemy.y + c.BALL_RADIUS >= g.myPlayer.y - canvas.height/2 && enemy.y - c.BALL_RADIUS < g.myPlayer.y + canvas.height/2) {
+			var xpos = canvas.width/2 - (g.myPlayer.x - enemy.x);
+			var ypos = canvas.height/2 - (g.myPlayer.y - enemy.y);
+
+			ctx.fillStyle = "black";
+			ctx.beginPath();
+			ctx.arc(xpos, ypos, c.BALL_RADIUS, 0, 2*Math.PI, true);
+			ctx.fill();
+
+			// hp
+			ctx.fillStyle = "red";
+			ctx.beginPath();
+			ctx.arc(xpos, ypos, c.BALL_RADIUS * (1 - ((c.BASE_HP - enemy.hp) / c.BASE_HP)), 0, 2*Math.PI, true);
+			ctx.fill();
+		}
+	}
+
 	// draw player
-	ctx.fillStyle = "blue";
+	ctx.fillStyle = "black";
 	ctx.beginPath();
 	ctx.arc(canvas.width/2, canvas.height/2, c.BALL_RADIUS, 0, 2*Math.PI, true);
+	ctx.fill();
+
+	// hp
+	ctx.fillStyle = "blue";
+	ctx.beginPath();
+	ctx.arc(canvas.width/2, canvas.height/2, c.BALL_RADIUS * (1 - ((c.BASE_HP - g.myPlayer.hp) / c.BASE_HP)), 0, 2*Math.PI, true);
 	ctx.fill();
 }
 
@@ -187,8 +261,25 @@ function explodeBomb(bomb) {
 		g.rocks.splice(g.rocks.indexOf(rock), 1);
 	});
 
+	// hurt player
+	var dist = Math.sqrt((g.myPlayer.x - bomb.x)*(g.myPlayer.x - bomb.x) + (g.myPlayer.y - bomb.y)*(g.myPlayer.y - bomb.y));
+	if (dist < c.BOMB_EXPLOSION_RADIUS) {
+		g.myPlayer.hp -= 50;
+
+		checkForDeath();
+	}
+
 	// remove bomb
 	g.bombs.splice(g.bombs.indexOf(bomb), 1);
+}
+
+function checkForDeath() {
+	if (g.myPlayer.hp <= 0) {
+		console.log("dead");
+		g.isDead = true;
+
+		socket.emit("sendDeath", {id: g.myID});
+	}
 }
 
 function decrementTimer(bomb) {
@@ -230,12 +321,12 @@ function moveBullets() {
 }
 
 function moveBall(xvel, yvel) {
-	if (checkForCollision(xvel, yvel)) {
-		return;
+	if (!checkForCollision(xvel, yvel)) {
+		g.myPlayer.x = g.myPlayer.x + xvel;
+		g.myPlayer.y = g.myPlayer.y + yvel;
 	}
 
-	g.myPlayer.x = g.myPlayer.x + xvel;
-	g.myPlayer.y = g.myPlayer.y + yvel;
+	socket.emit("sendPosition", {id: g.myID, player: g.myPlayer});
 }
 
 function checkForCollision(xvel, yvel) {
@@ -271,8 +362,8 @@ function checkBoundaryCollision(xvel, yvel) {
 			g.myPlayer.y = c.MAP_HEIGHT - c.BALL_RADIUS;
 		else
 			// change y position by the fraction of the distance traveled
-			//g.myPlayer.y = g.mhPlayer.y + yvel * ((xvel - (c.MAP_WIDTH - g.myPlayer.x)) / xvel);
-			g.myPlayer.y = g.mhPlayer.y + yvel;
+			//g.myPlayer.y = g.myPlayer.y + yvel * ((xvel - (c.MAP_WIDTH - g.myPlayer.x)) / xvel);
+			g.myPlayer.y = g.myPlayer.y + yvel;
 
 		g.myPlayer.x = c.MAP_WIDTH - c.BALL_RADIUS;
 		return true;
@@ -334,10 +425,11 @@ function addPowerup(powerup) {
 function Player(x, y) {
 	this.x = x;
 	this.y = y;
-  this.powerups = [];
+    this.powerups = [];
+	this.hp = c.BASE_HP;
 }
 
-function Rock(x, y) { // Should we use prototypes for all obstacles?
+function Rock(x, y) { // Should we use prototypes for all obstacles? >>yes<<
 	this.x = x;
 	this.y = y;
 	this.size = c.ROCK_SIZE;
@@ -369,6 +461,7 @@ function onTouch(e) {
   }
   else {
     dropBomb(g.myPlayer.x, g.myPlayer.y);
+    socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});
   }
 }
 
@@ -378,6 +471,7 @@ function clicked(e) {
   }
   else {
     dropBomb(g.myPlayer.x, g.myPlayer.y);
+    socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});
   }
 }
 
@@ -385,33 +479,30 @@ function onKeyDown(e) {
 	// space - drop bomb
 	if (e.keyCode === 32) {
 		dropBomb(g.myPlayer.x, g.myPlayer.y);
+		socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});
 	}
 	// move left
 	else if (e.keyCode === 65) {
-		if (checkForCollision(-5, 0))
-			return;
-
-		g.myPlayer.x -= 5;
+		moveBall(-5, 0);
 	}
 	// move right
 	else if (e.keyCode === 68) {
-		if (checkForCollision(5, 0))
-			return;
-
-		g.myPlayer.x += 5;
+		moveBall(5, 0);
 	}
 	// move up
 	else if (e.keyCode === 87) {
-		if (checkForCollision(0, -5))
-			return;
-
-		g.myPlayer.y -= 5;
+		moveBall(0, -5);
 	}
 	// move down
 	else if (e.keyCode === 83) {
-		if (checkForCollision(0, 5))
-			return;
-
-		g.myPlayer.y += 5;
+		moveBall(0, 5);
+	}
+	// move up right
+	else if (e.keyCode === 69) {
+		moveBall(5, -5);
+	}
+	// move up left
+	else if (e.keyCode === 81) {
+		moveBall(-5, -5);
 	}
 }

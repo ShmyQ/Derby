@@ -1,9 +1,22 @@
-// Taken from https://github.com/es92/CrossPlatformTodoApp
+// Adapted from https://github.com/es92/CrossPlatformTodoApp
 
 module.exports = function mobileDesktopRouter(mongoExpressAuth, app){
-    app.all('/', function mobileDesktopRouter(req, res, next){
+    // Check login 
+    app.all('/', function checkLogin(req,res,next){
+        console.log("Checking login");
+        mongoExpressAuth.checkLogin(req, res, function(err){
+            if (err)
+                res.sendfile(mobileDesktopPrefixer(req) + "/login.html");
+            else
+               next();
+        });
+    });
+    
+   // route to /mobile or /desktop if necessary
+    app.all('/', function directoryRouter(req, res, next){
+        console.log("Routing");
         if (!strStartsWith(req.url, '/desktop') && !strStartsWith(req.url, '/mobile')){
-            if (req && req.useragent && req.useragent.isMobile){
+            if (req.useragent.isMobile){
                 wwwExists('static/mobile' + req.url, function(exists){
                     if (exists)
                         req.url = '/mobile' + req.url;
@@ -14,25 +27,16 @@ module.exports = function mobileDesktopRouter(mongoExpressAuth, app){
                 wwwExists('static/desktop' + req.url, function(exists){
                     if (exists)
                         req.url = '/desktop' + req.url;
-                    next();
+                   next();
                 });
             }
+           
         }
         else {
             next();
         }
     });
-
-    app.get('/desktop/', function(req, res, next){
-        mongoExpressAuth.checkLogin(req, res, function(err){
-            if (err)
-                res.sendfile('static/login.html');
-            else
-                next();
-        });
-    });
-
- };
+};
  
  //==================
 //      helpers
@@ -40,15 +44,17 @@ module.exports = function mobileDesktopRouter(mongoExpressAuth, app){
 
 var fs = require('fs');
 function wwwExists(url, done){
-    if (strEndsWith(url, '/'))
-        url += 'index.html';
-    fs.exists(url, done);
+    return fs.exists(url, done);
 }
 
 function strStartsWith(str, prefix) {
     return str.indexOf(prefix) === 0;
-}
+}   
 
-function strEndsWith(str, suffix) {
-    return str.match(suffix + "$") == suffix;
+function mobileDesktopPrefixer(req){
+    var reqPrefix = 'static/desktop';
+    if(req.useragent.isMobile)
+        reqPrefix = 'static/mobile';
+        
+    return reqPrefix;
 }

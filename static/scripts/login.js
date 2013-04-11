@@ -1,3 +1,16 @@
+
+$(document).ready(function() {
+   $("#usernameInput").focus();
+    // Pressing enter on passwordField attempts login
+    $("#passwordField").keyup(function(event){
+		if(event.which === 13){
+			loginButton.onclick();  
+		}
+	});
+});
+
+
+// Taken from https://github.com/es92/mongo-express-auth
 /*=============================================
      self loading login manager
 
@@ -17,10 +30,10 @@ window.addEventListener('load', function(){
                 login(username, password);
             },
             onRegisterFail: function(msg){
-                alert(msg);
+                $("#message").html("<div class = 'red'>ERROR: " + msg + "</div>");
             },
             onLoginFail: function(msg){
-                alert(msg);
+                 $("#message").html("<div class = 'red'>ERROR: " + msg + "</div>");
             }
         }
 
