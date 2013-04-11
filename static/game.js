@@ -84,8 +84,8 @@ var c = {
 
 	POWERUP_SIZE: 50,
 
-  BULLET_SIZE: 15,
-  BULLET_MOVE: 2
+	BULLET_SIZE: 15,
+	BULLET_MOVE: 2,
 
 	BASE_HP: 100,
 	
