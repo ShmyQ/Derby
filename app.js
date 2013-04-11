@@ -126,3 +126,15 @@ io.sockets.on("connection", function (socket) {
 	socket.broadcast.emit("playerLeft", {id: socket.id});
   });
 });
+
+var lobbyPlayers = [];
+
+var chat = io.of('/chat').on('connection', function (socket) {
+    lobbyPlayers.push(socket.id);
+    socket.emit('receivePlayers', {
+        players: lobbyPlayers
+    });
+    chat.emit('joinLobby', {
+        playerName: socket.id
+    });
+  });
