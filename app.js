@@ -61,6 +61,24 @@ app.get('/game', function(req, res){
     res.sendfile('static/game.html');
 });
 
+app.get('/game2', function(req, res){
+    mongoExpressAuth.checkLogin(req, res, function(err){
+        //if (err)
+        //   res.sendfile('static/login.html');
+        //else
+            res.sendfile('static/game2.html');
+    });
+});
+
+app.get('/game3', function(req, res){
+    mongoExpressAuth.checkLogin(req, res, function(err){
+        //if (err)
+        //   res.sendfile('static/login.html');
+        //else
+            res.sendfile('static/game3.html');
+    });
+});
+
 app.use(express.static(__dirname + '/static/'));
 
 /* The remaining routes are to keep the app a bit safer. They are not needed. */
@@ -84,9 +102,9 @@ var io = require("socket.io").listen(8888,{ log: false });
 var playerData = new Object();
 
 io.sockets.on("connection", function (socket) {
-  socket.emit("connected", {id: socket.id, x: 200, y: 200, players: playerData});
-  socket.broadcast.emit("playerConnected", {id: socket.id, x: 200, y: 200});
-  playerData[socket.id] = {x: 200, y: 200, hp: 100, powerups: []};
+  socket.emit("connected", {id: socket.id, x: 100, y: 100, players: playerData});
+  socket.broadcast.emit("playerConnected", {id: socket.id, x: 100, y: 100});
+  playerData[socket.id] = {x: 100, y: 100, hp: 100, powerups: []};
 
   socket.on("sendPosition", function (data) {
 	playerData[data.id] = data.player;
@@ -98,9 +116,9 @@ io.sockets.on("connection", function (socket) {
   });
   
   socket.on("sendDeath", function (data) {
-	socket.emit("respawn", {x: 200, y: 200});
-	playerData[data.id] = {x: 200, y: 200, hp: 100, powerups: []};
-	socket.broadcast.emit("playerDied", {id: data.id, x:200, y:200});
+	socket.emit("respawn", {x: 100, y: 100});
+	playerData[data.id] = {x: 100, y: 100, hp: 100, powerups: []};
+	socket.broadcast.emit("playerDied", {id: data.id, x:100, y:100});
   });
   
   socket.on("disconnect", function () {

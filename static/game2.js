@@ -12,13 +12,13 @@ var socket = io.connect("http://128.237.241.44:8888");
 socket.on("connected", function (data) {
 	g.myPlayer = new Player(data.x, data.y);
 	g.myID = data.id;
-
+	
 	g.enemies = new Object();
 	var players = data.players;
 	for (var id in players) {
 		g.enemies[id] = new Player(players[id].x, players[id].y);
 	}
-
+	
 	init();
 });
 
@@ -57,13 +57,11 @@ socket.on("playerLeft", function (data) {
 // Globals
 var g = {
 	drawHandler: null,
-  bulletHandler: null,
 	myPlayer: null,
 	myID: 0,
 	bombs: null,
 	rocks: null,
 	powerups: null,
-  bullets: null,
 	enemies: null,
 	backgroundImg: null,
 	platformImg: null,
@@ -83,10 +81,7 @@ var c = {
 	BOMB_EXPLOSION_RADIUS: 100,
 
 	POWERUP_SIZE: 50,
-
-  BULLET_SIZE: 15,
-  BULLET_MOVE: 2
-
+	
 	BASE_HP: 100,
 	
 	PLATFORM_IMG_WIDTH: 512,
@@ -96,27 +91,23 @@ var c = {
 }
 
 window.addEventListener('devicemotion', function(event) {
-  var xvel = -event.accelerationIncludingGravity.x / 2;
-  var yvel = event.accelerationIncludingGravity.y / 2;
+      var xvel = -event.accelerationIncludingGravity.x / 2;
+	  var yvel = event.accelerationIncludingGravity.y / 2;
 
-  moveBall(xvel, yvel);
+	  moveBall(xvel, yvel);
 });
 
 function init() {
 	g.bombs = [];
-	g.rocks = [];
-	g.powerups = [new Powerup(300, 300, "bullet")];
-	g.bullets = [];
+	g.rocks = [new Rock(100, 100), new Rock(100, 150), new Rock(100, 200), new Rock(150, 100), new Rock(200, 100)];
+	g.powerups = [new Powerup(300, 300, "invincible")];
 	
 	g.backgroundImg = new Image();
 	g.backgroundImg.src = "spaceBackground.jpg"
 	g.platformImg = new Image();
 	g.platformImg.src = "spacePlatform.jpg"
 	
-	generateRocks();
-	
 	canvas.addEventListener('touchstart', onTouch, false);
-	canvas.addEventListener('mousedown', clicked, false);
 	document.onkeydown = onKeyDown;
 
 	g.drawHandler = setInterval(draw, 50);
@@ -126,7 +117,7 @@ function draw() {
 	ctx.clearRect(0,0,canvas.width, canvas.height);
 
 	// background
-	// ctx.drawImage(g.backgroundImg, 0, 0, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+	ctx.drawImage(g.backgroundImg, 0, 0, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
 	
 	// draw land as a grid
 	ctx.fillStyle = "green";
@@ -261,20 +252,6 @@ function draw() {
 		}
 	});
 
-  // draw bullets
-  g.bullets.forEach( function(bullet) {
-    if (bullet.x >= g.myPlayer.x - canvas.width/2 && bullet.x < g.myPlayer.x + canvas.width/2
-      && bullet.y >= g.myPlayer.y - canvas.height/2 && bullet.y < g.myPlayer.y + canvas.height/2) {
-      var xpos = canvas.width/2 - (g.myPlayer.x - bullet.x);
-      var ypos = canvas.height/2 - (g.myPlayer.y - bullet.y);
-
-      ctx.fillStyle = "black";
-      ctx.beginPath();
-      ctx.arc(xpos, ypos, c.BULLET_SIZE, 0, 2*Math.PI, true);
-      ctx.fill();
-    }
-  });
-
 	// draw enemies
 	for (var enemyID in g.enemies) {
 		var enemy = g.enemies[enemyID];
@@ -282,12 +259,12 @@ function draw() {
 			&& enemy.y + c.BALL_RADIUS >= g.myPlayer.y - canvas.height/2 && enemy.y - c.BALL_RADIUS < g.myPlayer.y + canvas.height/2) {
 			var xpos = canvas.width/2 - (g.myPlayer.x - enemy.x);
 			var ypos = canvas.height/2 - (g.myPlayer.y - enemy.y);
-
+			
 			ctx.fillStyle = "black";
 			ctx.beginPath();
 			ctx.arc(xpos, ypos, c.BALL_RADIUS, 0, 2*Math.PI, true);
 			ctx.fill();
-
+			
 			// hp
 			ctx.fillStyle = "red";
 			ctx.beginPath();
@@ -295,13 +272,13 @@ function draw() {
 			ctx.fill();
 		}
 	}
-
+	
 	// draw player
 	ctx.fillStyle = "black";
 	ctx.beginPath();
 	ctx.arc(canvas.width/2, canvas.height/2, c.BALL_RADIUS, 0, 2*Math.PI, true);
 	ctx.fill();
-
+	
 	// hp
 	ctx.fillStyle = "blue";
 	ctx.beginPath();
@@ -331,6 +308,7 @@ function drawGrid(x, y, width, height) {
 		reducex = g.myPlayer.x % size;
 	if (g.myPlayer.y >= canvas.height/2)
 		reducey = g.myPlayer.y % size;
+	console.log(g.myPlayer.y);
 	
 	ctx.lineWidth = 2;
 	for (var i = 0; i <= width; i+=size) {
@@ -340,13 +318,6 @@ function drawGrid(x, y, width, height) {
 	}
 }
 
-function generateRocks() {
-	for (var i = c.ROCK_SIZE/2; i < c.MAP_WIDTH - c.ROCK_SIZE/2; i+=c.ROCK_SIZE*4) {
-		for (var	 j = c.ROCK_SIZE/2; j < c.MAP_HEIGHT - c.ROCK_SIZE/2; j+=c.ROCK_SIZE*4) {
-			g.rocks.push(new Rock(i, j));
-		}
-	}
-}
 
 function dropBomb(x, y) {
 	var bomb = new Bomb(x, y);
@@ -374,10 +345,10 @@ function explodeBomb(bomb) {
 	var dist = Math.sqrt((g.myPlayer.x - bomb.x)*(g.myPlayer.x - bomb.x) + (g.myPlayer.y - bomb.y)*(g.myPlayer.y - bomb.y));
 	if (dist < c.BOMB_EXPLOSION_RADIUS) {
 		g.myPlayer.hp -= 50;
-
+		
 		checkForDeath();
 	}
-
+	
 	// remove bomb
 	g.bombs.splice(g.bombs.indexOf(bomb), 1);
 }
@@ -386,7 +357,7 @@ function checkForDeath() {
 	if (g.myPlayer.hp <= 0) {
 		console.log("dead");
 		g.isDead = true;
-
+		
 		socket.emit("sendDeath", {id: g.myID});
 	}
 }
@@ -398,35 +369,6 @@ function decrementTimer(bomb) {
 		clearInterval(bomb.timerHandler);
 		explodeBomb(bomb);
 	}
-}
-
-function fireBullet(x, y) {
-  // Finding angle of direction
-  var deltaX = x - (g.myPlayer.x + c.BALL_RADIUS);
-  var deltaY = y - (g.myPlayer.y - c.BALL_RADIUS);
-  var theta = Math.atan2(-deltaY, deltaX);
-  if (theta < 0) {
-    theta += 2 * Math.PI;
-  }
-  theta = theta * (180 / Math.PI);
-  g.bullets.push(new Bullet(g.myPlayer.x, g.myPlayer.y, theta));
-  if (g.bullets.length === 1) {
-    g.bulletHandler = setInterval(moveBullets, 50);
-  }
-  console.log("New bullet direction = " + theta);
-}
-
-function moveBullets() {
-  // Loop through all bullets. Check for collision then move them
-  // When checking collision check if g.bullets.length === 0, if so clearInterval(g.bulletHandler);
-
-  // Decimal values here might make it lag, but rounding will make non-straight lines
-  g.bullets.forEach(function (bullet) {
-    var deltaX = c.BULLET_MOVE * Math.cos(bullet.direction * Math.PI / 180);
-    var deltaY = c.BULLET_MOVE * Math.sin(bullet.direction * Math.PI / 180);
-    bullet.x += deltaX;
-    bullet.y -= deltaY;
-  });
 }
 
 function moveBall(xvel, yvel) {
@@ -516,15 +458,6 @@ function checkPowerupCollision(xvel, yvel) {
   });
 }
 
-function checkBulletCollision(xvel, yvel) {
-  g.bullets.forEach( function(bullet) {
-    if (g.myPlayer.x + c.BALL_RADIUS + xvel >= bullet.x - c.BULLET_SIZE/2 && g.myPlayer.x - c.BALL_RADIUS + xvel < bullet.x + c.BULLET_SIZE/2
-      && g.myPlayer.y + c.BALL_RADIUS + yvel >= bullet.y - c.BULLET_SIZE/2 && g.myPlayer.y - c.BALL_RADIUS + yvel < bullet.y + c.BULLET_SIZE/2) {
-      // TODO: Kill player
-    }
-  });
-}
-
 function addPowerup(powerup) {
   g.myPlayer.powerups.push(powerup.power);
   g.powerups.splice(g.powerups.indexOf(powerup), 1);
@@ -558,30 +491,9 @@ function Bomb(x, y) {
 	this.timerHandler = setInterval( function() { decrementTimer(bomb); }, 1000 );
 }
 
-function Bullet(x, y, direction) {
-  this.x = x;
-  this.y = y;
-  this.direction = direction;
-}
-
 function onTouch(e) {
-  if(g.myPlayer.powerups.indexOf("bullet") !== -1) {
-    fireBullet(e.changedTouches.pageX, e.changedTouches.pageY);
-  }
-  else {
-    dropBomb(g.myPlayer.x, g.myPlayer.y);
-    socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});
-  }
-}
-
-function clicked(e) {
-  if(g.myPlayer.powerups.indexOf("bullet") !== -1) {
-    fireBullet(e.x, e.y);
-  }
-  else {
-    dropBomb(g.myPlayer.x, g.myPlayer.y);
-    socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});
-  }
+	dropBomb(g.myPlayer.x, g.myPlayer.y);
+	socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});
 }
 
 function onKeyDown(e) {
