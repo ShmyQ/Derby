@@ -99,15 +99,13 @@ window.addEventListener('devicemotion', function(event) {
 
 function init() {
 	g.bombs = [];
-	g.rocks = [];
+	g.rocks = [new Rock(100, 100), new Rock(100, 150), new Rock(100, 200), new Rock(150, 100), new Rock(200, 100)];
 	g.powerups = [new Powerup(300, 300, "invincible")];
 	
 	g.backgroundImg = new Image();
 	g.backgroundImg.src = "spaceBackground.jpg"
 	g.platformImg = new Image();
 	g.platformImg.src = "spacePlatform.jpg"
-	
-	generateRocks();
 	
 	canvas.addEventListener('touchstart', onTouch, false);
 	document.onkeydown = onKeyDown;
@@ -119,7 +117,7 @@ function draw() {
 	ctx.clearRect(0,0,canvas.width, canvas.height);
 
 	// background
-	// ctx.drawImage(g.backgroundImg, 0, 0, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+	ctx.drawImage(g.backgroundImg, 0, 0, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
 	
 	// draw land as a grid
 	ctx.fillStyle = "green";
@@ -310,6 +308,7 @@ function drawGrid(x, y, width, height) {
 		reducex = g.myPlayer.x % size;
 	if (g.myPlayer.y >= canvas.height/2)
 		reducey = g.myPlayer.y % size;
+	console.log(g.myPlayer.y);
 	
 	ctx.lineWidth = 2;
 	for (var i = 0; i <= width; i+=size) {
@@ -319,13 +318,6 @@ function drawGrid(x, y, width, height) {
 	}
 }
 
-function generateRocks() {
-	for (var i = c.ROCK_SIZE/2; i < c.MAP_WIDTH - c.ROCK_SIZE/2; i+=c.ROCK_SIZE*4) {
-		for (var	 j = c.ROCK_SIZE/2; j < c.MAP_HEIGHT - c.ROCK_SIZE/2; j+=c.ROCK_SIZE*4) {
-			g.rocks.push(new Rock(i, j));
-		}
-	}
-}
 
 function dropBomb(x, y) {
 	var bomb = new Bomb(x, y);
