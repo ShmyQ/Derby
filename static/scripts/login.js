@@ -1,11 +1,20 @@
 
 $(document).ready(function() {
    $("#usernameInput").focus();
-    // Pressing enter on passwordField attempts login
-    $("#passwordField").keyup(function(event){
+   
+    // Pressing enter on passwordInput attempts login
+    $("#passwordInput").keyup(function(event){
 		if(event.which === 13){
 			loginButton.onclick();  
 		}
+     });    
+    
+    // Pressing enter on usernameInput moves focus to passwordInput
+    $("#usernameInput").keyup(function(event){
+        if (event.which === 13) {
+            $("#passwordInput").focus();
+        }
+       
 	});
 });
 

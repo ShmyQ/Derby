@@ -232,7 +232,7 @@ button:active {
     position: relative;
     top: 0px;
     left: 0px;
-    width: 101.5%;
+    width: 101.1%;
     height: 10%;
     z-index: 1;
     border-radius: 10px 10px 0px 0px;
@@ -242,9 +242,9 @@ button:active {
 
 #chatBox{
     height: 400px;
-    width: 650px;
+    width: 830px;
     position: absolute; 
-    left: 200px;
+    left: 160px;
     top: -5px;
 }
 

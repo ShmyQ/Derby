@@ -48,28 +48,17 @@ app.get('/',function(req,res){
 });
     
 app.get('/db', function(req, res){
-    mongoExpressAuth.checkLogin(req, res, function(err){
-        if (err)
-            res.send(err);
-        else {
-            mongoExpressAuth.getAccount(req, function(err, result){
-                if (err)
-                    res.send(err);
-                else 
-                    res.send(result); // NOTE: for test only, remove later
-            });
-        }
+        mongoExpressAuth.getAccount(req, function(err, result){
+            if (err)
+                res.send(err);
+            else 
+                res.send(result); // NOTE: for test only, remove later
+        });   
     });
-});
 
 
 app.get('/game', function(req, res){
-    mongoExpressAuth.checkLogin(req, res, function(err){
-        //if (err)
-        //   res.sendfile('static/login.html');
-        //else
-            res.sendfile('static/game.html');
-    });
+    res.sendfile('static/game.html');
 });
 
 app.use(express.static(__dirname + '/static/'));
