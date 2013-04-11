@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title> Mobile Login </title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" href="/mobile/icon.png" />
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    
+    <link href='http://fonts.googleapis.com/css?family=Iceland' rel='stylesheet' type='text/css'>
+    <link href="mobile/css/reset.css" rel="stylesheet" type="text/css">
+	<link href="mobile/css/styles.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+       <h1 id= "titlebar"> Mobile Derby </h1>
+      
+        <div class ="box">
+         <p id = "message"><br /></p>
+            <div class = "fieldBox">
+                <div id="usernameField"> Username: 
+                   <input id="usernameInput" type="text" autocapitalize="off" autocorrect="off" autocomplete="off" x-webkit-speech /> 
+                </div>
+            </div>
+            <div class = "fieldBox">
+                <div id="passwordField"> Password: 
+                    <input id="passwordInput" type="password" /> 
+                </div>
+            </div>
+            <button id="loginButton"> Login </button>
+            <button id="registerButton"> Register </button>
+         </div>
+         
+        <script type="text/javascript" src="scripts/libs/jquery-1.9.1.min.js"></script>
+        <script type="text/javascript" src="http://localhost:8888/socket.io/socket.io.js"></script>
+        <script type="text/javascript" src="scripts/login.js"></script>
+</body>
+</html>

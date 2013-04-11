@@ -1,6 +1,8 @@
 ADAM
  - Creating basic UI / Login / DB Connection
 
+ - Can now update acct through mongoExpressAuth
+ 
 JON
  - Powerups
 

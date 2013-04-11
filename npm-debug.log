@@ -1,0 +1,51 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'C:\\Program Files\\nodejs\\\\node.exe',
+1 verbose cli   'C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js',
+1 verbose cli   'install',
+1 verbose cli   'mongo-account-manager' ]
+2 info using npm@1.2.2
+3 info using node@v0.8.18
+4 verbose node symlink C:\Program Files\nodejs\\node.exe
+5 verbose read json C:\Users\Adam\term-project\package.json
+6 verbose read json C:\Users\Adam\term-project\node_modules\express\package.json
+7 verbose read json C:\Users\Adam\term-project\node_modules\mongo-express-auth\package.json
+8 verbose read json C:\Users\Adam\term-project\node_modules\socket.io\package.json
+9 verbose read json C:\Users\Adam\term-project\package.json
+10 verbose cache add [ 'mongo-account-manager', null ]
+11 verbose cache add name=undefined spec="mongo-account-manager" args=["mongo-account-manager",null]
+12 verbose parsed url { pathname: 'mongo-account-manager',
+12 verbose parsed url   path: 'mongo-account-manager',
+12 verbose parsed url   href: 'mongo-account-manager' }
+13 silly lockFile d62c8e80-mongo-account-manager mongo-account-manager
+14 verbose lock mongo-account-manager C:\Users\Adam\AppData\Roaming\npm-cache\d62c8e80-mongo-account-manager.lock
+15 silly lockFile d62c8e80-mongo-account-manager mongo-account-manager
+16 verbose addNamed [ 'mongo-account-manager', '' ]
+17 verbose addNamed [ null, '' ]
+18 silly lockFile 5685818b-mongo-account-manager mongo-account-manager@
+19 verbose lock mongo-account-manager@ C:\Users\Adam\AppData\Roaming\npm-cache\5685818b-mongo-account-manager.lock
+20 silly addNameRange { name: 'mongo-account-manager', range: '', hasData: false }
+21 verbose url raw mongo-account-manager
+22 verbose url resolving [ 'https://registry.npmjs.org/', './mongo-account-manager' ]
+23 verbose url resolved https://registry.npmjs.org/mongo-account-manager
+24 info trying registry request attempt 1 at 21:28:26
+25 http GET https://registry.npmjs.org/mongo-account-manager
+26 http 404 https://registry.npmjs.org/mongo-account-manager
+27 silly registry.get cb [ 404,
+27 silly registry.get   { server: 'CouchDB/1.2.1 (Erlang OTP/R15B03)',
+27 silly registry.get     date: 'Sat, 06 Apr 2013 01:28:26 GMT',
+27 silly registry.get     'content-type': 'application/json',
+27 silly registry.get     'content-length': '52',
+27 silly registry.get     'cache-control': 'must-revalidate' } ]
+28 silly lockFile 5685818b-mongo-account-manager mongo-account-manager@
+29 error 404 'mongo-account-manager' is not in the npm registry.
+29 error 404 You should bug the author to publish it
+29 error 404
+29 error 404 Note that you can also install from a
+29 error 404 tarball, folder, or http url, or git url.
+30 error System Windows_NT 6.2.9200
+31 error command "C:\\Program Files\\nodejs\\\\node.exe" "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js" "install" "mongo-account-manager"
+32 error cwd C:\Users\Adam\term-project
+33 error node -v v0.8.18
+34 error npm -v 1.2.2
+35 error code E404
+36 verbose exit [ 1, true ]
