@@ -14,7 +14,7 @@ var useragent = require('express-useragent');
 var mongoExpressAuth = require('mongo-express-auth');
 
 var mongoExpressAuthConfig = {
-    mongo: { 
+    mongo: {
         dbName: 'DerbyTT',
         collectionName: 'accounts'
     }
@@ -46,14 +46,14 @@ require('./mobileDesktopRouter.js')(mongoExpressAuth,app);
 app.get('/',function(req,res){
     response.sendfile('static/login.html');
 });
-    
+
 app.get('/db', function(req, res){
         mongoExpressAuth.getAccount(req, function(err, result){
             if (err)
                 res.send(err);
-            else 
+            else
                 res.send(result); // NOTE: for test only, remove later
-        });   
+        });
     });
 
 
@@ -127,17 +127,21 @@ io.sockets.on("connection", function (socket) {
 	playerData[data.id] = data.player;
 	socket.broadcast.emit("receivePosition", data);
   });
-  
+
   socket.on("bombDropped", function (data) {
     socket.broadcast.emit("placeBomb", data);
   });
-  
+
+  socket.on("bulletFired", function (data) {
+    socket.broadcast.emit("fireBullet", data);
+  });
+
   socket.on("sendDeath", function (data) {
 	socket.emit("respawn", {});
 	playerData[data.id] = {x: map1positions[parseInt(data.player)].x, y: map1positions[parseInt(data.player)].y, hp: 100, powerups: []};
 	socket.broadcast.emit("playerDied", {id: data.id, x: map1positions[parseInt(data.player)].x, y: map1positions[parseInt(data.player)].y});
   });
-  
+
   socket.on("disconnect", function () {
 	delete playerData[socket.id];
 	socket.broadcast.emit("playerLeft", {id: socket.id});
@@ -175,21 +179,21 @@ var lobby = io.of('/lobby').on('connection', function (socket) {
     lobby.emit('receivePlayers', {
             players: lobbyPlayers
         });
-        
+
     socket.on('joined',function(data){
         lobbyPlayers.push(data.username);
         lobby.emit('receivePlayers', {
             players: lobbyPlayers
         });
     });
-    
+
     socket.on('sendChat', function(data){
         lobby.emit('receiveChat',{
             user : data.username,
             msg : data.msg
         });
     });
-    
+
     socket.on('findMatch', function(data){
         socket.emit('joinGame');
     });
@@ -200,6 +204,6 @@ var lobby = io.of('/lobby').on('connection', function (socket) {
             players: lobbyPlayers
         });
     });
-    
-    
+
+
   });
