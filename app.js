@@ -127,14 +127,40 @@ io.sockets.on("connection", function (socket) {
   });
 });
 
+
+
 var lobbyPlayers = [];
 
-var chat = io.of('/chat').on('connection', function (socket) {
-    lobbyPlayers.push(socket.id);
-    socket.emit('receivePlayers', {
-        players: lobbyPlayers
+var lobby = io.of('/lobby').on('connection', function (socket) {
+    lobby.emit('receivePlayers', {
+            players: lobbyPlayers
+        });
+        
+    socket.on('joined',function(data){
+        lobbyPlayers.push(data.username);
+        lobby.emit('receivePlayers', {
+            players: lobbyPlayers
+        });
     });
-    chat.emit('joinLobby', {
-        playerName: socket.id
+    
+    socket.on('sendChat', function(data){
+        lobby.emit('receiveChat',{
+            user : data.username,
+            msg : data.msg
+        });
     });
+    
+    socket.on('findMatch', function(data){
+        socket.emit('joinGame');
+    });
+
+    socket.on('disconnect', function(data){
+        lobbyPlayers.splice(lobbyPlayers.indexOf(data.username),1);
+        lobby.emit('receivePlayers', {
+            players: lobbyPlayers
+        });
+    });
+    
+    
   });
+  

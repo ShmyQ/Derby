@@ -30,6 +30,7 @@ window.addEventListener('load', function(){
 
         var g = {
             onLoginSuccess: function(){
+                window.sessionStorage.username = usernameInput.value;
                 window.location = '/';
             },
             onRegisterSuccess: function(){
