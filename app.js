@@ -111,12 +111,27 @@ app.use(function(req,res){
 var io = require("socket.io").listen(8888,{ log: false });
 
 var playerData = new Object();
+var playerCount = 0;
+var players = 2;
 
 io.sockets.on("connection", function (socket) {
-  socket.emit("connected", {id: socket.id, x: 100, y: 100, players: playerData});
-  socket.broadcast.emit("playerConnected", {id: socket.id, x: 100, y: 100});
-  playerData[socket.id] = {x: 100, y: 100, hp: 100, powerups: []};
+  
+  if (playerCount++ > players)
+	return;
+	
+  console.log("Player ", playerCount, " connected");
+  
+  // send connected message to set up client side
+  socket.emit("connected", {id: socket.id, player: playerCount.toString(), numPlayers: players, map: map1, mapdata: map1data});
+  
+  // save new player
+  playerData[socket.id] = {x: map1positions[playerCount].x, y: map1positions[playerCount].y, hp: 100, powerups: []};
 
+  // if all players connect, start game
+  if (playerCount === players) {
+	io.sockets.emit("start", {});
+  }
+  
   socket.on("sendPosition", function (data) {
 	playerData[data.id] = data.player;
 	socket.broadcast.emit("receivePosition", data);
@@ -127,9 +142,9 @@ io.sockets.on("connection", function (socket) {
   });
   
   socket.on("sendDeath", function (data) {
-	socket.emit("respawn", {x: 100, y: 100});
-	playerData[data.id] = {x: 100, y: 100, hp: 100, powerups: []};
-	socket.broadcast.emit("playerDied", {id: data.id, x:100, y:100});
+	socket.emit("respawn", {});
+	playerData[data.id] = {x: map1positions[parseInt(data.player)].x, y: map1positions[parseInt(data.player)].y, hp: 100, powerups: []};
+	socket.broadcast.emit("playerDied", {id: data.id, x: map1positions[parseInt(data.player)].x, y: map1positions[parseInt(data.player)].y});
   });
   
   socket.on("disconnect", function () {
@@ -137,3 +152,26 @@ io.sockets.on("connection", function (socket) {
 	socket.broadcast.emit("playerLeft", {id: socket.id});
   });
 });
+
+var map1data = {width: 800, height: 800, block: 50, maxPlayers: 4};
+var map1positions = [{x: 175, y: 175},
+					 {x: 625, y: 175},
+					 {x: 175, y: 625},
+					 {x: 625, y: 625}];
+var map1 = [["O", "O", "R", "O", "O", "R", "O", "O", "O", "R", "O", "O", "O", "O", "R", "O"],
+			["R", "O", "O", "R", "O", "O", "O", "R", "O", "O", "R", "O", "O", "R", "O", "O"],
+			["O", "R", "O", "O", "O", "R", "O", "O", "O", "O", "O", "O", "O", "O", "O", "R"],
+			["O", "O", "O", "1", "O", "O", "O", "O", "O", "R", "O", "O", "2", "O", "O", "O"],
+			["O", "R", "O", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "O", "O", "R"],
+			["O", "O", "R", "O", "O", "R", "O", "O", "O", "O", "R", "O", "O", "R", "O", "O"],
+			["R", "O", "O", "O", "O", "O", "R", "R", "R", "O", "O", "O", "O", "O", "R", "O"],
+			["O", "R", "O", "R", "O", "O", "R", "R", "R", "O", "O", "O", "R", "O", "O", "O"],
+			["O", "O", "O", "O", "O", "O", "R", "R", "R", "O", "R", "O", "O", "O", "O", "R"],
+			["O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "R", "O", "O"],
+			["O", "R", "O", "O", "R", "O", "O", "R", "O", "O", "O", "R", "O", "O", "R", "O"],
+			["O", "O", "O", "O", "O", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "O"],
+			["R", "R", "O", "3", "O", "O", "R", "O", "O", "O", "O", "O", "4", "O", "O", "R"],
+			["O", "O", "O", "O", "O", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "O"],
+			["O", "R", "O", "O", "O", "R", "O", "O", "O", "O", "R", "O", "O", "R", "O", "O"],
+			["O", "O", "O", "R", "O", "O", "R", "O", "R", "O", "O", "O", "R", "O", "R", "O"]];
+			
