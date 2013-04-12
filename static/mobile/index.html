@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     
     <link href='http://fonts.googleapis.com/css?family=Iceland' rel='stylesheet' type='text/css'>
-    <link href="css/reset.css" rel="stylesheet" type="text/css">
+    <link href="mobile/css/reset.css" rel="stylesheet" type="text/css">
 	<link href="mobile/css/styles.css" rel="stylesheet" type="text/css">
 </head>
 <body>
@@ -21,27 +21,23 @@
     <button id="friends" class = "slideButton"> Friends </button>
     <button id="learn" class = "slideButton"> Learn </button>
     
-    <div id = "chat">
-        <div id="chatBox" class ="box">
-            <p id = "chatBar"> Chat </p>
-            <div id="chatArea"></div>
-            <input id="chatInput" type="text" autocapitalize="off" autocorrect="off" autocomplete="off" x-webkit-speech />
-            <button id="sendChat"> Submit </button>
-        </div>
+    <!-- chat box added when page is loaded and browser in landscape. -->
+    <div id = "chat">   
     </div>
     
     <div id="playNowBox" class ="box">
         <p id = "playNowBar"> Play Now! </p>
-        <button id="findGame"> Find Game </button>
+        <button id="logoutButton"> Logout </button>
         <button id="createGame"> Create Game </button>
         <button id="joinGame"> Join Game </button>
     </div>
     
-    
+    <div id = "landscapeMessage">   
+    </div>
     
     <script type="text/javascript" src="scripts/libs/jquery-1.9.1.min.js"></script>
     <script type="text/javascript" src="http://localhost:8888/socket.io/socket.io.js"></script>   
     <script type="text/javascript" src="scripts/logout.js"></script>    
-    <script type="text/javascript" src="mobile/scripts/addChatToLandscape.js"></script>   
+    <script type="text/javascript" src="mobile/scripts/orientationAdjuster.js"></script>   
 </body>
 </html>

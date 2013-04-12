@@ -48,28 +48,17 @@ app.get('/',function(req,res){
 });
 
 app.get('/db', function(req, res){
-    mongoExpressAuth.checkLogin(req, res, function(err){
-        if (err)
-            res.send(err);
-        else {
-            mongoExpressAuth.getAccount(req, function(err, result){
-                if (err)
-                    res.send(err);
-                else
-                    res.send(result); // NOTE: for test only, remove later
-            });
-        }
+        mongoExpressAuth.getAccount(req, function(err, result){
+            if (err)
+                res.send(err);
+            else
+                res.send(result); // NOTE: for test only, remove later
+        });
     });
-});
 
 
 app.get('/game', function(req, res){
-    mongoExpressAuth.checkLogin(req, res, function(err){
-        //if (err)
-        //   res.sendfile('static/login.html');
-        //else
-            res.sendfile('static/game.html');
-    });
+    res.sendfile('static/game.html');
 });
 
 app.get('/game2', function(req, res){
@@ -141,3 +130,41 @@ io.sockets.on("connection", function (socket) {
 	socket.broadcast.emit("playerLeft", {id: socket.id});
   });
 });
+
+
+
+var lobbyPlayers = [];
+
+var lobby = io.of('/lobby').on('connection', function (socket) {
+    lobby.emit('receivePlayers', {
+            players: lobbyPlayers
+        });
+
+    socket.on('joined',function(data){
+        lobbyPlayers.push(data.username);
+        lobby.emit('receivePlayers', {
+            players: lobbyPlayers
+        });
+    });
+
+    socket.on('sendChat', function(data){
+        lobby.emit('receiveChat',{
+            user : data.username,
+            msg : data.msg
+        });
+    });
+
+    socket.on('findMatch', function(data){
+        socket.emit('joinGame');
+    });
+
+    socket.on('disconnect', function(data){
+        lobbyPlayers.splice(lobbyPlayers.indexOf(data.username),1);
+        lobby.emit('receivePlayers', {
+            players: lobbyPlayers
+        });
+    });
+
+
+  });
+
