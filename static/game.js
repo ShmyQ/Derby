@@ -41,7 +41,10 @@ socket.on("placeBomb", function (data) {
 });
 
 socket.on("removePowerup", function (data) {
-	g.powerups.splice(g.powerups.indexOf(data.powerup), 1);
+	g.powerups.forEach( function (powerup) {
+		if (powerup.x === data.powerup.x && powerup.y === data.powerup.y && powerup.power === data.powerup.power)
+			g.powerups.splice(g.powerups.indexOf(powerup), 1);
+	});
 });
 
 socket.on("placePowerup", function (data) {
