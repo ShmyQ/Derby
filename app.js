@@ -104,10 +104,10 @@ var io = require("socket.io").listen(8888,{ log: false });
 var playerData = new Object();
 var playerCount = 0;
 var players = 2;
+var destroyedRocks = [];
+var powerupDropChance = 0.4;
 
 var game = io.of('/game').on("connection", function (socket) {
-  console.log("game");
-  
   if (++playerCount > players)
 	return;
 	
@@ -132,6 +132,19 @@ var game = io.of('/game').on("connection", function (socket) {
   socket.on("bombDropped", function (data) {
     socket.broadcast.emit("placeBomb", data);
   });
+  
+  socket.on("powerupTaken", function (data) {
+    socket.broadcast.emit("removePowerup", data);
+  });
+  
+  socket.on("rockDestroyed", function (data) {
+	if (destroyedRocks.indexOf(data.rock.x + "," + data.rock.y) === -1) {
+		destroyedRocks.push(data.rock.x + "," + data.rock.y);
+		if (Math.random() < powerupDropChance) {
+			game.emit("placePowerup", {x: data.rock.x, y: data.rock.y, power: "bullet"});
+		}
+	}
+  });
 
   socket.on("bulletFired", function (data) {
     socket.broadcast.emit("fireBullet", data);
@@ -140,9 +153,7 @@ var game = io.of('/game').on("connection", function (socket) {
   socket.on("sendDeath", function (data) {
 	socket.emit("respawn", {});
 	playerData[data.id] = {x: map1positions[parseInt(data.player)].x, y: map1positions[parseInt(data.player)].y, hp: 100, powerups: []};
-	socket.broadcast.emit("playerDied", {id: data.id, playerNum: data.player, x: map1positions[parseInt(data.player)].x, y: map1positions[parseInt(data.player)].y});
-  
-	console.log(map1positions[parseInt(data.player)].x, map1positions[parseInt(data.player)].y);
+	socket.broadcast.emit("playerDied", {id: data.id, playerNum: data.player, x: map1positions[parseInt(data.player)].x, y: map1positions[parseInt(data.player)].y});  
   });
 
   socket.on("disconnect", function () {
@@ -180,7 +191,6 @@ var map1 = [["O", "O", "R", "O", "O", "R", "O", "O", "O", "R", "O", "O", "O", "O
 var lobbyPlayers = [];
 
 var lobby = io.of('/lobby').on('connection', function (socket) {
-    console.log("lobby");
 	
 	lobby.emit('receivePlayers', {
             players: lobbyPlayers

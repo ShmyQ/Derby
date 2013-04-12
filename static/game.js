@@ -40,6 +40,15 @@ socket.on("placeBomb", function (data) {
 	dropBomb(data.x, data.y);
 });
 
+socket.on("removePowerup", function (data) {
+	g.powerups.splice(g.powerups.indexOf(data.powerup), 1);
+});
+
+socket.on("placePowerup", function (data) {
+	var power = new Powerup(data.x, data.y, data.power);
+    g.powerups.push(power);
+});
+
 socket.on("respawn", function (data) {
 	g.myPlayer = new Player(c.SPAWN_X, c.SPAWN_Y);
 });
@@ -114,7 +123,7 @@ var c = {
 
 function init() {
 	g.bombs = [];
-	g.powerups = [new Powerup(300, 300, "bullet")];
+	g.powerups = [];
 	g.bullets = [];
 
 	g.backgroundImg = new Image();
@@ -197,8 +206,8 @@ function draw() {
 		}
 	}
 
-	/*
 	// draw land from img
+	/*
 	if (g.myPlayer.x < canvas.width/2) {
 		if (g.myPlayer.y < canvas.height/2) {
 			ctx.drawImage(g.platformImg, 0, 0, canvas.width/2 + g.myPlayer.x, canvas.height/2 + g.myPlayer.y,
@@ -261,6 +270,18 @@ function draw() {
 		}
 	});
 
+	// draw powerups
+	g.powerups.forEach( function(powerup) {
+		if (powerup.x + c.POWERUP_SIZE/2 >= g.myPlayer.x - canvas.width/2 && powerup.x - c.POWERUP_SIZE/2 < g.myPlayer.x + canvas.width/2
+			&& powerup.y + c.POWERUP_SIZE/2 >= g.myPlayer.y - canvas.height/2 && powerup.y - c.POWERUP_SIZE/2 < g.myPlayer.y + canvas.height/2) {
+			var xpos = canvas.width/2 - (g.myPlayer.x - powerup.x);
+			var ypos = canvas.height/2 - (g.myPlayer.y - powerup.y);
+
+			ctx.fillStyle = "yellow";
+			ctx.fillRect(xpos - c.POWERUP_SIZE/2, ypos - c.POWERUP_SIZE/2, c.POWERUP_SIZE, c.POWERUP_SIZE);
+		}
+	});
+
 	// draw rocks
 	g.rocks.forEach( function (rock) {
 		if (rock.x + rock.size/2 >= g.myPlayer.x - canvas.width/2 && rock.x - rock.size/2 < g.myPlayer.x + canvas.width/2
@@ -270,18 +291,6 @@ function draw() {
 
 			ctx.fillStyle = "grey";
 			ctx.fillRect(xpos - rock.size/2, ypos - rock.size/2, rock.size, rock.size);
-		}
-	});
-
-	// draw powerups
-	g.powerups.forEach( function(powerup) {
-		if (powerup.x >= g.myPlayer.x - canvas.width/2 && powerup.x < g.myPlayer.x + canvas.width/2
-			&& powerup.y >= g.myPlayer.y - canvas.height/2 && powerup.y < g.myPlayer.y + canvas.height/2) {
-			var xpos = canvas.width/2 - (g.myPlayer.x - powerup.x);
-			var ypos = canvas.height/2 - (g.myPlayer.y - powerup.y);
-
-			ctx.fillStyle = "yellow";
-			ctx.fillRect(xpos - c.POWERUP_SIZE/2, ypos - c.POWERUP_SIZE/2, c.POWERUP_SIZE, c.POWERUP_SIZE);
 		}
 	});
 
@@ -381,7 +390,6 @@ function createMap() {
 			// Rock
 			if (g.map[j][i] === "R") {
 				g.rocks.push(new Rock(i*c.ROCK_SIZE + c.ROCK_SIZE/2, j*c.ROCK_SIZE + c.ROCK_SIZE/2));
-				g.rocks.push(new Rock(i*c.ROCK_SIZE + c.ROCK_SIZE/2, j*c.ROCK_SIZE + c.ROCK_SIZE/2));
 			}
 			// Spawn Point
 			else if (g.map[j][i] === g.player) {
@@ -438,11 +446,8 @@ function removeRocks(rocks) {
     var rockX = rock.x;
     var rockY = rock.y;
     g.rocks.splice(g.rocks.indexOf(rock), 1);
-    if (Math.random() < 0.4) {
-      // add powerup block
-      var power = new Powerup(rockX, rockY, "bullet");
-      g.powerups.push(power);
-    }
+	
+	socket.emit("rockDestroyed", {id: g.myID, rock: rock});
   });
 }
 
@@ -627,6 +632,8 @@ function addPowerup(powerup) {
   g.powerups.splice(g.powerups.indexOf(powerup), 1);
   // TODO: add emit event here (twice?)
   console.log(g.myPlayer.powerups);
+  
+  socket.emit("powerupTaken", {id: g.myID, powerup: powerup});
 }
 
 function Player(x, y) {
@@ -705,13 +712,8 @@ function clicked(e) {
 
 function onKeyDown(e) {
 	if (g.isStarted) {
-		// space - drop bomb
-		if (e.keyCode === 32) {
-			dropBomb(g.myPlayer.x, g.myPlayer.y);
-			socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});
-		}
 		// move left
-		else if (e.keyCode === 65) {
+		if (e.keyCode === 65) {
 			moveBall(-5, 0);
 		}
 		// move right
