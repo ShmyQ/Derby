@@ -14,7 +14,7 @@ var useragent = require('express-useragent');
 var mongoExpressAuth = require('mongo-express-auth');
 
 var mongoExpressAuthConfig = {
-    mongo: { 
+    mongo: {
         dbName: 'DerbyTT',
         collectionName: 'accounts'
     }
@@ -46,7 +46,7 @@ require('./mobileDesktopRouter.js')(mongoExpressAuth,app);
 app.get('/',function(req,res){
     response.sendfile('static/login.html');
 });
-    
+
 app.get('/db', function(req, res){
     mongoExpressAuth.checkLogin(req, res, function(err){
         if (err)
@@ -55,7 +55,7 @@ app.get('/db', function(req, res){
             mongoExpressAuth.getAccount(req, function(err, result){
                 if (err)
                     res.send(err);
-                else 
+                else
                     res.send(result); // NOTE: for test only, remove later
             });
         }
@@ -121,17 +121,21 @@ io.sockets.on("connection", function (socket) {
 	playerData[data.id] = data.player;
 	socket.broadcast.emit("receivePosition", data);
   });
-  
+
   socket.on("bombDropped", function (data) {
     socket.broadcast.emit("placeBomb", data);
   });
-  
+
+  socket.on("bulletFired", function (data) {
+    socket.broadcast.emit("fireBullet", data);
+  });
+
   socket.on("sendDeath", function (data) {
 	socket.emit("respawn", {x: 100, y: 100});
 	playerData[data.id] = {x: 100, y: 100, hp: 100, powerups: []};
 	socket.broadcast.emit("playerDied", {id: data.id, x:100, y:100});
   });
-  
+
   socket.on("disconnect", function () {
 	delete playerData[socket.id];
 	socket.broadcast.emit("playerLeft", {id: socket.id});

@@ -7,7 +7,7 @@ var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
 // sockets
-var socket = io.connect("http://128.237.136.83:8888");
+var socket = io.connect("http://localhost:8888");
 
 socket.on("connected", function (data) {
 	g.myPlayer = new Player(data.x, data.y);
@@ -54,6 +54,10 @@ socket.on("playerLeft", function (data) {
 	delete g.enemies[data.id];
 });
 
+socket.on("fireBullet", function (data) {
+  fireBullet(data.playerX, data.playerY, data.targetX, data.targetY);
+});
+
 // Globals
 var g = {
 	drawHandler: null,
@@ -85,13 +89,13 @@ var c = {
 	POWERUP_SIZE: 50,
 
 	BULLET_SIZE: 15,
-	BULLET_MOVE: 2,
+	BULLET_MOVE: 3,
 
 	BASE_HP: 100,
-	
+
 	PLATFORM_IMG_WIDTH: 512,
 	PLATFORM_IMG_HEIGHT: 512,
-	
+
 	GRID_SIZE: 50,
 }
 
@@ -107,14 +111,14 @@ function init() {
 	g.rocks = [];
 	g.powerups = [new Powerup(300, 300, "bullet")];
 	g.bullets = [];
-	
+
 	g.backgroundImg = new Image();
 	g.backgroundImg.src = "spaceBackground.jpg"
 	g.platformImg = new Image();
 	g.platformImg.src = "spacePlatform.jpg"
-	
+
 	generateRocks();
-	
+
 	canvas.addEventListener('touchstart', onTouch, false);
 	canvas.addEventListener('mousedown', clicked, false);
 	document.onkeydown = onKeyDown;
@@ -127,7 +131,7 @@ function draw() {
 
 	// background
 	// ctx.drawImage(g.backgroundImg, 0, 0, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
-	
+
 	// draw land as a grid
 	ctx.fillStyle = "green";
 	if (g.myPlayer.x < canvas.width/2) {
@@ -172,7 +176,7 @@ function draw() {
 			drawGrid(0, 0, canvas.width, canvas.height);
 		}
 	}
-	
+
 	/*
 	// draw land from img
 	if (g.myPlayer.x < canvas.width/2) {
@@ -317,13 +321,13 @@ function drawGrid(x, y, width, height) {
 		width += size - (width % size);
 	if (height % size != 0)
 		height += size - (height % size);
-	
+
 	// adjust for maximums
 	if (g.myPlayer.x >= c.MAP_WIDTH - canvas.width/2)
 		width -= size;
 	if (g.myPlayer.y >= c.MAP_HEIGHT - canvas.height/2)
 		height -= size;
-	
+
 	// reduce starting point of grid to make animation flow
 	var reducex = 0;
 	var reducey = 0;
@@ -331,7 +335,7 @@ function drawGrid(x, y, width, height) {
 		reducex = g.myPlayer.x % size;
 	if (g.myPlayer.y >= canvas.height/2)
 		reducey = g.myPlayer.y % size;
-	
+
 	ctx.lineWidth = 2;
 	for (var i = 0; i <= width; i+=size) {
 		for (var j = 0; j <= height; j+=size) {
@@ -386,7 +390,6 @@ function checkForDeath() {
 	if (g.myPlayer.hp <= 0) {
 		console.log("dead");
 		g.isDead = true;
-
 		socket.emit("sendDeath", {id: g.myID});
 	}
 }
@@ -400,28 +403,27 @@ function decrementTimer(bomb) {
 	}
 }
 
-function fireBullet(x, y) {
+function fireBullet(playerX, playerY, targetX, targetY) {
   // Finding angle of direction
-  var deltaX = x - (g.myPlayer.x + c.BALL_RADIUS);
-  var deltaY = y - (g.myPlayer.y - c.BALL_RADIUS);
+  var deltaX = targetX - (playerX + c.BALL_RADIUS);
+  var deltaY = targetY - (playerY - c.BALL_RADIUS);
   var theta = Math.atan2(-deltaY, deltaX);
   if (theta < 0) {
     theta += 2 * Math.PI;
   }
   theta = theta * (180 / Math.PI);
-  g.bullets.push(new Bullet(g.myPlayer.x, g.myPlayer.y, theta));
+  var moveX = c.BALL_RADIUS * 2 * Math.cos(theta * Math.PI / 180);
+  var moveY = c.BALL_RADIUS * 2 * Math.sin(theta * Math.PI / 180);
+  g.bullets.push(new Bullet(playerX + moveX, playerY - moveY, theta));
   if (g.bullets.length === 1) {
-    g.bulletHandler = setInterval(moveBullets, 50);
+    g.bulletHandler = setInterval(moveBullets, 30);
   }
-  console.log("New bullet direction = " + theta);
 }
 
 function moveBullets() {
-  // Loop through all bullets. Check for collision then move them
-  // When checking collision check if g.bullets.length === 0, if so clearInterval(g.bulletHandler);
-
   // Decimal values here might make it lag, but rounding will make non-straight lines
-  g.bullets.forEach(function (bullet) {
+  g.bullets.forEach(function (bullet, index) {
+    checkBulletCollision(index);
     var deltaX = c.BULLET_MOVE * Math.cos(bullet.direction * Math.PI / 180);
     var deltaY = c.BULLET_MOVE * Math.sin(bullet.direction * Math.PI / 180);
     bullet.x += deltaX;
@@ -510,24 +512,43 @@ function checkPowerupCollision(xvel, yvel) {
   g.powerups.forEach( function(powerup) {
     if (g.myPlayer.x + c.BALL_RADIUS + xvel >= powerup.x - c.POWERUP_SIZE/2 && g.myPlayer.x - c.BALL_RADIUS + xvel < powerup.x + c.POWERUP_SIZE/2
       && g.myPlayer.y + c.BALL_RADIUS + yvel >= powerup.y - c.POWERUP_SIZE/2 && g.myPlayer.y - c.BALL_RADIUS + yvel < powerup.y + c.POWERUP_SIZE/2) {
-      // Give player powerup here
       addPowerup(powerup);
     }
   });
 }
 
-function checkBulletCollision(xvel, yvel) {
-  g.bullets.forEach( function(bullet) {
-    if (g.myPlayer.x + c.BALL_RADIUS + xvel >= bullet.x - c.BULLET_SIZE/2 && g.myPlayer.x - c.BALL_RADIUS + xvel < bullet.x + c.BULLET_SIZE/2
-      && g.myPlayer.y + c.BALL_RADIUS + yvel >= bullet.y - c.BULLET_SIZE/2 && g.myPlayer.y - c.BALL_RADIUS + yvel < bullet.y + c.BULLET_SIZE/2) {
-      // TODO: Kill player
+function checkBulletCollision(bullet_index) {
+  bullet = g.bullets[bullet_index];
+  // TODO: Must be a more efficient way to do this
+  g.rocks.forEach( function(rock) {
+    var dist = Math.sqrt((rock.x - bullet.x)*(rock.x - bullet.x) + (rock.y - bullet.y)*(rock.y - bullet.y));
+    if (dist < c.BULLET_SIZE * 3) {
+      g.rocks.splice(g.rocks.indexOf(rock), 1);
+      g.bullets.splice(bullet_index, 1);
+      if (g.bullets.length === 0) {
+        clearInterval(g.bulletHandler);
+      }
+      // TODO: add emit event here for bullet removal?
+      return;
     }
   });
+  if (g.myPlayer.x + c.BALL_RADIUS >= bullet.x - c.BULLET_SIZE/2 && g.myPlayer.x - c.BALL_RADIUS < bullet.x + c.BULLET_SIZE/2
+    && g.myPlayer.y + c.BALL_RADIUS >= bullet.y - c.BULLET_SIZE/2 && g.myPlayer.y - c.BALL_RADIUS < bullet.y + c.BULLET_SIZE/2) {
+    g.bullets.splice(bullet_index, 1);
+    if (g.bullets.length === 0) {
+      clearInterval(g.bulletHandler);
+    }
+    // TODO: add emit event here for bullet removal?
+    // Damage player
+    g.myPlayer.hp -= 30;
+    checkForDeath();
+  }
 }
 
 function addPowerup(powerup) {
   g.myPlayer.powerups.push(powerup.power);
   g.powerups.splice(g.powerups.indexOf(powerup), 1);
+  // TODO: add emit event here (twice?)
   console.log(g.myPlayer.powerups);
 }
 
@@ -566,7 +587,8 @@ function Bullet(x, y, direction) {
 
 function onTouch(e) {
   if(g.myPlayer.powerups.indexOf("bullet") !== -1) {
-    fireBullet(e.changedTouches.pageX, e.changedTouches.pageY);
+    fireBullet(g.myPlayer.x, g.myPlayer.y, e.changedTouches.pageX, e.changedTouches.pageY);
+    socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x, playerY: g.myPlayer.y, targetX: e.changedTouches.pageX, targetY: e.changedTouches.pageY});
   }
   else {
     dropBomb(g.myPlayer.x, g.myPlayer.y);
@@ -576,7 +598,8 @@ function onTouch(e) {
 
 function clicked(e) {
   if(g.myPlayer.powerups.indexOf("bullet") !== -1) {
-    fireBullet(e.x, e.y);
+    fireBullet(g.myPlayer.x, g.myPlayer.y, e.x, e.y);
+    socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x, playerY: g.myPlayer.y, targetX: e.x, targetY: e.y});
   }
   else {
     dropBomb(g.myPlayer.x, g.myPlayer.y);
