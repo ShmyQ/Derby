@@ -9,15 +9,15 @@ socket.on("connected", function (data) {
 	g.player = data.player;
 	g.numPlayers = data.numPlayers;
 	console.log(data.player);
-	
+
 	g.map = data.map;
 	g.mapdata = data.mapdata;
 	createMap();
-	
+
 	g.myPlayer = new Player(c.SPAWN_X, c.SPAWN_Y);
 
 	getDevicePlatform();
-	
+
 	init();
 });
 
@@ -63,7 +63,7 @@ socket.on("playerLeft", function (data) {
 });
 
 socket.on("fireBullet", function (data) {
-  fireBullet(data.playerX, data.playerY, data.targetX, data.targetY);
+  fireBullet(data.playerX, data.playerY, data.angle);
 });
 
 // Globals
@@ -74,8 +74,13 @@ var g = {
 	myPlayer: null,
 	// socket id
 	myID: 0,
+<<<<<<< HEAD
 	// clients player number
 	player: 0,
+=======
+	// player number
+	player: 1,
+>>>>>>> e75c6616937d3ff242fb55f12581d0bc4b649f03
 	// number of players
 	numPlayers: 0,
 	bombs: null,
@@ -88,7 +93,7 @@ var g = {
 	map: null,
 	mapdata: null,
 	isStarted: false,
-	
+
 	temp: 0,
 }
 
@@ -116,7 +121,7 @@ var c = {
 	PLATFORM_IMG_HEIGHT: 512,
 
 	GRID_SIZE: 50,
-	
+
 	SPAWN_X: 0,
 	SPAWN_Y: 0,
 }
@@ -130,13 +135,13 @@ function init() {
 	g.backgroundImg.src = "spaceBackground.jpg"
 	g.platformImg = new Image();
 	g.platformImg.src = "spacePlatform.jpg"
-	
-	
+
+
 	canvas.addEventListener('touchstart', onTouch, false);
 	canvas.addEventListener('mousedown', clicked, false);
 	document.onkeydown = onKeyDown;
 	window.addEventListener('devicemotion', deviceMotion);
-	
+
 	g.drawHandler = setInterval(draw, 50);
 }
 
@@ -149,7 +154,7 @@ function getDevicePlatform() {
            navigator.userAgent.match(/iPod/i) ||
            navigator.userAgent.match(/iPad/i)))
 		g.devicePlatform = "iOS";
-	else if (navigator.platform.indexOf("Win") !== -1) 
+	else if (navigator.platform.indexOf("Win") !== -1)
 		g.devicePlatform = "Windows";
 	else
 		g.devicePlatform = "Unknown";
@@ -340,6 +345,7 @@ function draw() {
 	ctx.beginPath();
 	ctx.arc(canvas.width/2, canvas.height/2, c.BALL_RADIUS * (1 - ((c.BASE_HP - g.myPlayer.hp) / c.BASE_HP)), 0, 2*Math.PI, true);
 	ctx.fill();
+<<<<<<< HEAD
 	
 	// waiting text
 	if (!g.isStarted) {
@@ -349,6 +355,13 @@ function draw() {
 		ctx.textAlign = "center";
 		ctx.fillText("Waiting for other players...", canvas.width/2, canvas.height/2);
 	}
+=======
+
+	ctx.fillStyle = "white";
+	ctx.font = "30px Arial";
+	ctx.textAlign = "center";
+	ctx.fillText(g.temp + "", canvas.width/2, canvas.height/2);
+>>>>>>> e75c6616937d3ff242fb55f12581d0bc4b649f03
 }
 
 function drawGrid(x, y, width, height) {
@@ -446,8 +459,16 @@ function removeRocks(rocks) {
     var rockX = rock.x;
     var rockY = rock.y;
     g.rocks.splice(g.rocks.indexOf(rock), 1);
+<<<<<<< HEAD
 	
 	socket.emit("rockDestroyed", {id: g.myID, rock: rock});
+=======
+    if (Math.random() < 0.2) {
+      // add powerup block
+      var power = new Powerup(rockX, rockY, "bullet");
+      g.powerups.push(power);
+    }
+>>>>>>> e75c6616937d3ff242fb55f12581d0bc4b649f03
   });
 }
 
@@ -458,7 +479,7 @@ function newPowerup () {
 function checkForDeath() {
 	if (g.myPlayer.hp <= 0) {
 		g.isDead = true;
-		
+
 		socket.emit("sendDeath", {id: g.myID, player: g.player});
 	}
 }
@@ -472,18 +493,10 @@ function decrementTimer(bomb) {
 	}
 }
 
-function fireBullet(playerX, playerY, targetX, targetY) {
-  // Finding angle of direction
-  var deltaX = targetX - (playerX + c.BALL_RADIUS);
-  var deltaY = targetY - (playerY - c.BALL_RADIUS);
-  var theta = Math.atan2(-deltaY, deltaX);
-  if (theta < 0) {
-    theta += 2 * Math.PI;
-  }
-  theta = theta * (180 / Math.PI);
-  var moveX = c.BALL_RADIUS * 2 * Math.cos(theta * Math.PI / 180);
-  var moveY = c.BALL_RADIUS * 2 * Math.sin(theta * Math.PI / 180);
-  g.bullets.push(new Bullet(playerX + moveX, playerY - moveY, theta));
+function fireBullet(playerX, playerY, angle) {
+  var moveX = c.BALL_RADIUS * 2 * Math.cos(angle * Math.PI / 180);
+  var moveY = c.BALL_RADIUS * 2 * Math.sin(angle * Math.PI / 180);
+  g.bullets.push(new Bullet(playerX + moveX, playerY - moveY, angle));
   if (g.bullets.length === 1) {
     g.bulletHandler = setInterval(moveBullets, 30);
   }
@@ -570,17 +583,17 @@ function checkRockCollision(xvel, yvel) {
 	g.rocks.forEach( function(rock) {
 		if (g.myPlayer.x + c.BALL_RADIUS + xvel > rock.x - rock.size/2 && g.myPlayer.x - c.BALL_RADIUS + xvel < rock.x + rock.size/2
 			&& g.myPlayer.y + c.BALL_RADIUS + yvel > rock.y - rock.size/2 && g.myPlayer.y - c.BALL_RADIUS + yvel < rock.y + rock.size/2) {
-			
+
 			if (g.myPlayer.x + c.BALL_RADIUS < rock.x - rock.size/2)
 				g.myPlayer.x = rock.x - rock.size/2 - c.BALL_RADIUS;
 			else if (g.myPlayer.x - c.BALL_RADIUS >= rock.x + rock.size/2)
 				g.myPlayer.x = rock.x + rock.size/2 + c.BALL_RADIUS;
-				
+
 			if (g.myPlayer.y + c.BALL_RADIUS < rock.y - rock.size/2)
 				g.myPlayer.y = rock.y - rock.size/2 - c.BALL_RADIUS;
 			else if (g.myPlayer.y - c.BALL_RADIUS >= rock.y + rock.size/2)
 				g.myPlayer.y = rock.y + rock.size/2 + c.BALL_RADIUS;
-				
+
 			hitrock = true;
 		}
 	});
@@ -620,7 +633,7 @@ function checkBulletCollision(bullet_index) {
     if (g.bullets.length === 0) {
       clearInterval(g.bulletHandler);
     }
-    // TODO: add emit event here for bullet removal?
+    // TODO: add emit event here for bullet removal / player damage
     // Damage player
     g.myPlayer.hp -= 30;
     checkForDeath();
@@ -628,7 +641,7 @@ function checkBulletCollision(bullet_index) {
 }
 
 function addPowerup(powerup) {
-  g.myPlayer.powerups.push(powerup.power);
+  g.myPlayer.powerups.bullets += 5;
   g.powerups.splice(g.powerups.indexOf(powerup), 1);
   // TODO: add emit event here (twice?)
   console.log(g.myPlayer.powerups);
@@ -639,7 +652,7 @@ function addPowerup(powerup) {
 function Player(x, y) {
 	this.x = x;
 	this.y = y;
-    this.powerups = [];
+  this.powerups = {bullets: 0};
 	this.hp = c.BASE_HP;
 }
 
@@ -675,16 +688,29 @@ function deviceMotion(e) {
 	  var yvel = e.accelerationIncludingGravity.y / 2;
 
 	  if (g.devicePlatform === "iOS") {
-		xvel *= -1;
-		yvel *= -1;
+  		xvel *= -1;
+  		yvel *= -1;
 	  }
 	  g.temp = xvel;
-	  
+
 	  moveBall(xvel, yvel);
 	}
 }
 
+function findAngle(x, y) {
+  // Finding angle of direction
+  var deltaX = x - (canvas.width / 2);
+  var deltaY = y - (canvas.height / 2);
+  var theta = Math.atan2(-deltaY, deltaX);
+  if (theta < 0) {
+    theta += 2 * Math.PI;
+  }
+  theta = theta * (180 / Math.PI);
+  return theta;
+}
+
 function onTouch(e) {
+<<<<<<< HEAD
   if (g.isStarted) {
     if(g.myPlayer.powerups.indexOf("bullet") !== -1) {
       fireBullet(g.myPlayer.x, g.myPlayer.y, e.changedTouches.pageX, e.changedTouches.pageY);
@@ -694,10 +720,22 @@ function onTouch(e) {
       dropBomb(g.myPlayer.x, g.myPlayer.y);
       socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});
     }
+=======
+  var angle = findAngle(e.changedTouches[0].pageX, e.changedTouches[0].pageY);
+  if(g.myPlayer.powerups.bullets-- > 0) {
+    fireBullet(g.myPlayer.x, g.myPlayer.y, angle);
+    socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x, playerY: g.myPlayer.y, angle: angle});
+  }
+  else {
+    dropBomb(g.myPlayer.x, g.myPlayer.y);
+    // drops 2 bombs, this why?
+    socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});
+>>>>>>> e75c6616937d3ff242fb55f12581d0bc4b649f03
   }
 }
 
 function clicked(e) {
+<<<<<<< HEAD
   if (g.isStarted) {
 	if(g.myPlayer.powerups.indexOf("bullet") !== -1) {
 	  fireBullet(g.myPlayer.x, g.myPlayer.y, e.x, e.y);
@@ -707,6 +745,17 @@ function clicked(e) {
       dropBomb(g.myPlayer.x, g.myPlayer.y);
       socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});
 	}
+=======
+  var angle = findAngle(e.x, e.y);
+  if(g.myPlayer.powerups.bullets-- > 0) {
+    fireBullet(g.myPlayer.x, g.myPlayer.y, angle);
+    socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x, playerY: g.myPlayer.y, angle: angle});
+  }
+  else {
+    dropBomb(g.myPlayer.x, g.myPlayer.y);
+    // drops 2 bombs, this why?
+    socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});
+>>>>>>> e75c6616937d3ff242fb55f12581d0bc4b649f03
   }
 }
 
