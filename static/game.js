@@ -2,7 +2,7 @@ var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
 // sockets
-var socket = io.connect("http://128.237.130.86:8888");
+var socket = io.connect("http://128.237.130.86:8888/game");
 
 socket.on("connected", function (data) {
 	g.myID = data.id;
@@ -45,7 +45,8 @@ socket.on("respawn", function (data) {
 });
 
 socket.on("playerDied", function (data) {
-	g.enemies[data.id] = new Player(data.x, data.y);
+	g.enemies[data.playerNum] = new Player(data.x, data.y);
+	console.log(data.x, data.y);
 });
 
 socket.on("playerLeft", function (data) {
@@ -64,7 +65,7 @@ var g = {
 	myPlayer: null,
 	// socket id
 	myID: 0,
-	// player number
+	// clients player number
 	player: 0,
 	// number of players
 	numPlayers: 0,
@@ -91,7 +92,7 @@ var c = {
 
 	ROCK_SIZE: 50,
 
-	BOMB_RADIUS: 25,
+	BOMB_RADIUS: 15,
 	BOMB_TIME: 5,
 	BOMB_EXPLOSION_RADIUS: 100,
 
@@ -149,7 +150,7 @@ function draw() {
 	ctx.clearRect(0,0,canvas.width, canvas.height);
 
 	// background
-	// ctx.drawImage(g.backgroundImg, 0, 0, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+	// ctx.drawImage(g.backgroundImg, g.myPlayer.x/3, g.myPlayer.y/3, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
 
 	// draw land as a grid
 	ctx.fillStyle = "green";
@@ -254,7 +255,7 @@ function draw() {
 			ctx.fill();
 
 			ctx.fillStyle = "white";
-			ctx.font = "30px Arial";
+			ctx.font = c.BOMB_RADIUS + "px Arial";
 			ctx.textAlign = "center";
 			ctx.fillText(bomb.time + "", xpos, ypos);
 		}
@@ -331,10 +332,14 @@ function draw() {
 	ctx.arc(canvas.width/2, canvas.height/2, c.BALL_RADIUS * (1 - ((c.BASE_HP - g.myPlayer.hp) / c.BASE_HP)), 0, 2*Math.PI, true);
 	ctx.fill();
 	
-	ctx.fillStyle = "white";
-	ctx.font = "30px Arial";
-	ctx.textAlign = "center";
-	ctx.fillText(g.temp + "", canvas.width/2, canvas.height/2);
+	// waiting text
+	if (!g.isStarted) {
+		
+		ctx.fillStyle = "white";
+		ctx.font = "30px Arial";
+		ctx.textAlign = "center";
+		ctx.fillText("Waiting for other players...", canvas.width/2, canvas.height/2);
+	}
 }
 
 function drawGrid(x, y, width, height) {
@@ -432,7 +437,6 @@ function explodeBomb(bomb) {
 
 function checkForDeath() {
 	if (g.myPlayer.hp <= 0) {
-		console.log("dead");
 		g.isDead = true;
 		
 		socket.emit("sendDeath", {id: g.myID, player: g.player});
@@ -657,24 +661,28 @@ function deviceMotion(e) {
 }
 
 function onTouch(e) {
-  if(g.myPlayer.powerups.indexOf("bullet") !== -1) {
-    fireBullet(g.myPlayer.x, g.myPlayer.y, e.changedTouches.pageX, e.changedTouches.pageY);
-    socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x, playerY: g.myPlayer.y, targetX: e.changedTouches.pageX, targetY: e.changedTouches.pageY});
-  }
-  else {
-    dropBomb(g.myPlayer.x, g.myPlayer.y);
-    socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});
+  if (g.isStarted) {
+    if(g.myPlayer.powerups.indexOf("bullet") !== -1) {
+      fireBullet(g.myPlayer.x, g.myPlayer.y, e.changedTouches.pageX, e.changedTouches.pageY);
+      socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x, playerY: g.myPlayer.y, targetX: e.changedTouches.pageX, targetY: e.changedTouches.pageY});
+    }
+    else {
+      dropBomb(g.myPlayer.x, g.myPlayer.y);
+      socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});
+    }
   }
 }
 
 function clicked(e) {
-  if(g.myPlayer.powerups.indexOf("bullet") !== -1) {
-    fireBullet(g.myPlayer.x, g.myPlayer.y, e.x, e.y);
-    socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x, playerY: g.myPlayer.y, targetX: e.x, targetY: e.y});
-  }
-  else {
-    dropBomb(g.myPlayer.x, g.myPlayer.y);
-    socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});
+  if (g.isStarted) {
+	if(g.myPlayer.powerups.indexOf("bullet") !== -1) {
+	  fireBullet(g.myPlayer.x, g.myPlayer.y, e.x, e.y);
+	  socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x, playerY: g.myPlayer.y, targetX: e.x, targetY: e.y});
+	}
+    else {
+      dropBomb(g.myPlayer.x, g.myPlayer.y);
+      socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});
+	}
   }
 }
 

@@ -105,7 +105,8 @@ var playerData = new Object();
 var playerCount = 0;
 var players = 2;
 
-io.sockets.on("connection", function (socket) {
+var game = io.of('/game').on("connection", function (socket) {
+  console.log("game");
   
   if (++playerCount > players)
 	return;
@@ -120,7 +121,7 @@ io.sockets.on("connection", function (socket) {
 
   // if all players connect, start game
   if (playerCount === players) {
-	io.sockets.emit("start", {});
+	game.emit("start", {});
   }
   
   socket.on("sendPosition", function (data) {
@@ -139,7 +140,9 @@ io.sockets.on("connection", function (socket) {
   socket.on("sendDeath", function (data) {
 	socket.emit("respawn", {});
 	playerData[data.id] = {x: map1positions[parseInt(data.player)].x, y: map1positions[parseInt(data.player)].y, hp: 100, powerups: []};
-	socket.broadcast.emit("playerDied", {id: data.id, x: map1positions[parseInt(data.player)].x, y: map1positions[parseInt(data.player)].y});
+	socket.broadcast.emit("playerDied", {id: data.id, playerNum: data.player, x: map1positions[parseInt(data.player)].x, y: map1positions[parseInt(data.player)].y});
+  
+	console.log(map1positions[parseInt(data.player)].x, map1positions[parseInt(data.player)].y);
   });
 
   socket.on("disconnect", function () {
@@ -149,7 +152,8 @@ io.sockets.on("connection", function (socket) {
 });
 
 var map1data = {width: 800, height: 800, block: 50, maxPlayers: 4};
-var map1positions = [{x: 175, y: 175},
+var map1positions = [{},
+					 {x: 175, y: 175},
 					 {x: 625, y: 175},
 					 {x: 175, y: 625},
 					 {x: 625, y: 625}];
@@ -176,7 +180,9 @@ var map1 = [["O", "O", "R", "O", "O", "R", "O", "O", "O", "R", "O", "O", "O", "O
 var lobbyPlayers = [];
 
 var lobby = io.of('/lobby').on('connection', function (socket) {
-    lobby.emit('receivePlayers', {
+    console.log("lobby");
+	
+	lobby.emit('receivePlayers', {
             players: lobbyPlayers
         });
 
