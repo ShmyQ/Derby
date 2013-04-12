@@ -2,7 +2,7 @@ var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
 // sockets
-var socket = io.connect("http://128.237.130.86:8888/game");
+var socket = io.connect("http://192.168.1.149:8888/game");
 
 socket.on("connected", function (data) {
 	g.myID = data.id;
@@ -343,10 +343,10 @@ function draw() {
 	ctx.beginPath();
 	ctx.arc(canvas.width/2, canvas.height/2, c.BALL_RADIUS * (1 - ((c.BASE_HP - g.myPlayer.hp) / c.BASE_HP)), 0, 2*Math.PI, true);
 	ctx.fill();
-	
+
 	// waiting text
 	if (!g.isStarted) {
-		
+
 		ctx.fillStyle = "white";
 		ctx.font = "30px Arial";
 		ctx.textAlign = "center";
@@ -449,7 +449,7 @@ function removeRocks(rocks) {
     var rockX = rock.x;
     var rockY = rock.y;
     g.rocks.splice(g.rocks.indexOf(rock), 1);
-	
+
 	socket.emit("rockDestroyed", {id: g.myID, rock: rock});
   });
 }
@@ -627,7 +627,7 @@ function addPowerup(powerup) {
   g.powerups.splice(g.powerups.indexOf(powerup), 1);
   // TODO: add emit event here (twice?)
   console.log(g.myPlayer.powerups);
-  
+
   socket.emit("powerupTaken", {id: g.myID, powerup: powerup});
 }
 
@@ -694,22 +694,25 @@ function findAngle(x, y) {
 function onTouch(e) {
   if (g.isStarted) {
     var angle = findAngle(e.changedTouches[0].pageX, e.changedTouches[0].pageY);
-	if(g.myPlayer.powerups.bullets-- > 0) {
-      fireBullet(g.myPlayer.x, g.myPlayer.y, angle);
-      socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x, playerY: g.myPlayer.y, angle: angle});
-    }
-    else {
-      dropBomb(g.myPlayer.x, g.myPlayer.y);
-      // drops 2 bombs, this why?
-      socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});
-	}
+  	if(g.myPlayer.powerups.bullets > 0) {
+        g.myPlayer.powerups.bullets--;
+        fireBullet(g.myPlayer.x, g.myPlayer.y, angle);
+        socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x, playerY: g.myPlayer.y, angle: angle});
+      }
+      else {
+        dropBomb(g.myPlayer.x, g.myPlayer.y);
+        // drops 2 bombs, this why?
+        socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});
+  	}
   }
 }
 
 function clicked(e) {
   if (g.isStarted) {
-	var angle = findAngle(e.x, e.y);
-    if(g.myPlayer.powerups.bullets-- > 0) {
+    console.log("Bullets: " + g.myPlayer.powerups.bullets);
+  	var angle = findAngle(e.x, e.y);
+    if(g.myPlayer.powerups.bullets > 0) {
+      g.myPlayer.powerups.bullets--;
       fireBullet(g.myPlayer.x, g.myPlayer.y, angle);
       socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x, playerY: g.myPlayer.y, angle: angle});
     }
