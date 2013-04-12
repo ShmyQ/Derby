@@ -611,9 +611,7 @@ function checkBulletCollision(bullet_index) {
 }
 
 function addPowerup(powerup) {
-  if (g.myPlayer.powerups.indexOf(powerup.power) === -1) {
-    g.myPlayer.powerups.push(powerup.power);
-  }
+  g.myPlayer.powerups.bullets += 5;
   g.powerups.splice(g.powerups.indexOf(powerup), 1);
   // TODO: add emit event here (twice?)
   console.log(g.myPlayer.powerups);
@@ -622,7 +620,7 @@ function addPowerup(powerup) {
 function Player(x, y) {
 	this.x = x;
 	this.y = y;
-    this.powerups = [];
+  this.powerups = {bullets: 0};
 	this.hp = c.BASE_HP;
 }
 
@@ -681,7 +679,7 @@ function findAngle(x, y) {
 
 function onTouch(e) {
   var angle = findAngle(e.changedTouches[0].pageX, e.changedTouches[0].pageY);
-  if(g.myPlayer.powerups.indexOf("bullet") !== -1) {
+  if(g.myPlayer.powerups.bullets-- > 0) {
     fireBullet(g.myPlayer.x, g.myPlayer.y, angle);
     socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x, playerY: g.myPlayer.y, angle: angle});
   }
@@ -694,7 +692,7 @@ function onTouch(e) {
 
 function clicked(e) {
   var angle = findAngle(e.x, e.y);
-  if(g.myPlayer.powerups.indexOf("bullet") !== -1) {
+  if(g.myPlayer.powerups.bullets-- > 0) {
     fireBullet(g.myPlayer.x, g.myPlayer.y, angle);
     socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x, playerY: g.myPlayer.y, angle: angle});
   }
