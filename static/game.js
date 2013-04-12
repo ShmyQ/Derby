@@ -74,13 +74,8 @@ var g = {
 	myPlayer: null,
 	// socket id
 	myID: 0,
-<<<<<<< HEAD
 	// clients player number
-	player: 0,
-=======
-	// player number
 	player: 1,
->>>>>>> e75c6616937d3ff242fb55f12581d0bc4b649f03
 	// number of players
 	numPlayers: 0,
 	bombs: null,
@@ -345,7 +340,6 @@ function draw() {
 	ctx.beginPath();
 	ctx.arc(canvas.width/2, canvas.height/2, c.BALL_RADIUS * (1 - ((c.BASE_HP - g.myPlayer.hp) / c.BASE_HP)), 0, 2*Math.PI, true);
 	ctx.fill();
-<<<<<<< HEAD
 	
 	// waiting text
 	if (!g.isStarted) {
@@ -355,13 +349,6 @@ function draw() {
 		ctx.textAlign = "center";
 		ctx.fillText("Waiting for other players...", canvas.width/2, canvas.height/2);
 	}
-=======
-
-	ctx.fillStyle = "white";
-	ctx.font = "30px Arial";
-	ctx.textAlign = "center";
-	ctx.fillText(g.temp + "", canvas.width/2, canvas.height/2);
->>>>>>> e75c6616937d3ff242fb55f12581d0bc4b649f03
 }
 
 function drawGrid(x, y, width, height) {
@@ -459,16 +446,8 @@ function removeRocks(rocks) {
     var rockX = rock.x;
     var rockY = rock.y;
     g.rocks.splice(g.rocks.indexOf(rock), 1);
-<<<<<<< HEAD
 	
 	socket.emit("rockDestroyed", {id: g.myID, rock: rock});
-=======
-    if (Math.random() < 0.2) {
-      // add powerup block
-      var power = new Powerup(rockX, rockY, "bullet");
-      g.powerups.push(power);
-    }
->>>>>>> e75c6616937d3ff242fb55f12581d0bc4b649f03
   });
 }
 
@@ -710,52 +689,32 @@ function findAngle(x, y) {
 }
 
 function onTouch(e) {
-<<<<<<< HEAD
   if (g.isStarted) {
-    if(g.myPlayer.powerups.indexOf("bullet") !== -1) {
-      fireBullet(g.myPlayer.x, g.myPlayer.y, e.changedTouches.pageX, e.changedTouches.pageY);
-      socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x, playerY: g.myPlayer.y, targetX: e.changedTouches.pageX, targetY: e.changedTouches.pageY});
+    var angle = findAngle(e.changedTouches[0].pageX, e.changedTouches[0].pageY);
+	if(g.myPlayer.powerups.bullets-- > 0) {
+      fireBullet(g.myPlayer.x, g.myPlayer.y, angle);
+      socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x, playerY: g.myPlayer.y, angle: angle});
     }
     else {
       dropBomb(g.myPlayer.x, g.myPlayer.y);
+      // drops 2 bombs, this why?
       socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});
-    }
-=======
-  var angle = findAngle(e.changedTouches[0].pageX, e.changedTouches[0].pageY);
-  if(g.myPlayer.powerups.bullets-- > 0) {
-    fireBullet(g.myPlayer.x, g.myPlayer.y, angle);
-    socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x, playerY: g.myPlayer.y, angle: angle});
-  }
-  else {
-    dropBomb(g.myPlayer.x, g.myPlayer.y);
-    // drops 2 bombs, this why?
-    socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});
->>>>>>> e75c6616937d3ff242fb55f12581d0bc4b649f03
+	}
   }
 }
 
 function clicked(e) {
-<<<<<<< HEAD
   if (g.isStarted) {
-	if(g.myPlayer.powerups.indexOf("bullet") !== -1) {
-	  fireBullet(g.myPlayer.x, g.myPlayer.y, e.x, e.y);
-	  socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x, playerY: g.myPlayer.y, targetX: e.x, targetY: e.y});
-	}
+	var angle = findAngle(e.x, e.y);
+    if(g.myPlayer.powerups.bullets-- > 0) {
+      fireBullet(g.myPlayer.x, g.myPlayer.y, angle);
+      socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x, playerY: g.myPlayer.y, angle: angle});
+    }
     else {
       dropBomb(g.myPlayer.x, g.myPlayer.y);
-      socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});
+      // drops 2 bombs, this why?
+      socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});cket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});
 	}
-=======
-  var angle = findAngle(e.x, e.y);
-  if(g.myPlayer.powerups.bullets-- > 0) {
-    fireBullet(g.myPlayer.x, g.myPlayer.y, angle);
-    socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x, playerY: g.myPlayer.y, angle: angle});
-  }
-  else {
-    dropBomb(g.myPlayer.x, g.myPlayer.y);
-    // drops 2 bombs, this why?
-    socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});
->>>>>>> e75c6616937d3ff242fb55f12581d0bc4b649f03
   }
 }
 
