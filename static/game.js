@@ -419,9 +419,7 @@ function explodeBomb(bomb) {
 	});
 
 	// remove exploded rocks
-	explodedRocks.forEach( function(rock) {
-		g.rocks.splice(g.rocks.indexOf(rock), 1);
-	});
+	removeRocks(explodedRocks);
 
 	// hurt player
 	var dist = Math.sqrt((g.myPlayer.x - bomb.x)*(g.myPlayer.x - bomb.x) + (g.myPlayer.y - bomb.y)*(g.myPlayer.y - bomb.y));
@@ -433,6 +431,23 @@ function explodeBomb(bomb) {
 
 	// remove bomb
 	g.bombs.splice(g.bombs.indexOf(bomb), 1);
+}
+
+function removeRocks(rocks) {
+  rocks.forEach( function(rock) {
+    var rockX = rock.x;
+    var rockY = rock.y;
+    g.rocks.splice(g.rocks.indexOf(rock), 1);
+    if (Math.random() < 0.4) {
+      // add powerup block
+      var power = new Powerup(rockX, rockY, "bullet");
+      g.powerups.push(power);
+    }
+  });
+}
+
+function newPowerup () {
+  // TODO: for adding random powerups
 }
 
 function checkForDeath() {
@@ -583,7 +598,9 @@ function checkBulletCollision(bullet_index) {
   g.rocks.forEach( function(rock) {
     var dist = Math.sqrt((rock.x - bullet.x)*(rock.x - bullet.x) + (rock.y - bullet.y)*(rock.y - bullet.y));
     if (dist < c.BULLET_SIZE * 3) {
-      g.rocks.splice(g.rocks.indexOf(rock), 1);
+      // Remove exploded rock
+      var rocks = [rock];
+      removeRocks(rocks);
       g.bullets.splice(bullet_index, 1);
       if (g.bullets.length === 0) {
         clearInterval(g.bulletHandler);
