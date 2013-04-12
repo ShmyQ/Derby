@@ -1,13 +1,8 @@
-/*
-	Willy - can roll around on phone now
-			going to put in boundaries and bombs next
-*/
-
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
 // sockets
-var socket = io.connect("http://128.237.241.44:8888");
+var socket = io.connect("http://128.237.130.86:8888");
 
 socket.on("connected", function (data) {
 	g.myID = data.id;
@@ -79,6 +74,8 @@ var g = {
 	map: null,
 	mapdata: null,
 	isStarted: false,
+	
+	temp: 0,
 }
 
 // Constants
@@ -328,6 +325,11 @@ function draw() {
 	ctx.beginPath();
 	ctx.arc(canvas.width/2, canvas.height/2, c.BALL_RADIUS * (1 - ((c.BASE_HP - g.myPlayer.hp) / c.BASE_HP)), 0, 2*Math.PI, true);
 	ctx.fill();
+	
+	ctx.fillStyle = "white";
+	ctx.font = "30px Arial";
+	ctx.textAlign = "center";
+	ctx.fillText(g.temp + "", canvas.width/2, canvas.height/2);
 }
 
 function drawGrid(x, y, width, height) {
@@ -621,8 +623,11 @@ function deviceMotion(e) {
 	  var xvel = -e.accelerationIncludingGravity.x / 2;
 	  var yvel = e.accelerationIncludingGravity.y / 2;
 
-	  if (g.devicePlatform === "iOS")
+	  if (g.devicePlatform === "iOS") {
+		xvel *= -1;
 		yvel *= -1;
+	  }
+	  g.temp = xvel;
 	  
 	  moveBall(xvel, yvel);
 	}

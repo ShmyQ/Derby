@@ -1,7 +1,7 @@
 // Taken from https://github.com/es92/CrossPlatformTodoApp
 
 module.exports = function loginRoutes(mongoExpressAuth, app){
- 
+    
     app.post('/login', function(req, res){
         mongoExpressAuth.login(req, res, function(err){
             if (err) {

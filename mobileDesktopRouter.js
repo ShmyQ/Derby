@@ -3,7 +3,6 @@
 module.exports = function mobileDesktopRouter(mongoExpressAuth, app){
     // Check login 
     app.all('/', function checkLogin(req,res,next){
-        console.log("Checking login");
         mongoExpressAuth.checkLogin(req, res, function(err){
             if (err)
                 res.sendfile(mobileDesktopPrefixer(req) + "/login.html");
@@ -14,7 +13,6 @@ module.exports = function mobileDesktopRouter(mongoExpressAuth, app){
     
    // route to /mobile or /desktop if necessary
     app.all('/', function directoryRouter(req, res, next){
-        console.log("Routing");
         if (!strStartsWith(req.url, '/desktop') && !strStartsWith(req.url, '/mobile')){
             if (req.useragent.isMobile){
                 wwwExists('static/mobile' + req.url, function(exists){
