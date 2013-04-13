@@ -2,7 +2,7 @@ var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
 // sockets
-var socket = io.connect("http://192.168.1.149:8888/game");
+var socket = io.connect("http://128.237.130.86:8888/game");
 
 socket.on("connected", function (data) {
 	g.myID = data.id;
