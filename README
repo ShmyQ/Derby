@@ -6,6 +6,8 @@ To Test on Mobile Device:
   Change address to your ip in following locations so device can connect - 
 	game.js: 5
 	game.html: 6
+	lobbyButtons.js: 11
+	index.html: 23
 
 Starting Up a Game:
 > To start a game, click the Find Match button

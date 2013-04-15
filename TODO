@@ -1,7 +1,6 @@
+***CLEANUP THE GIT REPO - DELETE EXTRA FILES AND TRY TO NOT RECOMMIT THEM**********
 ADAM
- - Creating basic UI / Login / DB Connection
-
- - Can now update acct through mongoExpressAuth
+ - Implementing lobby features such as the side panel of buttons and private games
  
 JON
  - Powerups
