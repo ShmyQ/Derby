@@ -1,0 +1,28 @@
+To Run Server:
+  C:\path\to\mongod.exe --dbpath C:\path\to\term-project\mongo
+  node app.js
+  
+To Test on Mobile Device:
+  Change address to your ip in following locations so device can connect - 
+	game.js: 5
+	game.html: 6
+	lobbyButtons.js: 11
+	index.html: 23
+
+Starting Up a Game:
+> To start a game, click the Find Match button
+> Currently the server is only set up to handle a single game per instance,
+therefor in order to load a new game the server must be reset
+> The game is currently hardcoded to start when 2 players have joined, the number
+of players can be changed in app.js: 106
+> (OPTIONAL) You can also test the game with background and platform image graphics (this did not
+run as well on my android). Uncomment the drawImage line for the background at game.js:153.
+Directly after that line is code for drawing the platform, you can comment out the "draw land as grid"
+and uncomment the "draw land as img".
+
+How To Play:
+> Move around with WASD on a computer or by tilting on mobile device
+> Drop bombs and shoot by clicking or by touching the screen
+> Pick up powerups that drop from rocks (currently have gun powerup)
+> Once a player dies they respawn at their starting location
+> There is currently no end to the game

@@ -1,39 +1,38 @@
-/*
-	Willy - can roll around on phone now
-			going to put in boundaries and bombs next
-*/
-
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
 // sockets
-var socket = io.connect("http://localhost:8888");
+var socket = io.connect("http://128.237.130.86:8888/game");
 
 socket.on("connected", function (data) {
-	g.myPlayer = new Player(data.x, data.y);
 	g.myID = data.id;
+	g.player = data.player;
+	g.numPlayers = data.numPlayers;
+	console.log(data.player);
 
-	g.enemies = new Object();
-	var players = data.players;
-	for (var id in players) {
-		g.enemies[id] = new Player(players[id].x, players[id].y);
-	}
+	g.map = data.map;
+	g.mapdata = data.mapdata;
+	createMap();
+
+	g.myPlayer = new Player(c.SPAWN_X, c.SPAWN_Y);
+
+	getDevicePlatform();
 
 	init();
 });
 
-socket.on("playerConnected", function (data) {
-	g.enemies[data.id] = new Player(data.x, data.y);
+socket.on("start", function (data) {
+	g.isStarted = true;
 });
 
 socket.on("receivePosition", function (data) {
-	if (g.enemies[data.id] === undefined) {
-		g.enemies[data.id] = new Player(data.player.x, data.player.y);
+	if (g.enemies[data.playerNum] === undefined) {
+		console.log("cannot find player " + data.playerNum);
 	}
 	else {
-		g.enemies[data.id].x = data.player.x;
-		g.enemies[data.id].y = data.player.y;
-		g.enemies[data.id].hp = data.player.hp;
+		g.enemies[data.playerNum].x = data.player.x;
+		g.enemies[data.playerNum].y = data.player.y;
+		g.enemies[data.playerNum].hp = data.player.hp;
 	}
 });
 
@@ -41,25 +40,47 @@ socket.on("placeBomb", function (data) {
 	dropBomb(data.x, data.y);
 });
 
+socket.on("removePowerup", function (data) {
+	g.powerups.forEach( function (powerup) {
+		if (powerup.x === data.powerup.x && powerup.y === data.powerup.y && powerup.power === data.powerup.power)
+			g.powerups.splice(g.powerups.indexOf(powerup), 1);
+	});
+});
+
+socket.on("placePowerup", function (data) {
+	var power = new Powerup(data.x, data.y, data.power);
+    g.powerups.push(power);
+});
+
 socket.on("respawn", function (data) {
-	console.log("respawning");
-	g.myPlayer = new Player(data.x, data.y);
+	g.myPlayer = new Player(c.SPAWN_X, c.SPAWN_Y);
 });
 
 socket.on("playerDied", function (data) {
-	g.enemies[data.id] = new Player(data.x, data.y);
+	g.enemies[data.playerNum] = new Player(data.x, data.y);
+	console.log(data.x, data.y);
 });
 
 socket.on("playerLeft", function (data) {
 	delete g.enemies[data.id];
 });
 
+socket.on("fireBullet", function (data) {
+  fireBullet(data.playerX, data.playerY, data.angle);
+});
+
 // Globals
 var g = {
+	devicePlatform: "",
 	drawHandler: null,
   bulletHandler: null,
 	myPlayer: null,
+	// socket id
 	myID: 0,
+	// clients player number
+	player: 1,
+	// number of players
+	numPlayers: 0,
 	bombs: null,
 	rocks: null,
 	powerups: null,
@@ -67,6 +88,11 @@ var g = {
 	enemies: null,
 	backgroundImg: null,
 	platformImg: null,
+	map: null,
+	mapdata: null,
+	isStarted: false,
+
+	temp: 0,
 }
 
 // Constants
@@ -74,60 +100,70 @@ var c = {
 	MAP_WIDTH: 800,
 	MAP_HEIGHT: 800,
 
-	BALL_RADIUS: 30,
+	BALL_RADIUS: 20,
 
 	ROCK_SIZE: 50,
 
-	BOMB_RADIUS: 25,
+	BOMB_RADIUS: 15,
 	BOMB_TIME: 5,
 	BOMB_EXPLOSION_RADIUS: 100,
 
 	POWERUP_SIZE: 50,
 
 	BULLET_SIZE: 15,
-	BULLET_MOVE: 2,
+	BULLET_MOVE: 3,
 
 	BASE_HP: 100,
-	
+
 	PLATFORM_IMG_WIDTH: 512,
 	PLATFORM_IMG_HEIGHT: 512,
-	
+
 	GRID_SIZE: 50,
+
+	SPAWN_X: 0,
+	SPAWN_Y: 0,
 }
-
-window.addEventListener('devicemotion', function(event) {
-  var xvel = -event.accelerationIncludingGravity.x / 2;
-  var yvel = event.accelerationIncludingGravity.y / 2;
-
-  moveBall(xvel, yvel);
-});
 
 function init() {
 	g.bombs = [];
-	g.rocks = [];
-	g.powerups = [new Powerup(300, 300, "bullet")];
+	g.powerups = [];
 	g.bullets = [];
-	
+
 	g.backgroundImg = new Image();
 	g.backgroundImg.src = "spaceBackground.jpg"
 	g.platformImg = new Image();
 	g.platformImg.src = "spacePlatform.jpg"
-	
-	generateRocks();
-	
+
+
 	canvas.addEventListener('touchstart', onTouch, false);
 	canvas.addEventListener('mousedown', clicked, false);
 	document.onkeydown = onKeyDown;
+	window.addEventListener('devicemotion', deviceMotion);
 
 	g.drawHandler = setInterval(draw, 50);
+}
+
+function getDevicePlatform() {
+	if (navigator.userAgent.indexOf("Android") !== -1)
+		g.devicePlatform = "Android";
+	else if (navigator.platform.indexOf("Linux") !== -1)
+		g.devicePlatform = "Linux";
+	else if (!!(navigator.userAgent.match(/iPhone/i) ||
+           navigator.userAgent.match(/iPod/i) ||
+           navigator.userAgent.match(/iPad/i)))
+		g.devicePlatform = "iOS";
+	else if (navigator.platform.indexOf("Win") !== -1)
+		g.devicePlatform = "Windows";
+	else
+		g.devicePlatform = "Unknown";
 }
 
 function draw() {
 	ctx.clearRect(0,0,canvas.width, canvas.height);
 
 	// background
-	// ctx.drawImage(g.backgroundImg, 0, 0, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
-	
+	// ctx.drawImage(g.backgroundImg, g.myPlayer.x/3, g.myPlayer.y/3, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+
 	// draw land as a grid
 	ctx.fillStyle = "green";
 	if (g.myPlayer.x < canvas.width/2) {
@@ -172,9 +208,9 @@ function draw() {
 			drawGrid(0, 0, canvas.width, canvas.height);
 		}
 	}
-	
-	/*
+
 	// draw land from img
+	/*
 	if (g.myPlayer.x < canvas.width/2) {
 		if (g.myPlayer.y < canvas.height/2) {
 			ctx.drawImage(g.platformImg, 0, 0, canvas.width/2 + g.myPlayer.x, canvas.height/2 + g.myPlayer.y,
@@ -231,9 +267,21 @@ function draw() {
 			ctx.fill();
 
 			ctx.fillStyle = "white";
-			ctx.font = "30px Arial";
+			ctx.font = c.BOMB_RADIUS + "px Arial";
 			ctx.textAlign = "center";
 			ctx.fillText(bomb.time + "", xpos, ypos);
+		}
+	});
+
+	// draw powerups
+	g.powerups.forEach( function(powerup) {
+		if (powerup.x + c.POWERUP_SIZE/2 >= g.myPlayer.x - canvas.width/2 && powerup.x - c.POWERUP_SIZE/2 < g.myPlayer.x + canvas.width/2
+			&& powerup.y + c.POWERUP_SIZE/2 >= g.myPlayer.y - canvas.height/2 && powerup.y - c.POWERUP_SIZE/2 < g.myPlayer.y + canvas.height/2) {
+			var xpos = canvas.width/2 - (g.myPlayer.x - powerup.x);
+			var ypos = canvas.height/2 - (g.myPlayer.y - powerup.y);
+
+			ctx.fillStyle = "yellow";
+			ctx.fillRect(xpos - c.POWERUP_SIZE/2, ypos - c.POWERUP_SIZE/2, c.POWERUP_SIZE, c.POWERUP_SIZE);
 		}
 	});
 
@@ -246,18 +294,6 @@ function draw() {
 
 			ctx.fillStyle = "grey";
 			ctx.fillRect(xpos - rock.size/2, ypos - rock.size/2, rock.size, rock.size);
-		}
-	});
-
-	// draw powerups
-	g.powerups.forEach( function(powerup) {
-		if (powerup.x >= g.myPlayer.x - canvas.width/2 && powerup.x < g.myPlayer.x + canvas.width/2
-			&& powerup.y >= g.myPlayer.y - canvas.height/2 && powerup.y < g.myPlayer.y + canvas.height/2) {
-			var xpos = canvas.width/2 - (g.myPlayer.x - powerup.x);
-			var ypos = canvas.height/2 - (g.myPlayer.y - powerup.y);
-
-			ctx.fillStyle = "yellow";
-			ctx.fillRect(xpos - c.POWERUP_SIZE/2, ypos - c.POWERUP_SIZE/2, c.POWERUP_SIZE, c.POWERUP_SIZE);
 		}
 	});
 
@@ -307,6 +343,15 @@ function draw() {
 	ctx.beginPath();
 	ctx.arc(canvas.width/2, canvas.height/2, c.BALL_RADIUS * (1 - ((c.BASE_HP - g.myPlayer.hp) / c.BASE_HP)), 0, 2*Math.PI, true);
 	ctx.fill();
+
+	// waiting text
+	if (!g.isStarted) {
+
+		ctx.fillStyle = "white";
+		ctx.font = "30px Arial";
+		ctx.textAlign = "center";
+		ctx.fillText("Waiting for other players...", canvas.width/2, canvas.height/2);
+	}
 }
 
 function drawGrid(x, y, width, height) {
@@ -317,13 +362,13 @@ function drawGrid(x, y, width, height) {
 		width += size - (width % size);
 	if (height % size != 0)
 		height += size - (height % size);
-	
+
 	// adjust for maximums
 	if (g.myPlayer.x >= c.MAP_WIDTH - canvas.width/2)
 		width -= size;
 	if (g.myPlayer.y >= c.MAP_HEIGHT - canvas.height/2)
 		height -= size;
-	
+
 	// reduce starting point of grid to make animation flow
 	var reducex = 0;
 	var reducey = 0;
@@ -331,7 +376,7 @@ function drawGrid(x, y, width, height) {
 		reducex = g.myPlayer.x % size;
 	if (g.myPlayer.y >= canvas.height/2)
 		reducey = g.myPlayer.y % size;
-	
+
 	ctx.lineWidth = 2;
 	for (var i = 0; i <= width; i+=size) {
 		for (var j = 0; j <= height; j+=size) {
@@ -340,10 +385,29 @@ function drawGrid(x, y, width, height) {
 	}
 }
 
-function generateRocks() {
-	for (var i = c.ROCK_SIZE/2; i < c.MAP_WIDTH - c.ROCK_SIZE/2; i+=c.ROCK_SIZE*4) {
-		for (var	 j = c.ROCK_SIZE/2; j < c.MAP_HEIGHT - c.ROCK_SIZE/2; j+=c.ROCK_SIZE*4) {
-			g.rocks.push(new Rock(i, j));
+function createMap() {
+	g.enemies = new Object();
+	g.rocks = [];
+	for (var i = 0; i < g.mapdata.width/g.mapdata.block; i++) {
+		for (var j = 0; j < g.mapdata.height/g.mapdata.block; j++) {
+			// Rock
+			if (g.map[j][i] === "R") {
+				g.rocks.push(new Rock(i*c.ROCK_SIZE + c.ROCK_SIZE/2, j*c.ROCK_SIZE + c.ROCK_SIZE/2));
+			}
+			// Spawn Point
+			else if (g.map[j][i] === g.player) {
+				c.SPAWN_X = i*c.ROCK_SIZE + c.ROCK_SIZE/2;
+				c.SPAWN_Y = j*c.ROCK_SIZE + c.ROCK_SIZE/2;
+			}
+			// Open
+			else if (g.map[j][i] === "O") {
+				continue;
+			}
+			// Enemies spawn points -- initialize enemies
+			else {
+				if (parseInt(g.map[j][i]) <= g.numPlayers)
+					g.enemies[g.map[j][i]] = new Player(i*c.ROCK_SIZE + c.ROCK_SIZE/2, j*c.ROCK_SIZE + c.ROCK_SIZE/2);
+			}
 		}
 	}
 }
@@ -366,9 +430,7 @@ function explodeBomb(bomb) {
 	});
 
 	// remove exploded rocks
-	explodedRocks.forEach( function(rock) {
-		g.rocks.splice(g.rocks.indexOf(rock), 1);
-	});
+	removeRocks(explodedRocks);
 
 	// hurt player
 	var dist = Math.sqrt((g.myPlayer.x - bomb.x)*(g.myPlayer.x - bomb.x) + (g.myPlayer.y - bomb.y)*(g.myPlayer.y - bomb.y));
@@ -382,12 +444,25 @@ function explodeBomb(bomb) {
 	g.bombs.splice(g.bombs.indexOf(bomb), 1);
 }
 
+function removeRocks(rocks) {
+  rocks.forEach( function(rock) {
+    var rockX = rock.x;
+    var rockY = rock.y;
+    g.rocks.splice(g.rocks.indexOf(rock), 1);
+
+	socket.emit("rockDestroyed", {id: g.myID, rock: rock});
+  });
+}
+
+function newPowerup () {
+  // TODO: for adding random powerups
+}
+
 function checkForDeath() {
 	if (g.myPlayer.hp <= 0) {
-		console.log("dead");
 		g.isDead = true;
 
-		socket.emit("sendDeath", {id: g.myID});
+		socket.emit("sendDeath", {id: g.myID, player: g.player});
 	}
 }
 
@@ -400,28 +475,19 @@ function decrementTimer(bomb) {
 	}
 }
 
-function fireBullet(x, y) {
-  // Finding angle of direction
-  var deltaX = x - (g.myPlayer.x + c.BALL_RADIUS);
-  var deltaY = y - (g.myPlayer.y - c.BALL_RADIUS);
-  var theta = Math.atan2(-deltaY, deltaX);
-  if (theta < 0) {
-    theta += 2 * Math.PI;
-  }
-  theta = theta * (180 / Math.PI);
-  g.bullets.push(new Bullet(g.myPlayer.x, g.myPlayer.y, theta));
+function fireBullet(playerX, playerY, angle) {
+  var moveX = c.BALL_RADIUS * 2 * Math.cos(angle * Math.PI / 180);
+  var moveY = c.BALL_RADIUS * 2 * Math.sin(angle * Math.PI / 180);
+  g.bullets.push(new Bullet(playerX + moveX, playerY - moveY, angle));
   if (g.bullets.length === 1) {
-    g.bulletHandler = setInterval(moveBullets, 50);
+    g.bulletHandler = setInterval(moveBullets, 30);
   }
-  console.log("New bullet direction = " + theta);
 }
 
 function moveBullets() {
-  // Loop through all bullets. Check for collision then move them
-  // When checking collision check if g.bullets.length === 0, if so clearInterval(g.bulletHandler);
-
   // Decimal values here might make it lag, but rounding will make non-straight lines
-  g.bullets.forEach(function (bullet) {
+  g.bullets.forEach(function (bullet, index) {
+    checkBulletCollision(index);
     var deltaX = c.BULLET_MOVE * Math.cos(bullet.direction * Math.PI / 180);
     var deltaY = c.BULLET_MOVE * Math.sin(bullet.direction * Math.PI / 180);
     bullet.x += deltaX;
@@ -435,7 +501,7 @@ function moveBall(xvel, yvel) {
 		g.myPlayer.y = g.myPlayer.y + yvel;
 	}
 
-	socket.emit("sendPosition", {id: g.myID, player: g.myPlayer});
+	socket.emit("sendPosition", {id: g.myID, playerNum: g.player, player: g.myPlayer});
 }
 
 function checkForCollision(xvel, yvel) {
@@ -454,7 +520,7 @@ function checkBoundaryCollision(xvel, yvel) {
 	if (g.myPlayer.x - c.BALL_RADIUS + xvel < 0) {
 		if (g.myPlayer.y - c.BALL_RADIUS + yvel < 0)
 			g.myPlayer.y = c.BALL_RADIUS;
-		else if (g.myPlayer.y + c.BALL_RADIUS + xvel > c.MAP_HEIGHT)
+		else if (g.myPlayer.y + c.BALL_RADIUS + yvel > c.MAP_HEIGHT)
 			g.myPlayer.y = c.MAP_HEIGHT - c.BALL_RADIUS;
 		else
 			// change y position by the fraction of the distance traveled
@@ -467,7 +533,7 @@ function checkBoundaryCollision(xvel, yvel) {
 	else if (g.myPlayer.x + c.BALL_RADIUS + xvel > c.MAP_WIDTH) {
 		if (g.myPlayer.y - c.BALL_RADIUS + yvel < 0)
 			g.myPlayer.y = c.BALL_RADIUS;
-		else if (g.myPlayer.y + c.BALL_RADIUS + xvel > c.MAP_HEIGHT)
+		else if (g.myPlayer.y + c.BALL_RADIUS + yvel > c.MAP_HEIGHT)
 			g.myPlayer.y = c.MAP_HEIGHT - c.BALL_RADIUS;
 		else
 			// change y position by the fraction of the distance traveled
@@ -484,7 +550,7 @@ function checkBoundaryCollision(xvel, yvel) {
 			g.myPlayer.y = c.BALL_RADIUS;
 			return true;
 		}
-		else if (g.myPlayer.y + c.BALL_RADIUS + xvel > c.MAP_HEIGHT) {
+		else if (g.myPlayer.y + c.BALL_RADIUS + yvel > c.MAP_HEIGHT) {
 			//g.myPlayer.x = g.myPlayer.x + xvel * ((yvel - (c.MAP_HEIGHT - g.myPlayer.y)) / yvel);
 			g.myPlayer.x = g.myPlayer.x + xvel;
 			g.myPlayer.y = c.MAP_HEIGHT - c.BALL_RADIUS;
@@ -497,8 +563,19 @@ function checkBoundaryCollision(xvel, yvel) {
 function checkRockCollision(xvel, yvel) {
 	var hitrock = false;
 	g.rocks.forEach( function(rock) {
-		if (g.myPlayer.x + c.BALL_RADIUS + xvel >= rock.x - rock.size/2 && g.myPlayer.x - c.BALL_RADIUS + xvel < rock.x + rock.size/2
-			&& g.myPlayer.y + c.BALL_RADIUS + yvel >= rock.y - rock.size/2 && g.myPlayer.y - c.BALL_RADIUS + yvel < rock.y + rock.size/2) {
+		if (g.myPlayer.x + c.BALL_RADIUS + xvel > rock.x - rock.size/2 && g.myPlayer.x - c.BALL_RADIUS + xvel < rock.x + rock.size/2
+			&& g.myPlayer.y + c.BALL_RADIUS + yvel > rock.y - rock.size/2 && g.myPlayer.y - c.BALL_RADIUS + yvel < rock.y + rock.size/2) {
+
+			if (g.myPlayer.x + c.BALL_RADIUS < rock.x - rock.size/2)
+				g.myPlayer.x = rock.x - rock.size/2 - c.BALL_RADIUS;
+			else if (g.myPlayer.x - c.BALL_RADIUS >= rock.x + rock.size/2)
+				g.myPlayer.x = rock.x + rock.size/2 + c.BALL_RADIUS;
+
+			if (g.myPlayer.y + c.BALL_RADIUS < rock.y - rock.size/2)
+				g.myPlayer.y = rock.y - rock.size/2 - c.BALL_RADIUS;
+			else if (g.myPlayer.y - c.BALL_RADIUS >= rock.y + rock.size/2)
+				g.myPlayer.y = rock.y + rock.size/2 + c.BALL_RADIUS;
+
 			hitrock = true;
 		}
 	});
@@ -510,31 +587,54 @@ function checkPowerupCollision(xvel, yvel) {
   g.powerups.forEach( function(powerup) {
     if (g.myPlayer.x + c.BALL_RADIUS + xvel >= powerup.x - c.POWERUP_SIZE/2 && g.myPlayer.x - c.BALL_RADIUS + xvel < powerup.x + c.POWERUP_SIZE/2
       && g.myPlayer.y + c.BALL_RADIUS + yvel >= powerup.y - c.POWERUP_SIZE/2 && g.myPlayer.y - c.BALL_RADIUS + yvel < powerup.y + c.POWERUP_SIZE/2) {
-      // Give player powerup here
       addPowerup(powerup);
     }
   });
 }
 
-function checkBulletCollision(xvel, yvel) {
-  g.bullets.forEach( function(bullet) {
-    if (g.myPlayer.x + c.BALL_RADIUS + xvel >= bullet.x - c.BULLET_SIZE/2 && g.myPlayer.x - c.BALL_RADIUS + xvel < bullet.x + c.BULLET_SIZE/2
-      && g.myPlayer.y + c.BALL_RADIUS + yvel >= bullet.y - c.BULLET_SIZE/2 && g.myPlayer.y - c.BALL_RADIUS + yvel < bullet.y + c.BULLET_SIZE/2) {
-      // TODO: Kill player
+function checkBulletCollision(bullet_index) {
+  bullet = g.bullets[bullet_index];
+  // TODO: Must be a more efficient way to do this
+  g.rocks.forEach( function(rock) {
+    var dist = Math.sqrt((rock.x - bullet.x)*(rock.x - bullet.x) + (rock.y - bullet.y)*(rock.y - bullet.y));
+    if (dist < c.BULLET_SIZE * 3) {
+      // Remove exploded rock
+      var rocks = [rock];
+      removeRocks(rocks);
+      g.bullets.splice(bullet_index, 1);
+      if (g.bullets.length === 0) {
+        clearInterval(g.bulletHandler);
+      }
+      // TODO: add emit event here for bullet removal?
+      return;
     }
   });
+  if (g.myPlayer.x + c.BALL_RADIUS >= bullet.x - c.BULLET_SIZE/2 && g.myPlayer.x - c.BALL_RADIUS < bullet.x + c.BULLET_SIZE/2
+    && g.myPlayer.y + c.BALL_RADIUS >= bullet.y - c.BULLET_SIZE/2 && g.myPlayer.y - c.BALL_RADIUS < bullet.y + c.BULLET_SIZE/2) {
+    g.bullets.splice(bullet_index, 1);
+    if (g.bullets.length === 0) {
+      clearInterval(g.bulletHandler);
+    }
+    // TODO: add emit event here for bullet removal / player damage
+    // Damage player
+    g.myPlayer.hp -= 30;
+    checkForDeath();
+  }
 }
 
 function addPowerup(powerup) {
-  g.myPlayer.powerups.push(powerup.power);
+  g.myPlayer.powerups.bullets += 5;
   g.powerups.splice(g.powerups.indexOf(powerup), 1);
+  // TODO: add emit event here (twice?)
   console.log(g.myPlayer.powerups);
+
+  socket.emit("powerupTaken", {id: g.myID, powerup: powerup});
 }
 
 function Player(x, y) {
 	this.x = x;
 	this.y = y;
-    this.powerups = [];
+  this.powerups = {bullets: 0};
 	this.hp = c.BASE_HP;
 }
 
@@ -564,54 +664,91 @@ function Bullet(x, y, direction) {
   this.direction = direction;
 }
 
-function onTouch(e) {
-  if(g.myPlayer.powerups.indexOf("bullet") !== -1) {
-    fireBullet(e.changedTouches.pageX, e.changedTouches.pageY);
+function deviceMotion(e) {
+	if (g.isStarted) {
+	  var xvel = -e.accelerationIncludingGravity.x / 2;
+	  var yvel = e.accelerationIncludingGravity.y / 2;
+
+	  if (g.devicePlatform === "iOS") {
+  		xvel *= -1;
+  		yvel *= -1;
+	  }
+	  g.temp = xvel;
+
+	  moveBall(xvel, yvel);
+	}
+}
+
+function findAngle(x, y) {
+  // Finding angle of direction
+  var deltaX = x - (canvas.width / 2);
+  var deltaY = y - (canvas.height / 2);
+  var theta = Math.atan2(-deltaY, deltaX);
+  if (theta < 0) {
+    theta += 2 * Math.PI;
   }
-  else {
-    dropBomb(g.myPlayer.x, g.myPlayer.y);
-    socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});
+  theta = theta * (180 / Math.PI);
+  return theta;
+}
+
+function onTouch(e) {
+  if (g.isStarted) {
+    var angle = findAngle(e.changedTouches[0].pageX, e.changedTouches[0].pageY);
+  	if(g.myPlayer.powerups.bullets > 0) {
+        g.myPlayer.powerups.bullets--;
+        fireBullet(g.myPlayer.x, g.myPlayer.y, angle);
+        socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x, playerY: g.myPlayer.y, angle: angle});
+      }
+      else {
+        dropBomb(g.myPlayer.x, g.myPlayer.y);
+        // drops 2 bombs, this why?
+        socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});
+  	}
   }
 }
 
 function clicked(e) {
-  if(g.myPlayer.powerups.indexOf("bullet") !== -1) {
-    fireBullet(e.x, e.y);
-  }
-  else {
-    dropBomb(g.myPlayer.x, g.myPlayer.y);
-    socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});
+  if (g.isStarted) {
+    console.log("Bullets: " + g.myPlayer.powerups.bullets);
+  	var angle = findAngle(e.x, e.y);
+    if(g.myPlayer.powerups.bullets > 0) {
+      g.myPlayer.powerups.bullets--;
+      fireBullet(g.myPlayer.x, g.myPlayer.y, angle);
+      socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x, playerY: g.myPlayer.y, angle: angle});
+    }
+    else {
+      dropBomb(g.myPlayer.x, g.myPlayer.y);
+      // drops 2 bombs, this why?
+      socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});cket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});
+	}
   }
 }
 
 function onKeyDown(e) {
-	// space - drop bomb
-	if (e.keyCode === 32) {
-		dropBomb(g.myPlayer.x, g.myPlayer.y);
-		socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});
-	}
-	// move left
-	else if (e.keyCode === 65) {
-		moveBall(-5, 0);
-	}
-	// move right
-	else if (e.keyCode === 68) {
-		moveBall(5, 0);
-	}
-	// move up
-	else if (e.keyCode === 87) {
-		moveBall(0, -5);
-	}
-	// move down
-	else if (e.keyCode === 83) {
-		moveBall(0, 5);
-	}
-	// move up right
-	else if (e.keyCode === 69) {
-		moveBall(5, -5);
-	}
-	// move up left
-	else if (e.keyCode === 81) {
-		moveBall(-5, -5);
+	if (g.isStarted) {
+		// move left
+		if (e.keyCode === 65) {
+			moveBall(-5, 0);
+		}
+		// move right
+		else if (e.keyCode === 68) {
+			moveBall(5, 0);
+		}
+		// move up
+		else if (e.keyCode === 87) {
+			moveBall(0, -5);
+		}
+		// move down
+		else if (e.keyCode === 83) {
+			moveBall(0, 5);
+		}
+		// move up right
+		else if (e.keyCode === 69) {
+			moveBall(5, -5);
+		}
+		// move up left
+		else if (e.keyCode === 81) {
+			moveBall(-5, -5);
+		}
 	}
 }
