@@ -1,4 +1,4 @@
-// Taken from https://github.com/es92/CrossPlatformTodoApp
+// Addapted from https://github.com/es92/CrossPlatformTodoApp
 
 module.exports = function loginRoutes(mongoExpressAuth, app){
     

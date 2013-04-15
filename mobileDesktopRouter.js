@@ -1,11 +1,13 @@
 // Adapted from https://github.com/es92/CrossPlatformTodoApp
 
 module.exports = function mobileDesktopRouter(mongoExpressAuth, app){
+    
     // Check login 
     app.all('/', function checkLogin(req,res,next){
         mongoExpressAuth.checkLogin(req, res, function(err){
-            if (err)
+            if (err) {
                 res.sendfile(mobileDesktopPrefixer(req) + "/login.html");
+            }
             else
                next();
         });

@@ -14,20 +14,35 @@
 	<link href="mobile/css/styles.css" rel="stylesheet" type="text/css">
 </head>
 <body>
+     <!-- Top Bar -->
      <h1 id = "titlebar"> Mobile Derby </h1>
      
+      <!-- Side Menu-->
     <button id="menu" class = "slideButton"> Menu </button>
     <button id="profile" class = "slideButton"> Profile </button>
     <button id="friends" class = "slideButton"> Friends </button>
     <button id="learn" class = "slideButton"> Learn </button>
     
-    <!-- chat box added when page is loaded and browser in landscape. -->
+     <!-- Side Menu Pullouts-->
+    <div id="menuBox" class="slideBox"> 
+        <button id="logoutButton"> Logout</button>
+    </div>
+    <div id="profileBox" class="slideBox"></div>
+    <div id="friendsBox" class="slideBox"></div>
+    <div id="learnBox" class="slideBox">
+        <p class = "topBar"> Power Ups </p>
+        <img src = "images/powerupsSmall.jpg" alt = "Power ups" />
+        <p class = "topBar"> Controls </p>
+    </div>
+    
+    <!-- Chat Area - box added when page is loaded and browser in landscape. -->
     <div id = "chat">   
     </div>
     
+     <!-- Game Searching Area-->
     <div id="playNowBox" class ="box">
-        <p id = "playNowBar"> Play Now! </p>
-        <button id="logoutButton"> Logout </button>
+        <p class = "topBar"> Play Now! </p>
+        <button id="findMatch"> Find Match </button>
         <button id="createGame"> Create Game </button>
         <button id="joinGame"> Join Game </button>
     </div>
@@ -35,9 +50,13 @@
     <div id = "landscapeMessage">   
     </div>
     
+     <!--Scripts -->
     <script type="text/javascript" src="scripts/libs/jquery-1.9.1.min.js"></script>
-    <script type="text/javascript" src="http://localhost:8888/socket.io/socket.io.js"></script>   
-    <script type="text/javascript" src="scripts/logout.js"></script>    
-    <script type="text/javascript" src="mobile/scripts/orientationAdjuster.js"></script>   
+    <script type="text/javascript" src="scripts/libs/jquery.min.js"></script>
+    <script type="text/javascript" src="scripts/libs/jquery.tap.js"></script>
+    <script type="text/javascript" src="http://localhost:8888/socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="scripts/lobby.js"></script>     
+    <script type="text/javascript" src="mobile/scripts/orientationAdjuster.js"></script>  
+    <script type="text/javascript" src="mobile/scripts/lobbyButtons.js"></script>        
 </body>
 </html>

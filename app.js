@@ -28,7 +28,6 @@ mongoExpressAuth.init(mongoExpressAuthConfig, function(){
     console.log('mongoExpressAuth initialized...');
 });
 
-
 app.use(express.bodyParser());
 app.use(express.cookieParser());
 app.use(useragent.express());
@@ -40,11 +39,13 @@ app.listen(8889);
 //  Routes
 //===========================
 
+
+
 require('./loginRoutes.js')(mongoExpressAuth, app);
 require('./mobileDesktopRouter.js')(mongoExpressAuth,app);
 
 app.get('/',function(req,res){
-    response.sendfile('static/login.html');
+    res.sendfile('static/index.html');
 });
     
 app.get('/db', function(req, res){
@@ -81,17 +82,19 @@ app.get('/game3', function(req, res){
 
 app.use(express.static(__dirname + '/static/'));
 
-/* The remaining routes are to keep the app a bit safer. They are not needed. */
+/* The remaining routes are to keep the app a bit safer. They are not needed. 
 
 // Do not serve incorrect html files
 app.get('*.html',function noServe(req,res,next){
     res.redirect('/');
 });
 
+/*
 //The 404 Route (ALWAYS Keep this as the last route)
 app.use(function(req,res){
     res.redirect('/');
-});
+});*/
+
 
 // ========================
 // === Socket.io server ===
@@ -129,18 +132,22 @@ io.sockets.on("connection", function (socket) {
 
 
 
+var IDToPlayer = new Object();
 var lobbyPlayers = [];
 
 var lobby = io.of('/lobby').on('connection', function (socket) {
-    lobby.emit('receivePlayers', {
-            players: lobbyPlayers
-        });
-        
     socket.on('joined',function(data){
-        lobbyPlayers.push(data.username);
-        lobby.emit('receivePlayers', {
-            players: lobbyPlayers
-        });
+        if(lobbyPlayers.indexOf(data.username) !== -1 && lobbyPlayers.indexOf(data.username) === data.username.length){
+            // Sends to everybody, only needs to send to the 2 ppl
+            lobby.emit('twoInstances', data);
+        }
+        else {
+            lobbyPlayers.push(data.username);
+            IDToPlayer[socket.id] = data.username;
+            lobby.emit('receivePlayers', {
+                players: lobbyPlayers
+            });
+        }
     });
     
     socket.on('sendChat', function(data){
@@ -153,14 +160,17 @@ var lobby = io.of('/lobby').on('connection', function (socket) {
     socket.on('findMatch', function(data){
         socket.emit('joinGame');
     });
+    
 
     socket.on('disconnect', function(data){
-        lobbyPlayers.splice(lobbyPlayers.indexOf(data.username),1);
-        lobby.emit('receivePlayers', {
-            players: lobbyPlayers
-        });
+        // If not already disconnected ie: two instances.
+        if(lobbyPlayers.indexOf(IDToPlayer[socket.id]) !== -1){
+            lobbyPlayers.splice(lobbyPlayers.indexOf(IDToPlayer[socket.id]),1);
+            delete IDToPlayer[socket.id];
+            lobby.emit('receivePlayers', {
+                players: lobbyPlayers
+            });
+         }
     });
-    
-    
-  });
+});
   
