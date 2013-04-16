@@ -2,7 +2,7 @@ var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
 // sockets
-var socket = io.connect("http://128.237.130.86:8888/game");
+var socket = io.connect("http://192.168.1.149:8888/game");
 
 socket.on("connected", function (data) {
 	g.myID = data.id;
@@ -69,11 +69,15 @@ socket.on("fireBullet", function (data) {
   fireBullet(data.playerX, data.playerY, data.angle);
 });
 
-socket.on("hitPlayer", function (data) {
-  g.bullets.splice(data.bullet, 1);
+socket.on("playerHit", function (data) {
+  g.bullets.splice(data.bullet_index, 1);
   if (g.bullets.length === 0) {
     clearInterval(g.bulletHandler);
   }
+});
+
+socket.on("damagePlayer", function (data) {
+  g.enemies[data.playerNum].hp -= data.damage;
 });
 
 // Globals
@@ -98,7 +102,6 @@ var g = {
 	map: null,
 	mapdata: null,
 	isStarted: false,
-
 	temp: 0,
 }
 
@@ -131,6 +134,31 @@ var c = {
 	SPAWN_Y: 0,
 }
 
+// Sprites
+var rockSprite = new Image();
+rockSprite.src = "images/rocks.png";
+var bulletSprite = new Image();
+bulletSprite.src = "images/cannon_ball.png";
+var ammoSprite = new Image();
+ammoSprite.src = "images/ammo.png";
+var s = {
+  rocks: [{
+    x: 5, y: 21, width: 104, height: 94
+  }, {
+    x: 132, y: 12, width: 97, height: 107
+  }, {
+    x: 385, y: 14, width: 100, height: 104
+  }, {
+    x: 9, y: 135, width: 102, height: 99
+  }],
+  bullet: [{
+    x: 0, y: 0, width: 24, height: 24
+  }],
+  ammo: [{
+    x: 2, y: 2, width: 13, height: 12
+  }]
+}
+
 function init() {
 	g.bombs = [];
 	g.powerups = [];
@@ -147,7 +175,7 @@ function init() {
 	document.onkeydown = onKeyDown;
 	window.addEventListener('devicemotion', deviceMotion);
 
-	g.drawHandler = setInterval(draw, 50);
+	g.drawHandler = setInterval(draw, 25);
 }
 
 function getDevicePlatform() {
@@ -287,8 +315,12 @@ function draw() {
 			var xpos = canvas.width/2 - (g.myPlayer.x - powerup.x);
 			var ypos = canvas.height/2 - (g.myPlayer.y - powerup.y);
 
-			ctx.fillStyle = "yellow";
-			ctx.fillRect(xpos - c.POWERUP_SIZE/2, ypos - c.POWERUP_SIZE/2, c.POWERUP_SIZE, c.POWERUP_SIZE);
+			// ctx.fillStyle = "yellow";
+			// ctx.fillRect(xpos - c.POWERUP_SIZE/2, ypos - c.POWERUP_SIZE/2, c.POWERUP_SIZE, c.POWERUP_SIZE);
+      ctx.drawImage(ammoSprite,
+        s.ammo[0].x, s.ammo[0].y,
+        s.ammo[0].width, s.ammo[0].height,
+        xpos - c.POWERUP_SIZE/2, ypos - c.POWERUP_SIZE/2, c.POWERUP_SIZE, c.POWERUP_SIZE);
 		}
 	});
 
@@ -299,8 +331,11 @@ function draw() {
 			var xpos = canvas.width/2 - (g.myPlayer.x - rock.x);
 			var ypos = canvas.height/2 - (g.myPlayer.y - rock.y);
 
-			ctx.fillStyle = "grey";
-			ctx.fillRect(xpos - rock.size/2, ypos - rock.size/2, rock.size, rock.size);
+      ctx.drawImage(rockSprite,
+        s.rocks[rock.num].x, s.rocks[rock.num].y,
+        s.rocks[rock.num].width, s.rocks[rock.num].height,
+        xpos - rock.size/2, ypos - rock.size/2, rock.size, rock.size);
+			// ctx.fillRect(xpos - rock.size/2, ypos - rock.size/2, rock.size, rock.size);
 		}
 	});
 
@@ -311,10 +346,14 @@ function draw() {
       var xpos = canvas.width/2 - (g.myPlayer.x - bullet.x);
       var ypos = canvas.height/2 - (g.myPlayer.y - bullet.y);
 
-      ctx.fillStyle = "black";
-      ctx.beginPath();
-      ctx.arc(xpos, ypos, c.BULLET_SIZE, 0, 2*Math.PI, true);
-      ctx.fill();
+      // ctx.fillStyle = "black";
+      // ctx.beginPath();
+      // ctx.arc(xpos, ypos, c.BULLET_SIZE, 0, 2*Math.PI, true);
+      // ctx.fill();
+      ctx.drawImage(bulletSprite,
+        s.bullet[0].x, s.bullet[0].y,
+        s.bullet[0].width, s.bullet[0].height,
+        xpos - c.BULLET_SIZE/2, ypos - c.BULLET_SIZE/2, c.BULLET_SIZE, c.BULLET_SIZE);
     }
   });
 
@@ -399,7 +438,7 @@ function createMap() {
 		for (var j = 0; j < g.mapdata.height/g.mapdata.block; j++) {
 			// Rock
 			if (g.map[j][i] === "R") {
-				g.rocks.push(new Rock(i*c.ROCK_SIZE + c.ROCK_SIZE/2, j*c.ROCK_SIZE + c.ROCK_SIZE/2));
+				g.rocks.push(new Rock(i*c.ROCK_SIZE + c.ROCK_SIZE/2, j*c.ROCK_SIZE + c.ROCK_SIZE/2, Math.floor(Math.random() * 4)));
 			}
 			// Spawn Point
 			else if (g.map[j][i] === g.player) {
@@ -621,10 +660,10 @@ function checkBulletCollision(bullet_index) {
     if (g.bullets.length === 0) {
       clearInterval(g.bulletHandler);
     }
-    // TODO: add emit event here for bullet removal / player damage
     socket.emit("hitPlayer", {bullet: bullet_index});
     // Damage player
     g.myPlayer.hp -= 30;
+    socket.emit("damagedPlayer", {id: g.myID, playerNum: g.player, damage: 30})
     checkForDeath();
   }
 }
@@ -632,9 +671,6 @@ function checkBulletCollision(bullet_index) {
 function addPowerup(powerup) {
   g.myPlayer.powerups.bullets += 5;
   g.powerups.splice(g.powerups.indexOf(powerup), 1);
-  // TODO: add emit event here (twice?)
-  console.log(g.myPlayer.powerups);
-
   socket.emit("powerupTaken", {id: g.myID, powerup: powerup});
 }
 
@@ -645,10 +681,11 @@ function Player(x, y) {
 	this.hp = c.BASE_HP;
 }
 
-function Rock(x, y) { // Should we use prototypes for all obstacles? >>yes<<
+function Rock(x, y, num) { // Should we use prototypes for all obstacles? >>yes<<
 	this.x = x;
 	this.y = y;
 	this.size = c.ROCK_SIZE;
+  this.num = num;
 }
 
 function Powerup(x, y, power) {
@@ -716,7 +753,6 @@ function onTouch(e) {
 
 function clicked(e) {
   if (g.isStarted) {
-    console.log("Bullets: " + g.myPlayer.powerups.bullets);
   	var angle = findAngle(e.x, e.y);
     if(g.myPlayer.powerups.bullets > 0) {
       g.myPlayer.powerups.bullets--;
