@@ -178,22 +178,28 @@ button:active {
 }
 
 .slideButton {
-   left: -1px;
+   left:-1px;
    margin: 0px;
    padding: 30px 25px;
    border-radius: 0px 60px 60px 0px;
-   z-index: 100;
+   z-index: 2;
    position: fixed;
+
+   -webkit-transition: left  1s ease;  
+   -moz-transition: left  1s ease;  
+   -o-transition: left  1s ease;  
+   -ms-transition: left 1s ease; 
+   transition: left 1s ease;
 }
 
 .slideButton:focus {
-   left: 0px;
    margin: 0px;
-   padding: 30px 25px;
-   border-radius: 0px 60px 60px 0px;
-   z-index: 1;
-   position: fixed;
    border-left: none;
+}
+
+
+.clicked{
+    left:220px;
 }
 
 /*//////////////////////////////////
@@ -224,6 +230,30 @@ button:active {
     display: inline-block;
 }
 
+.slideBox{
+    position:fixed;
+    left:-230px;
+    top: 50px;
+	padding: 10px 10px;
+	border: 5px solid rgba(44,44,44,.5);
+	border-radius: 10px 10px 10px 10px;
+	background-color: rgb(35,35,35);
+	margin: 5px auto;	
+    height: 200px;
+    width: 200px;
+    display: inline-block;
+    z-index: 2;
+    
+   -webkit-transition: left  1s ease;  
+   -moz-transition: left  1s ease;  
+   -o-transition: left  1s ease;  
+   -ms-transition: left 1s ease; 
+   transition: left  1s ease;
+}
+
+.slide{
+    left:-5px;
+}
 
 #titlebar {
     background-color: rgb(25,25,25);
@@ -297,6 +327,18 @@ button:active {
     width: 80%;
 }
 
+#playerList {
+    height: 265px;
+    width: 180px;
+    position: absolute;
+    right: 10px;
+    top: 75px;
+    border: 3px solid rgba(64,64,64,.5);
+	border-radius: 10px 10px 10px 10px;
+	background-color: rgb(30,30,30);
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
 
 
 
@@ -306,6 +348,11 @@ button:active {
 
 .red {
     color: red;
+}
+
+.chatName {
+    color: gray;
+    display: inline;
 }
 
 

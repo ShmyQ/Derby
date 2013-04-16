@@ -65,6 +65,17 @@ socket.on("fireBullet", function (data) {
   fireBullet(data.playerX*c.GRID_WIDTH, data.playerY*c.GRID_HEIGHT, data.angle);
 });
 
+socket.on("playerHit", function (data) {
+  g.bullets.splice(data.bullet_index, 1);
+  if (g.bullets.length === 0) {
+    clearInterval(g.bulletHandler);
+  }
+});
+
+socket.on("damagePlayer", function (data) {
+  g.enemies[data.playerNum].hp -= data.damage;
+});
+
 // Globals
 var g = {
 	devicePlatform: "",
@@ -124,6 +135,31 @@ var c = {
 	BOMB_COOLDOWN_TIME: 5000,
 }
 
+// Sprites
+var rockSprite = new Image();
+rockSprite.src = "images/rocks.png";
+var bulletSprite = new Image();
+bulletSprite.src = "images/cannon_ball.png";
+var ammoSprite = new Image();
+ammoSprite.src = "images/ammo.png";
+var s = {
+  rocks: [{
+    x: 5, y: 21, width: 104, height: 94
+  }, {
+    x: 132, y: 12, width: 97, height: 107
+  }, {
+    x: 385, y: 14, width: 100, height: 104
+  }, {
+    x: 9, y: 135, width: 102, height: 99
+  }],
+  bullet: [{
+    x: 0, y: 0, width: 24, height: 24
+  }],
+  ammo: [{
+    x: 2, y: 2, width: 13, height: 12
+  }]
+}
+
 function init() {
 	// Initiate Globals
 	g.bombs = [];
@@ -163,7 +199,7 @@ function init() {
 
 	// Create map and start drawing
 	createMap();
-	g.drawHandler = setInterval(draw, 50);
+	g.drawHandler = setInterval(draw, 25);
 }
 
 function getDevicePlatform() {
@@ -185,52 +221,52 @@ function draw() {
 	ctx.clearRect(0,0,canvas.width, canvas.height);
 
 	// background
-	ctx.drawImage(g.backgroundImg, g.myPlayer.x/3, g.myPlayer.y/3, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+	ctx.drawImage(g.backgroundImg, g.myPlayer.x/10, g.myPlayer.y/10, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
 
 	// draw land as a grid
 	ctx.fillStyle = "green";
 	if (g.myPlayer.x < canvas.width/2) {
 		if (g.myPlayer.y < canvas.height/2) {
 			ctx.fillRect(canvas.width/2 - g.myPlayer.x, canvas.height/2 - g.myPlayer.y, canvas.width/2 + g.myPlayer.x, canvas.height/2 + g.myPlayer.y);
-			drawGrid(canvas.width/2 - g.myPlayer.x, canvas.height/2 - g.myPlayer.y, canvas.width/2 + g.myPlayer.x, canvas.height/2 + g.myPlayer.y);
-		}
-		else if (g.myPlayer.y > c.MAP_HEIGHT - canvas.height/2) {
-			ctx.fillRect(canvas.width/2 - g.myPlayer.x, 0, canvas.width/2 + g.myPlayer.x, canvas.height/2 + (c.MAP_HEIGHT - g.myPlayer.y));
-			drawGrid(canvas.width/2 - g.myPlayer.x, 0, canvas.width/2 + g.myPlayer.x, canvas.height/2 + (c.MAP_HEIGHT - g.myPlayer.y));
-		}
-		else {
-			ctx.fillRect(canvas.width/2 - g.myPlayer.x, 0, canvas.width/2 + g.myPlayer.x, canvas.height);
-			drawGrid(canvas.width/2 - g.myPlayer.x, 0, canvas.width/2 + g.myPlayer.x, canvas.height);
-		}
-	}
-	else if (g.myPlayer.x > c.MAP_WIDTH - canvas.width/2) {
-		if (g.myPlayer.y < canvas.height/2) {
-			ctx.fillRect(0, canvas.height/2 - g.myPlayer.y, canvas.width/2 + (c.MAP_WIDTH - g.myPlayer.x), canvas.height/2 + g.myPlayer.y);
-			drawGrid(0, canvas.height/2 - g.myPlayer.y, canvas.width/2 + (c.MAP_WIDTH - g.myPlayer.x), canvas.height/2 + g.myPlayer.y);
-		}
-		else if (g.myPlayer.y > c.MAP_HEIGHT - canvas.height/2) {
-			ctx.fillRect(0, 0, canvas.width/2 + (c.MAP_WIDTH - g.myPlayer.x), canvas.height/2 + (c.MAP_HEIGHT - g.myPlayer.y));
-			drawGrid(0, 0, canvas.width/2 + (c.MAP_WIDTH - g.myPlayer.x), canvas.height/2 + (c.MAP_HEIGHT - g.myPlayer.y));
-		}
-		else {
-			ctx.fillRect(0, 0, canvas.width/2 + (c.MAP_WIDTH - g.myPlayer.x), canvas.height);
-			drawGrid(0, 0, canvas.width/2 + (c.MAP_WIDTH - g.myPlayer.x), canvas.height);
-		}
-	}
-	else {
-		if (g.myPlayer.y < canvas.height/2) {
-			ctx.fillRect(0, canvas.height/2 - g.myPlayer.y, canvas.width, canvas.height/2 + g.myPlayer.y);
-			drawGrid(0, canvas.height/2 - g.myPlayer.y, canvas.width, canvas.height/2 + g.myPlayer.y);
-		}
-		else if (g.myPlayer.y > c.MAP_HEIGHT - canvas.height/2) {
-			ctx.fillRect(0, 0, canvas.width, canvas.height/2 + (c.MAP_HEIGHT - g.myPlayer.y));
-			drawGrid(0, 0, canvas.width, canvas.height/2 + (c.MAP_HEIGHT - g.myPlayer.y));
-		}
-		else {
-			ctx.fillRect(0, 0, canvas.width, canvas.height);
-			drawGrid(0, 0, canvas.width, canvas.height);
-		}
-	}
+	 		drawGrid(canvas.width/2 - g.myPlayer.x, canvas.height/2 - g.myPlayer.y, canvas.width/2 + g.myPlayer.x, canvas.height/2 + g.myPlayer.y);
+	 	}
+	 	else if (g.myPlayer.y > c.MAP_HEIGHT - canvas.height/2) {
+	 		ctx.fillRect(canvas.width/2 - g.myPlayer.x, 0, canvas.width/2 + g.myPlayer.x, canvas.height/2 + (c.MAP_HEIGHT - g.myPlayer.y));
+	 		drawGrid(canvas.width/2 - g.myPlayer.x, 0, canvas.width/2 + g.myPlayer.x, canvas.height/2 + (c.MAP_HEIGHT - g.myPlayer.y));
+	 	}
+	 	else {
+	 		ctx.fillRect(canvas.width/2 - g.myPlayer.x, 0, canvas.width/2 + g.myPlayer.x, canvas.height);
+	 		drawGrid(canvas.width/2 - g.myPlayer.x, 0, canvas.width/2 + g.myPlayer.x, canvas.height);
+	 	}
+	 }
+	 else if (g.myPlayer.x > c.MAP_WIDTH - canvas.width/2) {
+	 	if (g.myPlayer.y < canvas.height/2) {
+	 		ctx.fillRect(0, canvas.height/2 - g.myPlayer.y, canvas.width/2 + (c.MAP_WIDTH - g.myPlayer.x), canvas.height/2 + g.myPlayer.y);
+	 		drawGrid(0, canvas.height/2 - g.myPlayer.y, canvas.width/2 + (c.MAP_WIDTH - g.myPlayer.x), canvas.height/2 + g.myPlayer.y);
+	 	}
+	 	else if (g.myPlayer.y > c.MAP_HEIGHT - canvas.height/2) {
+	 		ctx.fillRect(0, 0, canvas.width/2 + (c.MAP_WIDTH - g.myPlayer.x), canvas.height/2 + (c.MAP_HEIGHT - g.myPlayer.y));
+	 		drawGrid(0, 0, canvas.width/2 + (c.MAP_WIDTH - g.myPlayer.x), canvas.height/2 + (c.MAP_HEIGHT - g.myPlayer.y));
+	 	}
+	 	else {
+	 		ctx.fillRect(0, 0, canvas.width/2 + (c.MAP_WIDTH - g.myPlayer.x), canvas.height);
+	 		drawGrid(0, 0, canvas.width/2 + (c.MAP_WIDTH - g.myPlayer.x), canvas.height);
+	 	}
+	 }
+	 else {
+	 	if (g.myPlayer.y < canvas.height/2) {
+	 		ctx.fillRect(0, canvas.height/2 - g.myPlayer.y, canvas.width, canvas.height/2 + g.myPlayer.y);
+	 		drawGrid(0, canvas.height/2 - g.myPlayer.y, canvas.width, canvas.height/2 + g.myPlayer.y);
+	 	}
+	 	else if (g.myPlayer.y > c.MAP_HEIGHT - canvas.height/2) {
+	 		ctx.fillRect(0, 0, canvas.width, canvas.height/2 + (c.MAP_HEIGHT - g.myPlayer.y));
+	 		drawGrid(0, 0, canvas.width, canvas.height/2 + (c.MAP_HEIGHT - g.myPlayer.y));
+	 	}
+	 	else {
+	 		ctx.fillRect(0, 0, canvas.width, canvas.height);
+	 		drawGrid(0, 0, canvas.width, canvas.height);
+	 	}
+	 }
 
 	// draw land from img
 	/*
@@ -275,8 +311,9 @@ function draw() {
 			ctx.drawImage(g.platformImg, g.myPlayer.x - canvas.width/2, g.myPlayer.y - canvas.height/2, canvas.width, canvas.height,
 						0, 0, canvas.width, canvas.height);
 		}
-	}*/
-
+	}
+	*/
+	
 	// draw bombs
 	g.bombs.forEach( function(bomb) {
 		if (bomb.x + c.BOMB_RADIUS >= g.myPlayer.x - canvas.width/2 && bomb.x - c.BOMB_RADIUS < g.myPlayer.x + canvas.width/2
@@ -308,8 +345,12 @@ function draw() {
 			var xpos = canvas.width/2 - (g.myPlayer.x - powerup.x);
 			var ypos = canvas.height/2 - (g.myPlayer.y - powerup.y);
 
-			ctx.fillStyle = "yellow";
-			ctx.fillRect(xpos - c.POWERUP_WIDTH/2, ypos - c.POWERUP_HEIGHT/2, c.POWERUP_WIDTH, c.POWERUP_HEIGHT);
+			// ctx.fillStyle = "yellow";
+			// ctx.fillRect(xpos - c.POWERUP_SIZE/2, ypos - c.POWERUP_SIZE/2, c.POWERUP_SIZE, c.POWERUP_SIZE);
+			ctx.drawImage(ammoSprite,
+			s.ammo[0].x, s.ammo[0].y,
+			s.ammo[0].width, s.ammo[0].height,
+			xpos - c.POWERUP_WIDTH/2, ypos - c.POWERUP_HEIGHT/2, c.POWERUP_WIDTH, c.POWERUP_HEIGHT);
 		}
 	});
 
@@ -320,8 +361,11 @@ function draw() {
 			var xpos = canvas.width/2 - (g.myPlayer.x - rock.x);
 			var ypos = canvas.height/2 - (g.myPlayer.y - rock.y);
 
-			ctx.fillStyle = "grey";
-			ctx.fillRect(xpos - c.ROCK_WIDTH/2, ypos - c.ROCK_HEIGHT/2, c.ROCK_WIDTH, c.ROCK_HEIGHT);
+			ctx.drawImage(rockSprite,
+			s.rocks[rock.num].x, s.rocks[rock.num].y,
+			s.rocks[rock.num].width, s.rocks[rock.num].height,
+			xpos - c.ROCK_WIDTH/2, ypos - c.ROCK_HEIGHT/2, c.ROCK_WIDTH, c.ROCK_HEIGHT);
+			// ctx.fillRect(xpos - rock.size/2, ypos - rock.size/2, rock.size, rock.size);
 		}
 	});
 
@@ -332,10 +376,14 @@ function draw() {
       var xpos = canvas.width/2 - (g.myPlayer.x - bullet.x);
       var ypos = canvas.height/2 - (g.myPlayer.y - bullet.y);
 
-      ctx.fillStyle = "black";
-      ctx.beginPath();
-      ctx.arc(xpos, ypos, c.BULLET_SIZE, 0, 2*Math.PI, true);
-      ctx.fill();
+      // ctx.fillStyle = "black";
+      // ctx.beginPath();
+      // ctx.arc(xpos, ypos, c.BULLET_SIZE, 0, 2*Math.PI, true);
+      // ctx.fill();
+      ctx.drawImage(bulletSprite,
+        s.bullet[0].x, s.bullet[0].y,
+        s.bullet[0].width, s.bullet[0].height,
+        xpos - c.BULLET_SIZE/2, ypos - c.BULLET_SIZE/2, c.BULLET_SIZE, c.BULLET_SIZE);
     }
   });
 
@@ -425,7 +473,7 @@ function createMap() {
 		for (var j = 0; j < g.mapdata.blocky; j++) {
 			// Rock
 			if (g.map[j][i] === "R") {
-				g.rocks.push(new Rock(i*c.ROCK_WIDTH + c.ROCK_WIDTH/2, j*c.ROCK_HEIGHT + c.ROCK_HEIGHT/2));
+				g.rocks.push(new Rock(i*c.ROCK_WIDTH + c.ROCK_WIDTH/2, j*c.ROCK_HEIGHT + c.ROCK_HEIGHT/2, Math.floor(Math.random() * 4)));
 			}
 			// Spawn Point
 			else if (g.map[j][i] === g.player) {
@@ -656,7 +704,6 @@ function checkBulletCollision(bullet_index) {
       if (g.bullets.length === 0) {
         clearInterval(g.bulletHandler);
       }
-      // TODO: add emit event here for bullet removal?
       return;
     }
   });
@@ -666,9 +713,10 @@ function checkBulletCollision(bullet_index) {
     if (g.bullets.length === 0) {
       clearInterval(g.bulletHandler);
     }
-    // TODO: add emit event here for bullet removal / player damage
+    socket.emit("hitPlayer", {bullet: bullet_index});
     // Damage player
     g.myPlayer.hp -= 30;
+    socket.emit("damagedPlayer", {id: g.myID, playerNum: g.player, damage: 30})
     checkForDeath();
   }
 }
@@ -676,9 +724,8 @@ function checkBulletCollision(bullet_index) {
 function addPowerup(powerup) {
   g.myPlayer.powerups.bullets += 5;
   g.powerups.splice(g.powerups.indexOf(powerup), 1);
-  // TODO: add emit event here (twice?)
-  console.log(g.myPlayer.powerups);
 
+  // TODO: add emit event here (twice?)
   socket.emit("powerupTaken", {id: g.myID, x: powerup.x/c.POWERUP_WIDTH, y: powerup.y/c.POWERUP_HEIGHT, power: powerup.power});
 }
 
@@ -691,9 +738,10 @@ function Player(x, y) {
 	this.gridy = c.GRID_HEIGHT;
 }
 
-function Rock(x, y) { // Should we use prototypes for all obstacles? >>yes<<
+function Rock(x, y, num) { // Should we use prototypes for all obstacles? >>yes<<
 	this.x = x;
 	this.y = y;
+    this.num = num;
 }
 
 function Powerup(x, y, power) {
@@ -760,7 +808,6 @@ function onTouch(e) {
 
 function clicked(e) {
   if (g.isStarted) {
-    console.log("Bullets: " + g.myPlayer.powerups.bullets);
   	var angle = findAngle(e.x, e.y);
     if(g.myPlayer.powerups.bullets > 0) {
       g.myPlayer.powerups.bullets--;

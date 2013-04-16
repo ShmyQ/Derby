@@ -1,5 +1,9 @@
 
 $(document).ready(function() {
+
+    //==================
+    //  Key Events
+    //==================
    $("#usernameInput").focus();
    
     // Pressing enter on passwordInput attempts login
@@ -30,8 +34,8 @@ window.addEventListener('load', function(){
 
         var g = {
             onLoginSuccess: function(){
-                window.sessionStorage.username = usernameInput.value;
-                window.location = '/';
+                 sessionStorage["username"] = usernameInput.value;
+                 window.location = '/';
             },
             onRegisterSuccess: function(){
                 var username = usernameInput.value;
@@ -79,7 +83,7 @@ window.addEventListener('load', function(){
         loginButton.onclick = function(){
             var username = usernameInput.value;
             var password = passwordInput.value;
-
+             
             login(username, password);
         }
         registerButton.onclick = function(){
