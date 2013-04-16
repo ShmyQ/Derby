@@ -138,10 +138,10 @@ var game = io.of('/game').on("connection", function (socket) {
   });
   
   socket.on("rockDestroyed", function (data) {
-	if (destroyedRocks.indexOf(data.rock.x + "," + data.rock.y) === -1) {
-		destroyedRocks.push(data.rock.x + "," + data.rock.y);
+	if (destroyedRocks.indexOf(data.x + "," + data.y) === -1) {
+		destroyedRocks.push(data.x + "," + data.y);
 		if (Math.random() < powerupDropChance) {
-			game.emit("placePowerup", {x: data.rock.x, y: data.rock.y, power: "bullet"});
+			game.emit("placePowerup", {x: data.x, y: data.y, power: "bullet"});
 		}
 	}
   });
@@ -162,7 +162,7 @@ var game = io.of('/game').on("connection", function (socket) {
   });
 });
 
-var map1data = {width: 800, height: 800, block: 50, maxPlayers: 4};
+var map1data = {width: 800, height: 800, gridx: 50, gridy: 50, blockx: 16, blocky: 16, maxPlayers: 4};
 var map1positions = [{},
 					 {x: 175, y: 175},
 					 {x: 625, y: 175},

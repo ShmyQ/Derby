@@ -2,19 +2,15 @@ var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
 // sockets
-var socket = io.connect("http://128.237.130.86:8888/game");
+var socket = io.connect("http://128.237.126.69:8888/game");
 
 socket.on("connected", function (data) {
 	g.myID = data.id;
 	g.player = data.player;
 	g.numPlayers = data.numPlayers;
-	console.log(data.player);
 
 	g.map = data.map;
 	g.mapdata = data.mapdata;
-	createMap();
-
-	g.myPlayer = new Player(c.SPAWN_X, c.SPAWN_Y);
 
 	getDevicePlatform();
 
@@ -26,29 +22,30 @@ socket.on("start", function (data) {
 });
 
 socket.on("receivePosition", function (data) {
+	var player = data.player;
 	if (g.enemies[data.playerNum] === undefined) {
 		console.log("cannot find player " + data.playerNum);
 	}
 	else {
-		g.enemies[data.playerNum].x = data.player.x;
-		g.enemies[data.playerNum].y = data.player.y;
-		g.enemies[data.playerNum].hp = data.player.hp;
+		g.enemies[data.playerNum].x = player.x/player.gridx * c.GRID_WIDTH;
+		g.enemies[data.playerNum].y = player.y/player.gridy * c.GRID_HEIGHT;
+		g.enemies[data.playerNum].hp = player.hp;
 	}
 });
 
 socket.on("placeBomb", function (data) {
-	dropBomb(data.x, data.y);
+	dropBomb(data.x*c.GRID_WIDTH, data.y*c.GRID_HEIGHT);
 });
 
 socket.on("removePowerup", function (data) {
 	g.powerups.forEach( function (powerup) {
-		if (powerup.x === data.powerup.x && powerup.y === data.powerup.y && powerup.power === data.powerup.power)
+		if (powerup.x/c.POWERUP_WIDTH === data.x && powerup.y/c.POWERUP_HEIGHT === data.y && powerup.power === data.power)
 			g.powerups.splice(g.powerups.indexOf(powerup), 1);
 	});
 });
 
 socket.on("placePowerup", function (data) {
-	var power = new Powerup(data.x, data.y, data.power);
+	var power = new Powerup(data.x*c.GRID_WIDTH, data.y*c.GRID_HEIGHT, data.power);
     g.powerups.push(power);
 });
 
@@ -57,8 +54,7 @@ socket.on("respawn", function (data) {
 });
 
 socket.on("playerDied", function (data) {
-	g.enemies[data.playerNum] = new Player(data.x, data.y);
-	console.log(data.x, data.y);
+	g.enemies[data.playerNum] = new Player(data.x/g.mapdata.gridx * c.GRID_WIDTH, data.y/g.mapdata.gridy * c.GRID_HEIGHT);
 });
 
 socket.on("playerLeft", function (data) {
@@ -66,7 +62,7 @@ socket.on("playerLeft", function (data) {
 });
 
 socket.on("fireBullet", function (data) {
-  fireBullet(data.playerX, data.playerY, data.angle);
+  fireBullet(data.playerX*c.GRID_WIDTH, data.playerY*c.GRID_HEIGHT, data.angle);
 });
 
 // Globals
@@ -91,26 +87,27 @@ var g = {
 	map: null,
 	mapdata: null,
 	isStarted: false,
-
-	temp: 0,
+	bombCooldown: false,
 }
 
 // Constants
 var c = {
-	MAP_WIDTH: 800,
-	MAP_HEIGHT: 800,
+	MAP_WIDTH: 0,
+	MAP_HEIGHT: 0,
 
-	BALL_RADIUS: 20,
+	BALL_RADIUS: 0,
 
-	ROCK_SIZE: 50,
+	ROCK_WIDTH: 0,
+	ROCK_HEIGHT: 0,
 
-	BOMB_RADIUS: 15,
+	BOMB_RADIUS: 0,
 	BOMB_TIME: 5,
-	BOMB_EXPLOSION_RADIUS: 100,
+	BOMB_EXPLOSION_RADIUS: 0,
 
-	POWERUP_SIZE: 50,
+	POWERUP_WIDTH: 0,
+	POWERUP_HEIGHT: 0,
 
-	BULLET_SIZE: 15,
+	BULLET_SIZE: 0,
 	BULLET_MOVE: 3,
 
 	BASE_HP: 100,
@@ -118,28 +115,54 @@ var c = {
 	PLATFORM_IMG_WIDTH: 512,
 	PLATFORM_IMG_HEIGHT: 512,
 
-	GRID_SIZE: 50,
+	GRID_WIDTH: 0,
+	GRID_HEIGHT: 0,
 
 	SPAWN_X: 0,
 	SPAWN_Y: 0,
+	
+	BOMB_COOLDOWN_TIME: 5000,
 }
 
 function init() {
+	// Initiate Globals
 	g.bombs = [];
 	g.powerups = [];
 	g.bullets = [];
+	
+	// Fix Screen
+	canvas.width  = window.innerWidth;
+	canvas.height = window.innerHeight;
 
+	var blockHeight = window.innerHeight/12;
+	var blockWidth = window.innerWidth/8;
+	c.MAP_WIDTH = blockWidth*16;	
+	c.MAP_HEIGHT = blockHeight*16;
+	c.BALL_RADIUS = Math.min(blockWidth, blockHeight)/2;
+	c.BOMB_RADIUS = Math.min(blockWidth, blockHeight)/3;
+	c.BOMB_EXPLOSION_RADIUS = Math.min(blockWidth, blockHeight)*2;
+	c.ROCK_WIDTH = blockWidth;
+	c.ROCK_HEIGHT = blockHeight;
+	c.POWERUP_WIDTH = blockWidth;
+	c.POWERUP_HEIGHT = blockHeight;
+	c.BULLET_SIZE = Math.min(blockWidth, blockHeight)/3;
+	c.GRID_WIDTH = blockWidth;
+	c.GRID_HEIGHT = blockHeight;
+
+	// Images
 	g.backgroundImg = new Image();
 	g.backgroundImg.src = "spaceBackground.jpg"
 	g.platformImg = new Image();
-	g.platformImg.src = "spacePlatform.jpg"
+	g.platformImg.src = "spacePlatform.jpg";
 
-
+	// Event Handlers
 	canvas.addEventListener('touchstart', onTouch, false);
 	canvas.addEventListener('mousedown', clicked, false);
 	document.onkeydown = onKeyDown;
 	window.addEventListener('devicemotion', deviceMotion);
 
+	// Create map and start drawing
+	createMap();
 	g.drawHandler = setInterval(draw, 50);
 }
 
@@ -162,7 +185,7 @@ function draw() {
 	ctx.clearRect(0,0,canvas.width, canvas.height);
 
 	// background
-	// ctx.drawImage(g.backgroundImg, g.myPlayer.x/3, g.myPlayer.y/3, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+	ctx.drawImage(g.backgroundImg, g.myPlayer.x/3, g.myPlayer.y/3, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
 
 	// draw land as a grid
 	ctx.fillStyle = "green";
@@ -265,35 +288,40 @@ function draw() {
 			ctx.beginPath();
 			ctx.arc(xpos, ypos, c.BOMB_RADIUS, 0, 2*Math.PI, true);
 			ctx.fill();
-
+			
+			ctx.save();
+			ctx.translate(xpos, ypos);
+			ctx.rotate(Math.PI/2);
+			ctx.translate(-xpos, -ypos);
 			ctx.fillStyle = "white";
 			ctx.font = c.BOMB_RADIUS + "px Arial";
 			ctx.textAlign = "center";
 			ctx.fillText(bomb.time + "", xpos, ypos);
+			ctx.restore();
 		}
 	});
 
 	// draw powerups
 	g.powerups.forEach( function(powerup) {
-		if (powerup.x + c.POWERUP_SIZE/2 >= g.myPlayer.x - canvas.width/2 && powerup.x - c.POWERUP_SIZE/2 < g.myPlayer.x + canvas.width/2
-			&& powerup.y + c.POWERUP_SIZE/2 >= g.myPlayer.y - canvas.height/2 && powerup.y - c.POWERUP_SIZE/2 < g.myPlayer.y + canvas.height/2) {
+		if (powerup.x + c.POWERUP_WIDTH/2 >= g.myPlayer.x - canvas.width/2 && powerup.x - c.POWERUP_WIDTH/2 < g.myPlayer.x + canvas.width/2
+			&& powerup.y + c.POWERUP_HEIGHT/2 >= g.myPlayer.y - canvas.height/2 && powerup.y - c.POWERUP_HEIGHT/2 < g.myPlayer.y + canvas.height/2) {
 			var xpos = canvas.width/2 - (g.myPlayer.x - powerup.x);
 			var ypos = canvas.height/2 - (g.myPlayer.y - powerup.y);
 
 			ctx.fillStyle = "yellow";
-			ctx.fillRect(xpos - c.POWERUP_SIZE/2, ypos - c.POWERUP_SIZE/2, c.POWERUP_SIZE, c.POWERUP_SIZE);
+			ctx.fillRect(xpos - c.POWERUP_WIDTH/2, ypos - c.POWERUP_HEIGHT/2, c.POWERUP_WIDTH, c.POWERUP_HEIGHT);
 		}
 	});
 
 	// draw rocks
 	g.rocks.forEach( function (rock) {
-		if (rock.x + rock.size/2 >= g.myPlayer.x - canvas.width/2 && rock.x - rock.size/2 < g.myPlayer.x + canvas.width/2
-			&& rock.y + rock.size/2 >= g.myPlayer.y - canvas.height/2 && rock.y - rock.size/2 < g.myPlayer.y + canvas.height/2) {
+		if (rock.x + c.ROCK_WIDTH/2 >= g.myPlayer.x - canvas.width/2 && rock.x - c.ROCK_WIDTH/2 < g.myPlayer.x + canvas.width/2
+			&& rock.y + c.ROCK_HEIGHT/2 >= g.myPlayer.y - canvas.height/2 && rock.y - c.ROCK_HEIGHT/2 < g.myPlayer.y + canvas.height/2) {
 			var xpos = canvas.width/2 - (g.myPlayer.x - rock.x);
 			var ypos = canvas.height/2 - (g.myPlayer.y - rock.y);
 
 			ctx.fillStyle = "grey";
-			ctx.fillRect(xpos - rock.size/2, ypos - rock.size/2, rock.size, rock.size);
+			ctx.fillRect(xpos - c.ROCK_WIDTH/2, ypos - c.ROCK_HEIGHT/2, c.ROCK_WIDTH, c.ROCK_HEIGHT);
 		}
 	});
 
@@ -346,41 +374,46 @@ function draw() {
 
 	// waiting text
 	if (!g.isStarted) {
-
+		ctx.save();
+		ctx.translate(canvas.width/2, canvas.height/2);
+		ctx.rotate(Math.PI/2);
+		ctx.translate(-canvas.width/2, -canvas.height/2);
 		ctx.fillStyle = "white";
 		ctx.font = "30px Arial";
 		ctx.textAlign = "center";
 		ctx.fillText("Waiting for other players...", canvas.width/2, canvas.height/2);
+		ctx.restore();
 	}
 }
 
 function drawGrid(x, y, width, height) {
-	var size = c.GRID_SIZE;
-
-	// round size to last ROCK_SIZE multiple
-	if (width % size != 0)
-		width += size - (width % size);
-	if (height % size != 0)
-		height += size - (height % size);
+	var sizex = c.GRID_WIDTH;
+	var sizey = c.GRID_HEIGHT;
+	
+	// round size to last grid size multiple
+	if (width % sizex != 0)
+		width += sizex - (width % sizex);
+	if (height % sizey != 0)
+		height += sizey - (height % sizey);
 
 	// adjust for maximums
 	if (g.myPlayer.x >= c.MAP_WIDTH - canvas.width/2)
-		width -= size;
+		width -= sizex;
 	if (g.myPlayer.y >= c.MAP_HEIGHT - canvas.height/2)
-		height -= size;
+		height -= sizey;
 
 	// reduce starting point of grid to make animation flow
 	var reducex = 0;
 	var reducey = 0;
 	if (g.myPlayer.x >= canvas.width/2)
-		reducex = g.myPlayer.x % size;
+		reducex = g.myPlayer.x % sizex;
 	if (g.myPlayer.y >= canvas.height/2)
-		reducey = g.myPlayer.y % size;
+		reducey = g.myPlayer.y % sizey;
 
 	ctx.lineWidth = 2;
-	for (var i = 0; i <= width; i+=size) {
-		for (var j = 0; j <= height; j+=size) {
-			ctx.strokeRect(x + i - reducex, y + j - reducey, size, size);
+	for (var i = 0; i <= width; i+=sizex) {
+		for (var j = 0; j <= height; j+=sizey) {
+			ctx.strokeRect(x + i - reducex, y + j - reducey, sizex, sizey);
 		}
 	}
 }
@@ -388,16 +421,18 @@ function drawGrid(x, y, width, height) {
 function createMap() {
 	g.enemies = new Object();
 	g.rocks = [];
-	for (var i = 0; i < g.mapdata.width/g.mapdata.block; i++) {
-		for (var j = 0; j < g.mapdata.height/g.mapdata.block; j++) {
+	for (var i = 0; i < g.mapdata.blockx; i++) {
+		for (var j = 0; j < g.mapdata.blocky; j++) {
 			// Rock
 			if (g.map[j][i] === "R") {
-				g.rocks.push(new Rock(i*c.ROCK_SIZE + c.ROCK_SIZE/2, j*c.ROCK_SIZE + c.ROCK_SIZE/2));
+				g.rocks.push(new Rock(i*c.ROCK_WIDTH + c.ROCK_WIDTH/2, j*c.ROCK_HEIGHT + c.ROCK_HEIGHT/2));
 			}
 			// Spawn Point
 			else if (g.map[j][i] === g.player) {
-				c.SPAWN_X = i*c.ROCK_SIZE + c.ROCK_SIZE/2;
-				c.SPAWN_Y = j*c.ROCK_SIZE + c.ROCK_SIZE/2;
+				c.SPAWN_X = i*c.GRID_WIDTH + c.GRID_WIDTH/2;
+				c.SPAWN_Y = j*c.GRID_HEIGHT + c.GRID_HEIGHT/2;
+				
+				g.myPlayer = new Player(c.SPAWN_X, c.SPAWN_Y);
 			}
 			// Open
 			else if (g.map[j][i] === "O") {
@@ -406,7 +441,7 @@ function createMap() {
 			// Enemies spawn points -- initialize enemies
 			else {
 				if (parseInt(g.map[j][i]) <= g.numPlayers)
-					g.enemies[g.map[j][i]] = new Player(i*c.ROCK_SIZE + c.ROCK_SIZE/2, j*c.ROCK_SIZE + c.ROCK_SIZE/2);
+					g.enemies[g.map[j][i]] = new Player(i*c.GRID_WIDTH + c.GRID_WIDTH/2, j*c.GRID_HEIGHT + c.GRID_HEIGHT/2);
 			}
 		}
 	}
@@ -415,6 +450,22 @@ function createMap() {
 function dropBomb(x, y) {
 	var bomb = new Bomb(x, y);
 	g.bombs.push(bomb);
+}
+
+function dropMyBomb(x, y) {
+	console.log(g.bombCooldown);
+	if (!g.bombCooldown) {
+		console.log("firing with cooldown = ", g.bombCooldown);
+		g.bombCooldown = true;
+		setTimeout( function() {
+			console.log("resetting cooldown");
+			g.bombCooldown = false;
+		}, c.BOMB_COOLDOWN_TIME);
+		
+		dropBomb(x, y);
+		
+		socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x/c.GRID_WIDTH, y: g.myPlayer.y/c.GRID_HEIGHT});
+	}
 }
 
 function explodeBomb(bomb) {
@@ -450,7 +501,7 @@ function removeRocks(rocks) {
     var rockY = rock.y;
     g.rocks.splice(g.rocks.indexOf(rock), 1);
 
-	socket.emit("rockDestroyed", {id: g.myID, rock: rock});
+	socket.emit("rockDestroyed", {id: g.myID, x: rock.x/c.GRID_WIDTH, y: rock.y/c.GRID_HEIGHT});
   });
 }
 
@@ -563,18 +614,18 @@ function checkBoundaryCollision(xvel, yvel) {
 function checkRockCollision(xvel, yvel) {
 	var hitrock = false;
 	g.rocks.forEach( function(rock) {
-		if (g.myPlayer.x + c.BALL_RADIUS + xvel > rock.x - rock.size/2 && g.myPlayer.x - c.BALL_RADIUS + xvel < rock.x + rock.size/2
-			&& g.myPlayer.y + c.BALL_RADIUS + yvel > rock.y - rock.size/2 && g.myPlayer.y - c.BALL_RADIUS + yvel < rock.y + rock.size/2) {
+		if (g.myPlayer.x + c.BALL_RADIUS + xvel > rock.x - c.ROCK_WIDTH/2 && g.myPlayer.x - c.BALL_RADIUS + xvel < rock.x + c.ROCK_WIDTH/2
+			&& g.myPlayer.y + c.BALL_RADIUS + yvel > rock.y - c.ROCK_HEIGHT/2 && g.myPlayer.y - c.BALL_RADIUS + yvel < rock.y + c.ROCK_HEIGHT/2) {
 
-			if (g.myPlayer.x + c.BALL_RADIUS < rock.x - rock.size/2)
-				g.myPlayer.x = rock.x - rock.size/2 - c.BALL_RADIUS;
-			else if (g.myPlayer.x - c.BALL_RADIUS >= rock.x + rock.size/2)
-				g.myPlayer.x = rock.x + rock.size/2 + c.BALL_RADIUS;
+			if (g.myPlayer.x + c.BALL_RADIUS < rock.x - c.ROCK_WIDTH/2)
+				g.myPlayer.x = rock.x - c.ROCK_WIDTH/2 - c.BALL_RADIUS;
+			else if (g.myPlayer.x - c.BALL_RADIUS >= rock.x + c.ROCK_WIDTH/2)
+				g.myPlayer.x = rock.x + c.ROCK_WIDTH/2 + c.BALL_RADIUS;
 
-			if (g.myPlayer.y + c.BALL_RADIUS < rock.y - rock.size/2)
-				g.myPlayer.y = rock.y - rock.size/2 - c.BALL_RADIUS;
-			else if (g.myPlayer.y - c.BALL_RADIUS >= rock.y + rock.size/2)
-				g.myPlayer.y = rock.y + rock.size/2 + c.BALL_RADIUS;
+			if (g.myPlayer.y + c.BALL_RADIUS < rock.y - c.ROCK_HEIGHT/2)
+				g.myPlayer.y = rock.y - c.ROCK_HEIGHT/2 - c.BALL_RADIUS;
+			else if (g.myPlayer.y - c.BALL_RADIUS >= rock.y + c.ROCK_HEIGHT/2)
+				g.myPlayer.y = rock.y + c.ROCK_HEIGHT/2 + c.BALL_RADIUS;
 
 			hitrock = true;
 		}
@@ -585,8 +636,8 @@ function checkRockCollision(xvel, yvel) {
 
 function checkPowerupCollision(xvel, yvel) {
   g.powerups.forEach( function(powerup) {
-    if (g.myPlayer.x + c.BALL_RADIUS + xvel >= powerup.x - c.POWERUP_SIZE/2 && g.myPlayer.x - c.BALL_RADIUS + xvel < powerup.x + c.POWERUP_SIZE/2
-      && g.myPlayer.y + c.BALL_RADIUS + yvel >= powerup.y - c.POWERUP_SIZE/2 && g.myPlayer.y - c.BALL_RADIUS + yvel < powerup.y + c.POWERUP_SIZE/2) {
+    if (g.myPlayer.x + c.BALL_RADIUS + xvel >= powerup.x - c.POWERUP_WIDTH/2 && g.myPlayer.x - c.BALL_RADIUS + xvel < powerup.x + c.POWERUP_WIDTH/2
+      && g.myPlayer.y + c.BALL_RADIUS + yvel >= powerup.y - c.POWERUP_HEIGHT/2 && g.myPlayer.y - c.BALL_RADIUS + yvel < powerup.y + c.POWERUP_HEIGHT/2) {
       addPowerup(powerup);
     }
   });
@@ -628,20 +679,21 @@ function addPowerup(powerup) {
   // TODO: add emit event here (twice?)
   console.log(g.myPlayer.powerups);
 
-  socket.emit("powerupTaken", {id: g.myID, powerup: powerup});
+  socket.emit("powerupTaken", {id: g.myID, x: powerup.x/c.POWERUP_WIDTH, y: powerup.y/c.POWERUP_HEIGHT, power: powerup.power});
 }
 
 function Player(x, y) {
 	this.x = x;
 	this.y = y;
-  this.powerups = {bullets: 0};
+    this.powerups = {bullets: 0};
 	this.hp = c.BASE_HP;
+	this.gridx = c.GRID_WIDTH;
+	this.gridy = c.GRID_HEIGHT;
 }
 
 function Rock(x, y) { // Should we use prototypes for all obstacles? >>yes<<
 	this.x = x;
 	this.y = y;
-	this.size = c.ROCK_SIZE;
 }
 
 function Powerup(x, y, power) {
@@ -697,12 +749,11 @@ function onTouch(e) {
   	if(g.myPlayer.powerups.bullets > 0) {
         g.myPlayer.powerups.bullets--;
         fireBullet(g.myPlayer.x, g.myPlayer.y, angle);
-        socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x, playerY: g.myPlayer.y, angle: angle});
+        socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x/c.GRID_WIDTH, playerY: g.myPlayer.y/c.GRID_HEIGHT, angle: angle});
       }
       else {
-        dropBomb(g.myPlayer.x, g.myPlayer.y);
+        dropMyBomb(g.myPlayer.x, g.myPlayer.y);
         // drops 2 bombs, this why?
-        socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});
   	}
   }
 }
@@ -714,12 +765,11 @@ function clicked(e) {
     if(g.myPlayer.powerups.bullets > 0) {
       g.myPlayer.powerups.bullets--;
       fireBullet(g.myPlayer.x, g.myPlayer.y, angle);
-      socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x, playerY: g.myPlayer.y, angle: angle});
+      socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x/c.GRID_WIDTH, playerY: g.myPlayer.y/c.GRID_HEIGHT, angle: angle});
     }
     else {
-      dropBomb(g.myPlayer.x, g.myPlayer.y);
+      dropMyBomb(g.myPlayer.x, g.myPlayer.y);
       // drops 2 bombs, this why?
-      socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});cket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x, y: g.myPlayer.y});
 	}
   }
 }
