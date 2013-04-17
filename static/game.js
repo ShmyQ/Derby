@@ -694,6 +694,12 @@ function checkPowerupCollision(xvel, yvel) {
 
 function checkBulletCollision(bullet_index) {
   bullet = g.bullets[bullet_index];
+  if (bullet.x < 0 || bullet.y < 0 || bullet.x > c.GRID_WIDTH || bullet.y > c.GRID_HEIGHT) {
+    g.bullets.splice(bullet_index, 1);
+    if (g.bullets.length === 0) {
+      clearInterval(g.bulletHandler);
+    }
+  }
   // TODO: Must be a more efficient way to do this
   g.rocks.forEach( function(rock) {
     var dist = Math.sqrt((rock.x - bullet.x)*(rock.x - bullet.x) + (rock.y - bullet.y)*(rock.y - bullet.y));
