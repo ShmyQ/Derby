@@ -105,7 +105,7 @@ var io = require("socket.io").listen(8888,{ log: false });
 
 var playerData = new Object();
 var playerCount = 0;
-var players = 2;
+var players = 3;
 var destroyedRocks = [];
 var powerupDropChance = 0.4;
 
