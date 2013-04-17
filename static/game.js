@@ -2,7 +2,7 @@ var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
 // sockets
-var socket = io.connect("http://128.237.126.69:8888/game");
+var socket = io.connect("http://192.168.1.149:8888/game");
 
 socket.on("connected", function (data) {
 	g.myID = data.id;
@@ -131,7 +131,7 @@ var c = {
 
 	SPAWN_X: 0,
 	SPAWN_Y: 0,
-	
+
 	BOMB_COOLDOWN_TIME: 5000,
 }
 
@@ -165,14 +165,14 @@ function init() {
 	g.bombs = [];
 	g.powerups = [];
 	g.bullets = [];
-	
+
 	// Fix Screen
 	canvas.width  = window.innerWidth;
 	canvas.height = window.innerHeight;
 
 	var blockHeight = window.innerHeight/12;
 	var blockWidth = window.innerWidth/8;
-	c.MAP_WIDTH = blockWidth*16;	
+	c.MAP_WIDTH = blockWidth*16;
 	c.MAP_HEIGHT = blockHeight*16;
 	c.BALL_RADIUS = Math.min(blockWidth, blockHeight)/2;
 	c.BOMB_RADIUS = Math.min(blockWidth, blockHeight)/3;
@@ -313,7 +313,7 @@ function draw() {
 		}
 	}
 	*/
-	
+
 	// draw bombs
 	g.bombs.forEach( function(bomb) {
 		if (bomb.x + c.BOMB_RADIUS >= g.myPlayer.x - canvas.width/2 && bomb.x - c.BOMB_RADIUS < g.myPlayer.x + canvas.width/2
@@ -325,7 +325,7 @@ function draw() {
 			ctx.beginPath();
 			ctx.arc(xpos, ypos, c.BOMB_RADIUS, 0, 2*Math.PI, true);
 			ctx.fill();
-			
+
 			ctx.save();
 			ctx.translate(xpos, ypos);
 			ctx.rotate(Math.PI/2);
@@ -437,7 +437,7 @@ function draw() {
 function drawGrid(x, y, width, height) {
 	var sizex = c.GRID_WIDTH;
 	var sizey = c.GRID_HEIGHT;
-	
+
 	// round size to last grid size multiple
 	if (width % sizex != 0)
 		width += sizex - (width % sizex);
@@ -479,7 +479,7 @@ function createMap() {
 			else if (g.map[j][i] === g.player) {
 				c.SPAWN_X = i*c.GRID_WIDTH + c.GRID_WIDTH/2;
 				c.SPAWN_Y = j*c.GRID_HEIGHT + c.GRID_HEIGHT/2;
-				
+
 				g.myPlayer = new Player(c.SPAWN_X, c.SPAWN_Y);
 			}
 			// Open
@@ -509,9 +509,9 @@ function dropMyBomb(x, y) {
 			console.log("resetting cooldown");
 			g.bombCooldown = false;
 		}, c.BOMB_COOLDOWN_TIME);
-		
+
 		dropBomb(x, y);
-		
+
 		socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x/c.GRID_WIDTH, y: g.myPlayer.y/c.GRID_HEIGHT});
 	}
 }
@@ -584,7 +584,8 @@ function fireBullet(playerX, playerY, angle) {
 }
 
 function moveBullets() {
-  // Decimal values here might make it lag, but rounding will make non-straight lines
+  // TODO: splice bullets not on map
+  // TODO: move bullets relative to grid size
   g.bullets.forEach(function (bullet, index) {
     checkBulletCollision(index);
     var deltaX = c.BULLET_MOVE * Math.cos(bullet.direction * Math.PI / 180);
@@ -795,13 +796,12 @@ function onTouch(e) {
   if (g.isStarted) {
     var angle = findAngle(e.changedTouches[0].pageX, e.changedTouches[0].pageY);
   	if(g.myPlayer.powerups.bullets > 0) {
-        g.myPlayer.powerups.bullets--;
-        fireBullet(g.myPlayer.x, g.myPlayer.y, angle);
-        socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x/c.GRID_WIDTH, playerY: g.myPlayer.y/c.GRID_HEIGHT, angle: angle});
-      }
-      else {
-        dropMyBomb(g.myPlayer.x, g.myPlayer.y);
-        // drops 2 bombs, this why?
+      g.myPlayer.powerups.bullets--;
+      fireBullet(g.myPlayer.x, g.myPlayer.y, angle);
+      socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x/c.GRID_WIDTH, playerY: g.myPlayer.y/c.GRID_HEIGHT, angle: angle});
+    }
+    else {
+      dropMyBomb(g.myPlayer.x, g.myPlayer.y);
   	}
   }
 }
@@ -816,8 +816,7 @@ function clicked(e) {
     }
     else {
       dropMyBomb(g.myPlayer.x, g.myPlayer.y);
-      // drops 2 bombs, this why?
-	}
+    }
   }
 }
 
