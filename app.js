@@ -105,7 +105,7 @@ var io = require("socket.io").listen(8888,{ log: false });
 
 var playerData = new Object();
 var playerCount = 0;
-var players = 3;
+var players = 2;
 var destroyedRocks = [];
 var powerupDropChance = 0.4;
 
@@ -132,6 +132,10 @@ var game = io.of('/game').on("connection", function (socket) {
   });
 
   socket.on("bombDropped", function (data) {
+	console.log("Sending bomb drop to: ");
+	for (var key in playerData)
+		console.log(key);
+	
     socket.broadcast.emit("placeBomb", data);
   });
 

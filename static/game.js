@@ -3,6 +3,8 @@ var ctx = canvas.getContext("2d");
 
 // sockets
 var socket = io.connect("http://128.237.123.149:8888/game");
+socket.heartbeatTimeout = 2000;
+
 
 socket.on("connected", function (data) {
 	g.myID = data.id;
@@ -34,6 +36,7 @@ socket.on("receivePosition", function (data) {
 });
 
 socket.on("placeBomb", function (data) {
+	console.log("Placing bomb");
 	dropBomb(data.x*c.GRID_WIDTH, data.y*c.GRID_HEIGHT);
 });
 
@@ -174,7 +177,7 @@ function init() {
 	var blockWidth = window.innerWidth/8;
 	c.MAP_WIDTH = blockWidth*16;	
 	c.MAP_HEIGHT = blockHeight*16;
-	c.BALL_RADIUS = Math.min(blockWidth, blockHeight)/2;
+	c.BALL_RADIUS = Math.min(blockWidth, blockHeight)/3;
 	c.BOMB_RADIUS = Math.min(blockWidth, blockHeight)/3;
 	c.BOMB_EXPLOSION_RADIUS = Math.min(blockWidth, blockHeight)*2;
 	c.ROCK_WIDTH = blockWidth;
@@ -501,9 +504,7 @@ function dropBomb(x, y) {
 }
 
 function dropMyBomb(x, y) {
-	console.log(g.bombCooldown);
 	if (!g.bombCooldown) {
-		console.log("firing with cooldown = ", g.bombCooldown);
 		g.bombCooldown = true;
 		setTimeout( function() {
 			console.log("resetting cooldown");
@@ -512,6 +513,7 @@ function dropMyBomb(x, y) {
 		
 		dropBomb(x, y);
 		
+		console.log("Sending bomb drop");
 		socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x/c.GRID_WIDTH, y: g.myPlayer.y/c.GRID_HEIGHT});
 	}
 }
@@ -662,23 +664,55 @@ function checkBoundaryCollision(xvel, yvel) {
 function checkRockCollision(xvel, yvel) {
 	var hitrock = false;
 	g.rocks.forEach( function(rock) {
-		if (g.myPlayer.x + c.BALL_RADIUS + xvel > rock.x - c.ROCK_WIDTH/2 && g.myPlayer.x - c.BALL_RADIUS + xvel < rock.x + c.ROCK_WIDTH/2
-			&& g.myPlayer.y + c.BALL_RADIUS + yvel > rock.y - c.ROCK_HEIGHT/2 && g.myPlayer.y - c.BALL_RADIUS + yvel < rock.y + c.ROCK_HEIGHT/2) {
-
-			if (g.myPlayer.x + c.BALL_RADIUS < rock.x - c.ROCK_WIDTH/2)
-				g.myPlayer.x = rock.x - c.ROCK_WIDTH/2 - c.BALL_RADIUS;
-			else if (g.myPlayer.x - c.BALL_RADIUS >= rock.x + c.ROCK_WIDTH/2)
-				g.myPlayer.x = rock.x + c.ROCK_WIDTH/2 + c.BALL_RADIUS;
-
-			if (g.myPlayer.y + c.BALL_RADIUS < rock.y - c.ROCK_HEIGHT/2)
-				g.myPlayer.y = rock.y - c.ROCK_HEIGHT/2 - c.BALL_RADIUS;
-			else if (g.myPlayer.y - c.BALL_RADIUS >= rock.y + c.ROCK_HEIGHT/2)
-				g.myPlayer.y = rock.y + c.ROCK_HEIGHT/2 + c.BALL_RADIUS;
-
+		if (hitsRock(xvel, yvel, rock)) {
+			// small amount to push ball from wall (fixes a bug)
+			var e = 0.0001;
+		
+			if (!hitsRock(xvel, 0, rock)) {
+				// if the whole xvel doesnt hit a new rock, add it
+				if (!hitARock(xvel, 0))
+					g.myPlayer.x += xvel;
+				
+				// move y to side of rock
+				if (g.myPlayer.y + c.BALL_RADIUS <= rock.y - c.ROCK_HEIGHT/2)
+					g.myPlayer.y = rock.y - c.ROCK_HEIGHT/2 - c.BALL_RADIUS - e;
+				else
+					g.myPlayer.y = rock.y + c.ROCK_HEIGHT/2 + c.BALL_RADIUS + e;
+			}
+			else if (!hitsRock(0, yvel, rock)) {
+				// if the whole yvel doesnt hit a new rock, add it
+				if (!hitARock(0, yvel))
+					g.myPlayer.y += yvel;
+					
+				if (g.myPlayer.x + c.BALL_RADIUS <= rock.x - c.ROCK_WIDTH/2)
+					g.myPlayer.x = rock.x - c.ROCK_WIDTH/2 - c.BALL_RADIUS - e; 
+				else
+					g.myPlayer.x = rock.x + c.ROCK_WIDTH/2 + c.BALL_RADIUS + e;
+			}
+			// diagonal
+			else {
+				console.log(g.myPlayer.y - c.BALL_RADIUS + yvel, rock.y + c.ROCK_HEIGHT/2);
+			}
 			hitrock = true;
 		}
 	});
 
+	function hitsRock(xvel, yvel, rock) {
+		if (g.myPlayer.x + c.BALL_RADIUS + xvel > rock.x - c.ROCK_WIDTH/2 && g.myPlayer.x - c.BALL_RADIUS + xvel < rock.x + c.ROCK_WIDTH/2
+			&& g.myPlayer.y + c.BALL_RADIUS + yvel > rock.y - c.ROCK_HEIGHT/2 && g.myPlayer.y - c.BALL_RADIUS + yvel < rock.y + c.ROCK_HEIGHT/2) {
+			return true;
+		}
+	}
+	
+	function hitARock(xvel, yvel) {
+		var hit = false;
+		g.rocks.forEach( function (rock) {
+			if (hitsRock(xvel, yvel, rock))
+				hit = true;
+		});
+		return hit;
+	}
+	
 	return hitrock;
 }
 
