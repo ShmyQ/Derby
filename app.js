@@ -85,7 +85,7 @@ app.get('/favicon.ico', function(req,res){
 });
 app.use(express.static(__dirname + '/static/'));
 
-/* The remaining routes are to keep the app a bit safer. They are not needed. 
+/* The remaining routes are to keep the app a bit safer. They are not needed.
 
 // Do not serve incorrect html files
 app.get('*.html',function noServe(req,res,next){
@@ -115,12 +115,12 @@ var powerupDropChance = 0.4;
 var game = io.of('/game').on("connection", function (socket) {
   if (++playerCount > players)
 	return;
-	
+
   console.log("Player ", playerCount, " connected");
-  
+
   // send connected message to set up client side
   socket.emit("connected", {id: socket.id, player: playerCount.toString(), numPlayers: players, map: map1, mapdata: map1data});
-  
+
   // save new player
   playerData[socket.id] = {x: map1positions[playerCount].x, y: map1positions[playerCount].y, hp: 100, powerups: []};
 
@@ -128,7 +128,7 @@ var game = io.of('/game').on("connection", function (socket) {
   if (playerCount === players) {
 	game.emit("start", {});
   }
-  
+
   socket.on("sendPosition", function (data) {
 	playerData[data.id] = data.player;
 	socket.broadcast.emit("receivePosition", data);
@@ -137,16 +137,16 @@ var game = io.of('/game').on("connection", function (socket) {
   socket.on("bombDropped", function (data) {
     socket.broadcast.emit("placeBomb", data);
   });
-  
+
   socket.on("powerupTaken", function (data) {
     socket.broadcast.emit("removePowerup", data);
   });
-  
+
   socket.on("rockDestroyed", function (data) {
-	if (destroyedRocks.indexOf(data.rock.x + "," + data.rock.y) === -1) {
-		destroyedRocks.push(data.rock.x + "," + data.rock.y);
+	if (destroyedRocks.indexOf(data.x + "," + data.y) === -1) {
+		destroyedRocks.push(data.x + "," + data.y);
 		if (Math.random() < powerupDropChance) {
-			game.emit("placePowerup", {x: data.rock.x, y: data.rock.y, power: "bullet"});
+			game.emit("placePowerup", {x: data.x, y: data.y, power: "bullet"});
 		}
 	}
   });
@@ -155,10 +155,18 @@ var game = io.of('/game').on("connection", function (socket) {
     socket.broadcast.emit("fireBullet", data);
   });
 
+  socket.on("hitPlayer", function (data) {
+    socket.broadcast.emit("playerHit", data);
+  });
+
+  socket.on("damagedPlayer", function (data) {
+    socket.broadcast.emit("damagePlayer", data);
+  });
+
   socket.on("sendDeath", function (data) {
 	socket.emit("respawn", {});
 	playerData[data.id] = {x: map1positions[parseInt(data.player)].x, y: map1positions[parseInt(data.player)].y, hp: 100, powerups: []};
-	socket.broadcast.emit("playerDied", {id: data.id, playerNum: data.player, x: map1positions[parseInt(data.player)].x, y: map1positions[parseInt(data.player)].y});  
+	socket.broadcast.emit("playerDied", {id: data.id, playerNum: data.player, x: map1positions[parseInt(data.player)].x, y: map1positions[parseInt(data.player)].y});
   });
 
   socket.on("disconnect", function () {
@@ -167,7 +175,7 @@ var game = io.of('/game').on("connection", function (socket) {
   });
 });
 
-var map1data = {width: 800, height: 800, block: 50, maxPlayers: 4};
+var map1data = {width: 800, height: 800, gridx: 50, gridy: 50, blockx: 16, blocky: 16, maxPlayers: 4};
 var map1positions = [{},
 					 {x: 175, y: 175},
 					 {x: 625, y: 175},
@@ -191,7 +199,7 @@ var map1 = [["O", "O", "R", "O", "O", "R", "O", "O", "O", "R", "O", "O", "O", "O
 			["O", "O", "O", "R", "O", "O", "R", "O", "R", "O", "O", "O", "R", "O", "R", "O"]];
 
 
-// ** LOBBY	**	
+// ** LOBBY	**
 
 var IDToPlayer = new Object();
 var lobbyPlayers = [];
@@ -221,7 +229,7 @@ var lobby = io.of('/lobby').on('connection', function (socket) {
     socket.on('findMatch', function(data){
         socket.emit('joinGame');
     });
-    
+
 
     socket.on('disconnect', function(data){
         // If not already disconnected ie: two instances.
