@@ -80,6 +80,9 @@ app.get('/game3', function(req, res){
     });
 });
 
+app.get('/favicon.ico', function(req,res){
+    res.sendfile('favicon.ico');
+});
 app.use(express.static(__dirname + '/static/'));
 
 /* The remaining routes are to keep the app a bit safer. They are not needed. 
@@ -195,7 +198,7 @@ var lobbyPlayers = [];
 
 var lobby = io.of('/lobby').on('connection', function (socket) {
     socket.on('joined',function(data){
-        if(lobbyPlayers.indexOf(data.username) !== -1 && lobbyPlayers.indexOf(data.username) === data.username.length){
+        if(lobbyPlayers.indexOf(data.username) !== -1 && lobbyPlayers[lobbyPlayers.indexOf(data.username)].length === data.username.length){
             // Sends to everybody, only needs to send to the 2 ppl
             lobby.emit('twoInstances', data);
         }
