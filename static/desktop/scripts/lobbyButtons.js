@@ -2,37 +2,44 @@ $(document).ready(function() {
     //==================
     //  Button Events
     //==================
-    
-    $("#logoutButton").click(function() {  
+     $("#logoutButton").click(function(e) { 
+        e.preventDefault();
        post('/logout', undefined, handleLogoutResult);
     });
     
-     $("#menu").click(function() {  
+     $("#menu").click(function(e) {
+        e.preventDefault();
         $("#menu").toggleClass("clicked");  
         $("#menuBox").toggleClass("slide"); 
     });
     
-    $("#profile").click(function() {  
+    $("#profile").click(function(e) { 
+        e.preventDefault();
         $("#profile").toggleClass("clicked");  
         $("#profileBox").toggleClass("slide"); 
     });
     
-    $("#friends").click(function() {  
+    $("#friends").click(function(e) {
+        e.preventDefault();
         $("#friends").toggleClass("clicked");  
         $("#friendsBox").toggleClass("slide"); 
     });
     
-    $("#learn").click(function() {  
+    $("#learn").click(function(e) { 
+        e.preventDefault();
         $("#learn").toggleClass("clicked");  
         $("#learnBox").toggleClass("slide"); 
     });
     
-     $("#findMatchButton").click(function() {  
+     $("#findMatchButton").click(function(e) { 
+        e.preventDefault();
           window.location = '/game';
     });
     
-     $("#sendChat").click(function() {  
-         sendChat(chatInput.value);
+     $("#sendChat").click(function(e) { 
+        e.preventDefault();
+         sendChatToServer($("#chatInput").val());
     });
+   
 });
 

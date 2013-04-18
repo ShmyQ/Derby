@@ -8,6 +8,7 @@ $(document).ready(function() {
    
     // Pressing enter on passwordInput attempts login
     $("#passwordInput").keyup(function(event){
+        event.preventDefault();
 		if(event.which === 13){
 			loginButton.onclick();  
 		}
@@ -15,6 +16,7 @@ $(document).ready(function() {
     
     // Pressing enter on usernameInput moves focus to passwordInput
     $("#usernameInput").keyup(function(event){
+        event.preventDefault();
         if (event.which === 13) {
             $("#passwordInput").focus();
         }
@@ -83,7 +85,7 @@ window.addEventListener('load', function(){
         loginButton.onclick = function(){
             var username = usernameInput.value;
             var password = passwordInput.value;
-             
+            
             login(username, password);
         }
         registerButton.onclick = function(){

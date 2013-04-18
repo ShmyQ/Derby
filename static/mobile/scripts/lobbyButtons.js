@@ -5,8 +5,9 @@ $(document).ready(function() {
 
     $("#logoutButton").on('tap', function(e) {
         e.preventDefault(); 
-       post('/logout', undefined, handleLogoutResult);
+        post('/logout', undefined, handleLogoutResult);
     });
+    
     
      $("#menu").on('tap', function(e) {
         e.preventDefault();
@@ -34,11 +35,13 @@ $(document).ready(function() {
     
      $("#findMatchButton").on('tap', function(e) {
         e.preventDefault();
-          window.location = '/game';
+         window.location = '/game';
     });
-    
+/*
      $("#sendChat").on('tap', function(e) {
-        e.preventDefault();
-         sendChat(chatInput.value);
-    });
+         e.preventDefault();
+        sendChatToServer($("#chatInput").val());
+        $("#chatInput").val("");
+        
+    });*/
 });
