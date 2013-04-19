@@ -584,8 +584,7 @@ function fireBullet(playerX, playerY, angle) {
 }
 
 function moveBullets() {
-  // TODO: splice bullets not on map
-  // TODO: move bullets relative to grid size
+  // TODO: move bullets relative to grid size (deltaX = cos * c.GRID_WIDTH, deltaY = """)
   g.bullets.forEach(function (bullet, index) {
     checkBulletCollision(index);
     var deltaX = c.BULLET_MOVE * Math.cos(bullet.direction * Math.PI / 180);
