@@ -4,6 +4,7 @@ var g = {
 };
 
 $(document).ready(function(){
+    console.log("TEST");
     
     //==================
     //  App Related 
@@ -20,9 +21,13 @@ $(document).ready(function(){
     //  Key Events
     //==================
     $("#chatInput").keyup(function(event){
+        event.preventDefault();
+    /*    // Blank input
+        if($("#chatInput").val() === "")
+            return;*/
 		if(event.which === 13){
-			sendChatButton.onclick();  
-            chatInput.value = "";
+			sendChatToServer($("#chatInput").val());
+            $("#chatInput").val("");
 		}
      });   
 
@@ -39,19 +44,17 @@ $(document).ready(function(){
 //==================
 //  Lobby Chat Server
 //==================
-var lobby = io.connect('http://localhost:8888/lobby');
+var lobby = io.connect('http://128.237.87.127:8888/lobby');
+
+lobby.emit('joined', {
+        username: sessionStorage["username"],
+});
 
 window.onbeforeunload = function() {
    lobby.emit('disconnect',{
         username: sessionStorage["username"],
    });
 };
-
-lobby.on('connect', function(){
-    lobby.emit('joined', {
-        username: sessionStorage["username"],
-    });
-});
 
 lobby.on('receivePlayers', function (data) {
     playersListHTML(data.players);
@@ -69,7 +72,7 @@ lobby.on('receiveChat',function(data){
 lobby.on('twoInstances',function(data){ 
     if(data.username === sessionStorage["username"]) {
         alert("This account is logged in twice! Loggout out...");
-        logoutButton.click();
+        post('/logout', undefined, handleLogoutResult);
     }
 });
 
@@ -82,7 +85,7 @@ function logoutOnDisconnect(originalLogin){
     sessionStorage["username"] = readCookie("username");
     if(sessionStorage["username"] === undefined || sessionStorage["username"] === "" || sessionStorage["username"] !== originalLogin){
         alert("You have been logged out!");
-        logoutButton.click();
+        post('/logout', undefined, handleLogoutResult);
     }
 }
 
@@ -103,7 +106,7 @@ function readCookie(name) {
 //==================
 function playersListHTML(players){
     players.sort();
-    var finalHTML = "<p class='topBar'> PLAYERS </p>";
+    var finalHTML = "<p class='topBar bottomPadding' > PLAYERS </p>";
     
     for(var i = 0; i < players.length; i++){     
         finalHTML = finalHTML + "<p>" + players[i] + "</p>";
@@ -120,7 +123,7 @@ function addChatToLog(user,msg){
     $('#chatArea').animate({"scrollTop": $('#chatArea')[0].scrollHeight}, "fast");
 }
 
-function sendChat(msg){
+function sendChatToServer(msg){
     lobby.emit('sendChat',{
         username: sessionStorage["username"],
         msg: msg

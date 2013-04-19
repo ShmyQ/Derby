@@ -5,7 +5,6 @@ ADAM
 
 JON
 - Powerups
-- Fix speed/multiple bullets on phone
 - Splice bullets after leaving map
 - Graphics
 
@@ -17,12 +16,10 @@ Up for grabs:
 - Endgame
 - Smoother gameplay
 - User studies over carnival - observation of 4-5 people using app for half hour or so, proof of before & after
-- Non-sticky collisions (fix wall-to-rock collision)
 - Add player-player collisions (maybe also player-bomb collisions)
 - Instructions screen
 - Show range of bomb explosions
 - Speed up bullets
-- Fix double tapping issue
 - Closer to bomb = more damage (knockback also?)
 - Possible powerup - bomb that explodes on impact
 - Non-destructible rocks

@@ -4,25 +4,35 @@
 //////////////////////////////////*/
 
 /* turn off the annoying highlight on a tap*/
-{
+input {
   -webkit-tap-highlight-color: transparent;
-  -moz-tap-highlight-color: transparent;
-  tap-highlight-color: transparent;
 }
 /* prevent the user from highlighting any text */
-{
+* {
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
-  user-select: none;
 }
 /* allow highlighting text in inputs */
 input {
   -webkit-user-select: text;
   -moz-user-select: text;
   -ms-user-select: text;
-  user-select: text;
 }
+
+/* Portrait */
+@media only screen and (orientation:portrait) {
+    
+}
+
+/* Landscape */
+@media only screen and (orientation:landscape) {
+   
+}
+
+
+
+
 
 /*//////////////////////////////////
 //////////   STANDARD TAGS /////////
@@ -34,8 +44,6 @@ body {
 	background-color: rgb(35,35,35);
 	color: white;
 	text-align: center;
-	margin: 20px;
-	-webkit-background-clip: padding-box;
 }
 
 h1 {
@@ -56,39 +64,53 @@ h3 {
 }
 
 p {
-    margin: 10px;
 }
 
 input {
 	font-family: 'Iceland';
-	padding: 7px;
 	font-size: 25px;
 	color: black;
 	background-color: #FFFFFF;
 	border-radius: 5px;
-	-moz-border-radius: 5px;
 	border: none;
-	margin: 12px;
-    width: 90px;
+    width: 70%;
+    margin: 10px;
+    padding: 10px;
 }
 
 input:focus {
 	border: 2px solid green;
 	outline: none;
-	margin: 10px;
+	margin: 8px;
 }
+
 
 #landscapeMessage {
     position: fixed;
-    bottom: 50px;
-    font-size: 25px;
+    bottom: 2%;
+    font-size: 20px;
 }
+
+/* Landscape */
+@media only screen and (orientation:landscape) {
+#landscapeMessage {
+    left: 20%;
+    font-size: 15px;
+}
+
+#chatInput {
+    width: 50%;
+    height: 7%;
+}
+    
+}
+
 
 /*//////////////////////////////////
 //////////   BUTTONS   /////////////
 //////////////////////////////////*/
 
-button {
+button {    
 	background: #2B2B2B;
 	background: -moz-linear-gradient(0% 100% 90deg, #4D4D4D, #1A1A1A);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#1F1F1F), to(#4D4D4D));
@@ -97,14 +119,12 @@ button {
 	border-bottom: 2px solid #080808;
 	border-left: 2px solid #0D0D0D;
     border-radius: 10px 10px 10px 10px;
-	-moz-box-shadow: inset 0 1px 0 0 #616161, 0 1px 2px 0 #b3b3b3;
-	-webkit-box-shadow: inset 0 1px 0 0 #616161, 0 1px 2px 0 #b3b3b3;
+    box-shadow: inset 0 1px 0 0 #616161, 0 1px 2px 0 #b3b3b3;
 	color: white;
-	padding: 15px;
-	margin: 10px;
-    display:inline;
-    font-size: 15px;
-    position: relative;
+	padding: 5%;
+    margin: 10px;
+    font-size: 25px;
+
 }
 
 button:focus {
@@ -113,77 +133,96 @@ button:focus {
 	margin: 10px;
 }
 
-button:hover {
-	background: #111111;
-	background: -moz-linear-gradient(0% 100% 90deg, #303030, #101010);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#101010), to(#303030));
-	border-top: 2px solid #0D0D0D;
-	border-right: 2px solid #080808;
-	border-bottom: 2px solid #000000;
-	border-left: 2px solid #080808;
-	-moz-box-shadow: inset 0 1px 0 0 #616161, 0 1px 2px 0 black;
-	-webkit-box-shadow: inset 0 1px 0 0 #616161, 0 1px 2px 0 black;
-	cursor: pointer;
-	text-shadow: 0 -1px 1px #023D04;
-}
 
 button:active {
 	background: #1C1C1C;
+    background: -moz-linear-gradient(0% 100% 90deg, #1C1C1C, #1A1A1A);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#1A1A1A), to(#1C1C1C));
 	border: 2px solid #080808;
 	border-bottom: 1px solid #000000;
 	text-shadow: 0 -1px 1px #023D04;
-	-moz-box-shadow: none;
-	-webkit-box-shadow: none;
+    box-shadow: none;
 }
 
-#menu {
-   top: 65px;
-   padding: 15px 17px;
+/* Portrait */
+@media screen and (orientation:portrait) {
+    #menu {
+       top: 12%;
+       padding: 5% 6.5%;
+    }
+
+    #profile{
+       top: 25%;
+       padding: 5% 4%;
+    }
+
+    #friends {
+       top: 38%;
+       padding: 5% 3%;
+    }
+
+    #learn {
+       top: 51%;
+       padding: 5% 5.3%;
+    }
 }
 
-#profile{
-   top: 120px;
-   padding: 15px 14px;
+/* Landscape */
+@media screen and (orientation:landscape) {
+      #menu {
+       top: 18%;
+       padding: 4% 5.2%;
+    }
+
+    #profile{
+       top: 40%;
+       padding: 4% 3.5%;
+    }
+
+    #friends {
+       top:62%;
+       padding: 4% 3%;
+    }
+
+    #learn {
+       left: -100%;
+    }
+   
 }
 
-#friends {
-   top: 175px;
-   padding: 15px 12px;
 
-}
 
-#learn {
-   top: 230px;
-   padding: 15px 18px;
-}
 
 #joinGame {
-    padding: 10px 18px 10px 18px;
-    margin: 2px;
+    padding: 6% 12% 6% 12%;
+     font-size: 20px;
 }
 
 #createGame {
-    padding: 10px 10px 10px 10px;
-    margin: 2px;
+    padding: 6% 6% 6% 6%;
+     font-size: 20px;
+}
+
+#findMatch {
+    padding: 8% 8% 8% 8%;
+    font-size: 25px;
 }
 
 #sendChat {
     position: absolute; 
-    right: 5px;
-    bottom: -5px;
-    width: 80px;   
-    height: 45px;
+    right: -4%;
+    bottom: 1%;   
+    height: 16%;
     padding: 0px;
-    font-size: 20px;
+    font-size: 15px;
 }
 
 .slideButton {
-   left:-1px;
+   left:-1%;
    margin: 0px;
-   padding: 30px 25px;
    border-radius: 0px 60px 60px 0px;
    z-index: 2;
-   position: fixed;
+   position: absolute;
 
    -webkit-transition: left  1s ease;  
    -moz-transition: left  1s ease;  
@@ -199,7 +238,7 @@ button:active {
 
 
 .clicked{
-    left:220px;
+    left:69%
 }
 
 /*//////////////////////////////////
@@ -207,52 +246,51 @@ button:active {
 //////////////////////////////////*/
 
 .box {
-	padding: 5px;
 	border: 3px solid rgba(64,64,64,.5);
 	border-radius: 10px 10px 10px 10px;
 	background-color: rgb(30,30,30);
 	box-shadow: 0 1px 50px rgba(255,255,255,0.5);
 	margin: auto auto;
-    width: 280px;
-    height: 290px;
-    margin-top: 70px;
+    width: 90%;
+    height: 50%;
+    margin-top: 17%;
 }
 
 
 .fieldBox{
-    margin: 5px 5px;
-	padding: 5px 5px;
+	padding: 10px 10px;
 	border: 3px solid rgba(44,44,44,.5);
 	border-radius: 10px 10px 10px 10px;
 	background-color: rgb(35,35,35);
-    height: 60px;
-    width: 240px;
-    display: inline-block;
+	margin: 5px auto;	
+    height: 15%;
+    width: 70%;
+    display: block;
 }
 
 .slideBox{
     position:fixed;
-    left:-230px;
-    top: 50px;
-	padding: 10px 10px;
+    left:-73%;
+    top: 9%;
 	border: 5px solid rgba(44,44,44,.5);
-	border-radius: 10px 10px 10px 10px;
+    border-radius: 13px 13px 13px 13px;
 	background-color: rgb(35,35,35);
 	margin: 5px auto;	
-    height: 200px;
-    width: 200px;
+    height: 85%;
+    width: 70%;
     display: inline-block;
     z-index: 2;
     
+   transition: left  1s ease;
    -webkit-transition: left  1s ease;  
    -moz-transition: left  1s ease;  
    -o-transition: left  1s ease;  
    -ms-transition: left 1s ease; 
-   transition: left  1s ease;
+   
 }
 
 .slide{
-    left:-5px;
+    left:-1%;
 }
 
 #titlebar {
@@ -262,85 +300,78 @@ button:active {
     top: 0px;
     left: 0px;
     width: 100%;
-    height: 50px;
-    z-index: 100;
-}
-
-#playNowBar {
-    background-color: rgb(25,25,25);
-    margin: -5px -5px  -5px -5px;
-    position: relative;
-    top: 0px;
-    left: 0px;
-    width: 103%;
     height: 10%;
-    z-index: 1;
-    border-radius: 10px 10px 0px 0px;
-    padding-top: 20px;
-    margin-bottom: 10px;    
+    z-index: 2;
 }
 
-#playNowBox{
-    height: 220px;
-    width: 150px;
+/* Landscape */
+@media only screen and (orientation:landscape) {
+   #titlebar {
+    height: 15%;
+   }
+   
+   #chatBox{
+    height: 70%;
+    width: 70%;
     position: absolute; 
-    /* Assuming portrait. Changes to right: -100 on landscape*/
-    left: 100px;
-    top: -5px;
+    left: 25%;
+    bottom: 5%;
 }
-
-#chatBar {
-    background-color: rgb(25,25,25);
-    margin: -5px -5px  -5px -5px;
-    position: relative;
-    top: 0px;
-    left: 0px;
-    width: 101.5%;
-    height: 10%;
-    z-index: 1;
-    border-radius: 10px 10px 0px 0px;
-    padding-top: 20px;
-    margin-bottom: 10px;    
 }
 
 #chatBox{
-    height: 200px;
-    width: 300px;
+    height: 70%;
+    width: 58%;
     position: absolute; 
-    left: 100px;
-    top: -5px;
+    left: 35%;
+    bottom: 5%;
 }
 
 #chatArea {
-    height: 75%;
-    width: 99.8%;
+    height: 50%;
+    width: 65%;
     position: absolute; 
-    left: 1px;
-    top: 50px;
+    top:18%;
+    left: 4%;
     background-color: rgb(0,0,0);
+    overflow-y: hidden;
+    overflow-x: hidden;
+    text-align: left;
+    font-size: 15px;
 }
 
 #chatInput {
     position: absolute; 
-    left: -5px;
-    bottom: -5px;
+    left:0%;
+    bottom: 1%;
     width: 80%;
 }
 
 #playerList {
-    height: 265px;
-    width: 180px;
+    height: 48%;
+    width: 25%;
     position: absolute;
-    right: 10px;
-    top: 75px;
+    right: 1%;
+    top: 18%;
     border: 3px solid rgba(64,64,64,.5);
 	border-radius: 10px 10px 10px 10px;
 	background-color: rgb(30,30,30);
-    overflow-y: scroll;
+    overflow-y: hidden;
     overflow-x: hidden;
+    font-size: 10px;
 }
 
 
+
+.topBar {
+    background-color: rgb(25,25,25);
+    margin: 0px;
+    padding-top:5px;
+    padding-bottom:5px;
+    width: 100%;
+    height: 10%;
+    border-radius: 10px 10px 0px 0px;  
+}
 
 /*//////////////////////////////////
 //////////  ATTRIBUTES   ///////////
@@ -355,6 +386,8 @@ button:active {
     display: inline;
 }
 
+.bottomPadding {
+}
 
 
 
