@@ -59,25 +59,7 @@ app.get('/db', function(req, res){
 
 
 app.get('/game', function(req, res){
-    res.sendfile('static/game.html');
-});
-
-app.get('/game2', function(req, res){
-    mongoExpressAuth.checkLogin(req, res, function(err){
-        //if (err)
-        //   res.sendfile('static/login.html');
-        //else
-            res.sendfile('static/game2.html');
-    });
-});
-
-app.get('/game3', function(req, res){
-    mongoExpressAuth.checkLogin(req, res, function(err){
-        //if (err)
-        //   res.sendfile('static/login.html');
-        //else
-            res.sendfile('static/game3.html');
-    });
+    res.sendfile('static/mobile/game.html');
 });
 
 app.get('/favicon.ico', function(req,res){
@@ -108,7 +90,7 @@ var io = require("socket.io").listen(8888,{ log: false });
 
 var playerData = new Object();
 var playerCount = 0;
-var players = 2;
+var players = 1;
 var destroyedRocks = [];
 var powerupDropChance = 0.4;
 
@@ -116,7 +98,7 @@ var game = io.of('/game').on("connection", function (socket) {
   if (++playerCount > players)
 	return;
 
-  console.log("Player ", playerCount, " connected");
+  console.log("Player ", playerCount, " connected, id: ", socket.id);
 
   // send connected message to set up client side
   socket.emit("connected", {id: socket.id, player: playerCount.toString(), numPlayers: players, map: map1, mapdata: map1data});
@@ -135,6 +117,10 @@ var game = io.of('/game').on("connection", function (socket) {
   });
 
   socket.on("bombDropped", function (data) {
+	console.log("Sending bomb drop to: ");
+	for (var key in playerData)
+		console.log(key);
+	
     socket.broadcast.emit("placeBomb", data);
   });
 
