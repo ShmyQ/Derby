@@ -5,7 +5,7 @@ $(document).ready(function() {
 
     $("#logoutButton").on('tap', function(e) {
         e.preventDefault(); 
-        post('/logout', undefined, handleLogoutResult);
+        logoutPlayer();
     });
     
     

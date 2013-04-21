@@ -45,7 +45,7 @@ require('./loginRoutes.js')(mongoExpressAuth, app);
 require('./mobileDesktopRouter.js')(mongoExpressAuth,app);
 
 app.get('/',function(req,res){
-    res.sendfile('static/index.html');
+    res.sendfile('index.html');
 });
 
 app.get('/db', function(req, res){
@@ -222,7 +222,7 @@ var lobby = io.of('/lobby').on('connection', function (socket) {
     socket.on('sendChat', function(data){
         lobby.emit('receiveChat',{
             user : data.username,
-            msg : data.msg
+            msg : removeHTML(data.msg),
         });
     });
 
@@ -243,3 +243,7 @@ var lobby = io.of('/lobby').on('connection', function (socket) {
     });
 });
 
+// ** LOBBY	HELPERS **
+function removeHTML(input){
+   return input.replace( /<.*?>/,'');
+}

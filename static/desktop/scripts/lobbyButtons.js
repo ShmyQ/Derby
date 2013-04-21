@@ -4,7 +4,7 @@ $(document).ready(function() {
     //==================
      $("#logoutButton").click(function(e) { 
         e.preventDefault();
-       post('/logout', undefined, handleLogoutResult);
+        logoutPlayer();
     });
     
      $("#menu").click(function(e) {
