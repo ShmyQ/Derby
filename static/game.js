@@ -2,7 +2,7 @@ var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
 // sockets
-var socket = io.connect("http://128.237.123.149:8888/game");
+var socket = io.connect("http://192.168.1.115:8888/game");
 socket.heartbeatTimeout = 20;
 
 socket.on("connected", function (data) {
@@ -505,7 +505,7 @@ function dropMyBomb(x, y) {
 		}, c.BOMB_COOLDOWN_TIME);
 
 		dropBomb(x, y);
-		
+
 		socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x/c.GRID_WIDTH, y: g.myPlayer.y/c.GRID_HEIGHT});
 	}
 }
@@ -578,7 +578,7 @@ function fireBullet(playerX, playerY, angle) {
 }
 
 function moveBullets() {
-  // TODO: move bullets relative to grid size (deltaX = cos * c.GRID_WIDTH, deltaY = """)
+  // TODO: move bullets relative to grid size (deltaX = cos * c.GRID_WIDTH, deltaY = "")
   g.bullets.forEach(function (bullet, index) {
     checkBulletCollision(index);
     var deltaX = c.BULLET_MOVE * Math.cos(bullet.direction * Math.PI / 180);
@@ -622,12 +622,12 @@ function checkBoundaryCollision(xvel, yvel) {
 			y = g.myPlayer.y + yvel;
 
 		x = c.BALL_RADIUS;
-		
+
 		if (!hitAnObject(x, y)) {
 			g.myPlayer.x = x;
 			g.myPlayer.y = y;
 		}
-		
+
 		return true;
 	}
 	else if (g.myPlayer.x + c.BALL_RADIUS + xvel > c.MAP_WIDTH) {
@@ -641,12 +641,12 @@ function checkBoundaryCollision(xvel, yvel) {
 			y = g.myPlayer.y + yvel;
 
 		x = c.MAP_WIDTH - c.BALL_RADIUS;
-		
+
 		if (!hitAnObject(x, y)) {
 			g.myPlayer.x = x;
 			g.myPlayer.y = y;
 		}
-		
+
 		return true;
 	}
 	else {
@@ -654,24 +654,24 @@ function checkBoundaryCollision(xvel, yvel) {
 			//g.myPlayer.x = g.myPlayer.x + xvel * ((yvel - g.myPlayer.y) / yvel);
 			x = g.myPlayer.x + xvel;
 			y = c.BALL_RADIUS;
-			
+
 			if (!hitAnObject(x, y)) {
 				g.myPlayer.x = x;
 				g.myPlayer.y = y;
 			}
-			
+
 			return true;
 		}
 		else if (g.myPlayer.y + c.BALL_RADIUS + yvel > c.MAP_HEIGHT) {
 			//g.myPlayer.x = g.myPlayer.x + xvel * ((yvel - (c.MAP_HEIGHT - g.myPlayer.y)) / yvel);
 			x = g.myPlayer.x + xvel;
 			y = c.MAP_HEIGHT - c.BALL_RADIUS;
-			
+
 			if (!hitAnObject(x, y)) {
 				g.myPlayer.x = x;
 				g.myPlayer.y = y;
 			}
-			
+
 			return true;
 		}
 	}
@@ -684,12 +684,12 @@ function checkRockCollision(xvel, yvel) {
 		if (hitsRock(xvel, yvel, rock)) {
 			// small amount to push ball from wall (fixes a bug)
 			var e = 0.0001;
-		
+
 			if (!hitsRock(xvel, 0, rock)) {
 				// if the whole xvel doesnt hit a new rock, add it
 				if (!hitAnObject(xvel, 0))
 					g.myPlayer.x += xvel;
-				
+
 				// move y to side of rock
 				if (g.myPlayer.y + c.BALL_RADIUS <= rock.y - c.ROCK_HEIGHT/2)
 					g.myPlayer.y = rock.y - c.ROCK_HEIGHT/2 - c.BALL_RADIUS - e;
@@ -700,9 +700,9 @@ function checkRockCollision(xvel, yvel) {
 				// if the whole yvel doesnt hit a new rock, add it
 				if (!hitAnObject(0, yvel))
 					g.myPlayer.y += yvel;
-					
+
 				if (g.myPlayer.x + c.BALL_RADIUS <= rock.x - c.ROCK_WIDTH/2)
-					g.myPlayer.x = rock.x - c.ROCK_WIDTH/2 - c.BALL_RADIUS - e; 
+					g.myPlayer.x = rock.x - c.ROCK_WIDTH/2 - c.BALL_RADIUS - e;
 				else
 					g.myPlayer.x = rock.x + c.ROCK_WIDTH/2 + c.BALL_RADIUS + e;
 			}
@@ -713,7 +713,7 @@ function checkRockCollision(xvel, yvel) {
 			hitrock = true;
 		}
 	});
-	
+
 	return hitrock;
 }
 
@@ -745,6 +745,7 @@ function checkPowerupCollision(xvel, yvel) {
 function checkBulletCollision(bullet_index) {
   bullet = g.bullets[bullet_index];
   if (bullet.x < 0 || bullet.y < 0 || bullet.x > c.GRID_WIDTH || bullet.y > c.GRID_HEIGHT) {
+    //console.log("bullet.x = " + bullet.x + "\nbullet.y = " + bullet.y);
     g.bullets.splice(bullet_index, 1);
     if (g.bullets.length === 0) {
       clearInterval(g.bulletHandler);
