@@ -4,8 +4,6 @@ var g = {
 };
 
 $(document).ready(function(){
-    console.log("TEST");
-    
     //==================
     //  App Related 
     //==================
@@ -72,7 +70,7 @@ lobby.on('receiveChat',function(data){
 lobby.on('twoInstances',function(data){ 
     if(data.username === sessionStorage["username"]) {
         alert("This account is logged in twice! Loggout out...");
-        post('/logout', undefined, handleLogoutResult);
+        logoutPlayer();
     }
 });
 
@@ -85,7 +83,7 @@ function logoutOnDisconnect(originalLogin){
     sessionStorage["username"] = readCookie("username");
     if(sessionStorage["username"] === undefined || sessionStorage["username"] === "" || sessionStorage["username"] !== originalLogin){
         alert("You have been logged out!");
-        post('/logout', undefined, handleLogoutResult);
+        logoutPlayer();
     }
 }
 
@@ -106,7 +104,7 @@ function readCookie(name) {
 //==================
 function playersListHTML(players){
     players.sort();
-    var finalHTML = "<p class='topBar bottomPadding' > PLAYERS </p>";
+    var finalHTML = "<p class='topBar' > PLAYERS </p>";
     
     for(var i = 0; i < players.length; i++){     
         finalHTML = finalHTML + "<p>" + players[i] + "</p>";
@@ -116,7 +114,7 @@ function playersListHTML(players){
 
 function addChatToLog(user,msg){
     // Add to log
-    g.log = g.log + "<p class='chatMsg'><div class = 'chatName'>" + user + "</div> : " + msg + "</p>";
+    g.log = g.log + "<p class='chatMsg'><div class = 'chatName'>" + user + "</div> : " +  msg  + "</p>";
     // Replace log on screen
     $("#chatArea").html(g.log);
     // Scroll to bottom of lobbyArea div
@@ -159,4 +157,8 @@ function sendChatToServer(msg){
     else {
         request.send();
     }
+}
+
+function logoutPlayer(){
+    post('/logout', undefined, handleLogoutResult);
 }

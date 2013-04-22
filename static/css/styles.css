@@ -202,7 +202,7 @@ button:active {
     border-radius: 13px 13px 13px 13px;
 	background-color: rgb(35,35,35);
 	margin: 5px auto;	
-    height: 50%;
+    height: 75%;
     width: 40%;
     display: inline-block;
     z-index: 2;

@@ -5,7 +5,7 @@ $(document).ready(function() {
 
     $("#logoutButton").on('tap', function(e) {
         e.preventDefault(); 
-        post('/logout', undefined, handleLogoutResult);
+        logoutPlayer();
     });
     
     
@@ -33,7 +33,7 @@ $(document).ready(function() {
         $("#learnBox").toggleClass("slide"); 
     });
     
-     $("#findMatchButton").on('tap', function(e) {
+     $("#findMatch").on('tap', function(e) {
         e.preventDefault();
          window.location = '/game';
     });
