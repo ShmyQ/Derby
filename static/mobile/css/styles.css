@@ -20,17 +20,47 @@ input {
   -ms-user-select: text;
 }
 
-/* Portrait */
-@media only screen and (orientation:portrait) {
-    
-}
+
 
 /* Landscape */
-@media only screen and (orientation:landscape) {
+@media screen and (orientation:landscape) {
+      #menu {
+       top: 18%;
+       padding: 4% 5.2%;
+    }
+
+    #profile{
+       top: 40%;
+       padding: 4% 3.5%;
+    }
+
+    #friends {
+       top:62%;
+       padding: 4% 3%;
+    }
+
+    #learn {
+       left: -100%;
+    }
+    
+    #titlebar {
+    height: 15%;
+   }
    
+   #chatBox {
+    height: 70%;
+    width: 70%;
+    position: absolute; 
+    left: 30%;
+    bottom: 5%;
+   }
+   
+   #chatInput {
+    height: 5%;
+   }
+   
+
 }
-
-
 
 
 
@@ -126,51 +156,26 @@ button:active {
     box-shadow: none;
 }
 
-/* Portrait */
-@media screen and (orientation:portrait) {
-    #menu {
-       top: 12%;
-       padding: 5% 6.5%;
-    }
-
-    #profile{
-       top: 25%;
-       padding: 5% 4%;
-    }
-
-    #friends {
-       top: 38%;
-       padding: 5% 3%;
-    }
-
-    #learn {
-       top: 51%;
-       padding: 5% 5.3%;
-    }
+#menu {
+   top: 12%;
+   padding: 5% 6.5%;
 }
 
-/* Landscape */
-@media screen and (orientation:landscape) {
-      #menu {
-       top: 18%;
-       padding: 4% 5.2%;
-    }
-
-    #profile{
-       top: 40%;
-       padding: 4% 3.5%;
-    }
-
-    #friends {
-       top:62%;
-       padding: 4% 3%;
-    }
-
-    #learn {
-       left: -100%;
-    }
-   
+#profile{
+   top: 25%;
+   padding: 5% 4%;
 }
+
+#friends {
+   top: 38%;
+   padding: 5% 3%;
+}
+
+#learn {
+   top: 51%;
+   padding: 5% 5.3%;
+}
+
 
 
 
@@ -286,20 +291,6 @@ button:active {
     z-index: 2;
 }
 
-/* Landscape */
-@media only screen and (orientation:landscape) {
-   #titlebar {
-    height: 15%;
-   }
-   
-   #chatBox{
-    height: 70%;
-    width: 70%;
-    position: absolute; 
-    left: 25%;
-    bottom: 5%;
-}
-}
 
 #chatBox{
     height: 70%;
@@ -369,6 +360,11 @@ button:active {
 }
 
 
+
+/* Portrait */
+@media only screen and (orientation:portrait) {
+    
+}
 
 
 

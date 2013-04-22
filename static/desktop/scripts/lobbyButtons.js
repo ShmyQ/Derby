@@ -31,7 +31,7 @@ $(document).ready(function() {
         $("#learnBox").toggleClass("slide"); 
     });
     
-     $("#findMatchButton").click(function(e) { 
+     $("#findMatch").click(function(e) { 
         e.preventDefault();
           window.location = '/game';
     });

@@ -39,13 +39,25 @@ app.listen(8889);
 //  Routes
 //===========================
 
-
-
 require('./loginRoutes.js')(mongoExpressAuth, app);
-require('./mobileDesktopRouter.js')(mongoExpressAuth,app);
 
-app.get('/',function(req,res){
-    res.sendfile('index.html');
+function mobileDesktopPrefixer(req){
+    var reqPrefix = 'static/desktop/';
+    if(req.useragent.isMobile)
+        reqPrefix = 'static/mobile/';
+        
+    return reqPrefix;
+}
+
+// Index
+app.get('/', function checkLogin(req,res,next){
+    mongoExpressAuth.checkLogin(req, res, function(err){
+        if (err) {
+            res.sendfile(mobileDesktopPrefixer(req) + "/login.html");
+        }
+        else
+           res.sendfile(mobileDesktopPrefixer(req) + "/index.html");
+    });
 });
 
 app.get('/db', function(req, res){
@@ -59,27 +71,20 @@ app.get('/db', function(req, res){
 
 
 app.get('/game', function(req, res){
-    res.sendfile('static/mobile/game.html');
+   mongoExpressAuth.checkLogin(req, res, function(err){
+        if (err) {
+            res.sendfile(mobileDesktopPrefixer(req) + "/login.html");
+        }
+        else
+           res.sendfile(mobileDesktopPrefixer(req) + "/game.html");
+    });
 });
 
 app.get('/favicon.ico', function(req,res){
     res.sendfile('favicon.ico');
 });
+
 app.use(express.static(__dirname + '/static/'));
-
-/* The remaining routes are to keep the app a bit safer. They are not needed.
-
-// Do not serve incorrect html files
-app.get('*.html',function noServe(req,res,next){
-    res.redirect('/');
-});
-
-/*
-//The 404 Route (ALWAYS Keep this as the last route)
-app.use(function(req,res){
-    res.redirect('/');
-});*/
-
 
 // ========================
 // === Socket.io server ===
@@ -230,6 +235,8 @@ var lobby = io.of('/lobby').on('connection', function (socket) {
 });
 
 // ** LOBBY	HELPERS **
+
+// Remove html tags (<*>)from chat
 function removeHTML(input){
    return input.replace( /<.*?>/,'');
 }

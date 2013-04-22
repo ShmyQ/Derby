@@ -33,7 +33,7 @@ $(document).ready(function() {
         $("#learnBox").toggleClass("slide"); 
     });
     
-     $("#findMatchButton").on('tap', function(e) {
+     $("#findMatch").on('tap', function(e) {
         e.preventDefault();
          window.location = '/game';
     });

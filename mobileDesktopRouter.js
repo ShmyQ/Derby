@@ -14,7 +14,7 @@ module.exports = function mobileDesktopRouter(mongoExpressAuth, app){
     });
     
    // route to /mobile or /desktop if necessary
-    app.all('/', function directoryRouter(req, res, next){
+    app.all('*', function directoryRouter(req, res, next){
         if (!strStartsWith(req.url, '/desktop') && !strStartsWith(req.url, '/mobile')){
             if (req.useragent.isMobile){
                 wwwExists('static/mobile' + req.url, function(exists){
@@ -24,10 +24,18 @@ module.exports = function mobileDesktopRouter(mongoExpressAuth, app){
                 });
             }
             else {
+                console.log("HERE");
                 wwwExists('static/desktop' + req.url, function(exists){
                     if (exists)
                         req.url = '/desktop' + req.url;
-                   next();
+                    console.log(req.url);
+                    next();
+                });
+                wwwExists('static/desktop' + req.url + ".html", function(exists){
+                    if (exists)
+                        req.url = '/desktop' + req.url;
+                    console.log(req.url);
+                    next();
                 });
             }
            
@@ -51,10 +59,4 @@ function strStartsWith(str, prefix) {
     return str.indexOf(prefix) === 0;
 }   
 
-function mobileDesktopPrefixer(req){
-    var reqPrefix = 'static/desktop';
-    if(req.useragent.isMobile)
-        reqPrefix = 'static/mobile';
-        
-    return reqPrefix;
-}
+
