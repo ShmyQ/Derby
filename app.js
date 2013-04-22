@@ -59,7 +59,7 @@ app.get('/db', function(req, res){
 
 
 app.get('/game', function(req, res){
-    res.sendfile('static/mobile/game.html');
+    res.sendfile('static/desktop/game.html');
 });
 
 app.get('/favicon.ico', function(req,res){
@@ -88,39 +88,41 @@ var io = require("socket.io").listen(8888,{ log: false });
 
 // ** GAME **
 
+// each players current playing data, key is the socket id
 var playerData = new Object();
-var playerCount = 0;
-var players = 1;
-var destroyedRocks = [];
+
+// array of all the games
+var games = [];
+
+// hash of socket ids to game number that they are in
+var usersGame = new Object();
+
 var powerupDropChance = 0.4;
 
 var game = io.of('/game').on("connection", function (socket) {
-  if (++playerCount > players)
-	return;
+  console.log("Player ", socket.id, " connected");
 
-  console.log("Player ", playerCount, " connected, id: ", socket.id);
-
+  var thisGame = games[usersGame[socket.id]];
+  
   // send connected message to set up client side
-  socket.emit("connected", {id: socket.id, player: playerCount.toString(), numPlayers: players, map: map1, mapdata: map1data});
+  socket.emit("connected", {id: socket.id, player: thisGame.players.indexOf(socket).toString(), numPlayers: thisGame.players.length, map: map1, mapdata: map1data});
 
   // save new player
   playerData[socket.id] = {x: map1positions[playerCount].x, y: map1positions[playerCount].y, hp: 100, powerups: []};
 
+  thisGame.connected++;
   // if all players connect, start game
-  if (playerCount === players) {
+  if (thisGame.connected === thisGame.players.length) {
 	game.emit("start", {});
+	setTimeout( function() { game.emit("endGame", {}); }, 60000);
   }
-
+  
   socket.on("sendPosition", function (data) {
 	playerData[data.id] = data.player;
 	socket.broadcast.emit("receivePosition", data);
   });
 
   socket.on("bombDropped", function (data) {
-	console.log("Sending bomb drop to: ");
-	for (var key in playerData)
-		console.log(key);
-	
     socket.broadcast.emit("placeBomb", data);
   });
 
@@ -129,12 +131,11 @@ var game = io.of('/game').on("connection", function (socket) {
   });
 
   socket.on("rockDestroyed", function (data) {
-	if (destroyedRocks.indexOf(data.x + "," + data.y) === -1) {
-		destroyedRocks.push(data.x + "," + data.y);
-		if (Math.random() < powerupDropChance) {
-			game.emit("placePowerup", {x: data.x, y: data.y, power: "bullet"});
-		}
+	if (Math.random() < powerupDropChance) {
+		game.emit("placePowerup", {x: data.x, y: data.y, power: "bullet"});
 	}
+	else
+		game.emit("placePowerup", {x: data.x, y: data.y, power: "none"});
   });
 
   socket.on("bulletFired", function (data) {
@@ -190,6 +191,14 @@ var map1 = [["O", "O", "R", "O", "O", "R", "O", "O", "O", "R", "O", "O", "O", "O
 var IDToPlayer = new Object();
 var lobbyPlayers = [];
 
+// tally of last game number to be given out
+var gameNumber = 0;
+// number of players waiting 
+var newGamePlayerCount = 0;
+// current game being made
+var curGame = {players: [], connected: 0, id: 0};
+var playersToStart = 2;
+
 var lobby = io.of('/lobby').on('connection', function (socket) {
     socket.on('joined',function(data){
         if(lobbyPlayers.indexOf(data.username) !== -1 && lobbyPlayers[lobbyPlayers.indexOf(data.username)].length === data.username.length){
@@ -213,7 +222,27 @@ var lobby = io.of('/lobby').on('connection', function (socket) {
     });
 
     socket.on('findMatch', function(data){
-        socket.emit('joinGame');
+		curGame.players[newGamePlayerCount] = socket;
+		newGamePlayerCount++;
+		
+		// if there are enough players waiting
+		if (newGamePlayerCount === playersToStart) {
+			gameNumber++;
+		
+			for (var i = 0; i < curGame.players.length; i++) {
+				// tell each player to join
+				curGame.players[i].emit('joinGame');
+				
+				// add hash from player id to game id
+				usersGame[curGame.players[i].id] = gameNumber;
+			}
+			
+			games[gameNumber] = curGame;
+			
+			// reset for next new game
+			newGamePlayerCount === 0;
+			curGame = {players: [], connected: 0, id: gameNumber};
+		}
     });
 
 

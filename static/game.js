@@ -16,6 +16,8 @@ socket.on("connected", function (data) {
 	getDevicePlatform();
 
 	init();
+	
+	socket.emit("sendUsername", {player: data.player, username: sessionStorage["username"]});
 });
 
 socket.on("start", function (data) {
@@ -35,8 +37,7 @@ socket.on("receivePosition", function (data) {
 });
 
 socket.on("placeBomb", function (data) {
-	console.log("Placing bomb");
-	dropBomb(data.x*c.GRID_WIDTH, data.y*c.GRID_HEIGHT);
+	dropBomb(data.x*c.GRID_WIDTH, data.y*c.GRID_HEIGHT, data.player);
 });
 
 socket.on("removePowerup", function (data) {
@@ -47,8 +48,17 @@ socket.on("removePowerup", function (data) {
 });
 
 socket.on("placePowerup", function (data) {
-	var power = new Powerup(data.x*c.GRID_WIDTH, data.y*c.GRID_HEIGHT, data.power);
-    g.powerups.push(power);
+	console.log("Looking for rock: ", data.x*c.GRID_WIDTH, data.y*c.GRID_HEIGHT);
+	g.rocks.forEach( function(rock) {
+		console.log("Checking rock: ", rock.x, rock.y);
+		if (rock.x === data.x*c.GRID_WIDTH && rock.y === data.y*c.GRID_HEIGHT)
+			g.rocks.splice(g.rocks.indexOf(rock), 1);
+	});
+
+	if (data.power !== "none") {
+		var power = new Powerup(data.x*c.GRID_WIDTH, data.y*c.GRID_HEIGHT, data.power);
+		g.powerups.push(power);
+	}
 });
 
 socket.on("respawn", function (data) {
@@ -64,7 +74,7 @@ socket.on("playerLeft", function (data) {
 });
 
 socket.on("fireBullet", function (data) {
-  fireBullet(data.playerX*c.GRID_WIDTH, data.playerY*c.GRID_HEIGHT, data.angle);
+  fireBullet(data.playerX*c.GRID_WIDTH, data.playerY*c.GRID_HEIGHT, data.angle, data.player);
 });
 
 socket.on("playerHit", function (data) {
@@ -76,6 +86,10 @@ socket.on("playerHit", function (data) {
 
 socket.on("damagePlayer", function (data) {
   g.enemies[data.playerNum].hp -= data.damage;
+});
+
+socket.on("endGame", function(data) {
+	isOver = true;
 });
 
 // Globals
@@ -100,6 +114,7 @@ var g = {
 	map: null,
 	mapdata: null,
 	isStarted: false,
+	isOver: false,
 	bombCooldown: false,
 }
 
@@ -317,20 +332,28 @@ function draw() {
 			var xpos = canvas.width/2 - (g.myPlayer.x - bomb.x);
 			var ypos = canvas.height/2 - (g.myPlayer.y - bomb.y);
 
-			ctx.fillStyle = "red";
-			ctx.beginPath();
-			ctx.arc(xpos, ypos, c.BOMB_RADIUS, 0, 2*Math.PI, true);
-			ctx.fill();
+			if (bomb.isExploding) {
+				ctx.fillStyle = "orange";
+				ctx.beginPath();
+				ctx.arc(xpos, ypos, c.BOMB_EXPLOSION_RADIUS, 0, 2*Math.PI, true);
+				ctx.fill();
+			}
+			else {
+				ctx.fillStyle = "red";
+				ctx.beginPath();
+				ctx.arc(xpos, ypos, c.BOMB_RADIUS, 0, 2*Math.PI, true);
+				ctx.fill();
 
-			ctx.save();
-			ctx.translate(xpos, ypos);
-			ctx.rotate(Math.PI/2);
-			ctx.translate(-xpos, -ypos);
-			ctx.fillStyle = "white";
-			ctx.font = c.BOMB_RADIUS + "px Arial";
-			ctx.textAlign = "center";
-			ctx.fillText(bomb.time + "", xpos, ypos);
-			ctx.restore();
+				ctx.save();
+				ctx.translate(xpos, ypos);
+				ctx.rotate(Math.PI/2);
+				ctx.translate(-xpos, -ypos);
+				ctx.fillStyle = "white";
+				ctx.font = c.BOMB_RADIUS + "px Arial";
+				ctx.textAlign = "center";
+				ctx.fillText(bomb.time + "", xpos, ypos);
+				ctx.restore();
+			}
 		}
 	});
 
@@ -491,8 +514,8 @@ function createMap() {
 	}
 }
 
-function dropBomb(x, y) {
-	var bomb = new Bomb(x, y);
+function dropBomb(x, y, player) {
+	var bomb = new Bomb(x, y, player);
 	g.bombs.push(bomb);
 }
 
@@ -504,9 +527,9 @@ function dropMyBomb(x, y) {
 			g.bombCooldown = false;
 		}, c.BOMB_COOLDOWN_TIME);
 
-		dropBomb(x, y);
+		dropBomb(x, y, g.player);
 		
-		socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x/c.GRID_WIDTH, y: g.myPlayer.y/c.GRID_HEIGHT});
+		socket.emit("bombDropped", {id: g.myID, x: g.myPlayer.x/c.GRID_WIDTH, y: g.myPlayer.y/c.GRID_HEIGHT, player: g.player});
 	}
 }
 
@@ -530,11 +553,15 @@ function explodeBomb(bomb) {
 	if (dist < c.BOMB_EXPLOSION_RADIUS) {
 		g.myPlayer.hp -= 50;
 
-		checkForDeath();
+		checkForDeath(bomb.player);
 	}
 
-	// remove bomb
-	g.bombs.splice(g.bombs.indexOf(bomb), 1);
+	// explode the bomb then remove
+	g.bombs.isExploding = true;
+	setTimeout( function() {
+		g.bombs.isExploding = false;
+		g.bombs.splice(g.bombs.indexOf(bomb), 1);
+	}, 1000);
 }
 
 function removeRocks(rocks) {
@@ -551,11 +578,11 @@ function newPowerup () {
   // TODO: for adding random powerups
 }
 
-function checkForDeath() {
+function checkForDeath(attacker) {
 	if (g.myPlayer.hp <= 0) {
 		g.isDead = true;
 
-		socket.emit("sendDeath", {id: g.myID, player: g.player});
+		socket.emit("sendDeath", {id: g.myID, player: g.player, killer: attacker});
 	}
 }
 
@@ -568,10 +595,10 @@ function decrementTimer(bomb) {
 	}
 }
 
-function fireBullet(playerX, playerY, angle) {
+function fireBullet(playerX, playerY, angle, player) {
   var moveX = c.BALL_RADIUS * 2 * Math.cos(angle * Math.PI / 180);
   var moveY = c.BALL_RADIUS * 2 * Math.sin(angle * Math.PI / 180);
-  g.bullets.push(new Bullet(playerX + moveX, playerY - moveY, angle));
+  g.bullets.push(new Bullet(playerX + moveX, playerY - moveY, angle, player));
   if (g.bullets.length === 1) {
     g.bulletHandler = setInterval(moveBullets, 30);
   }
@@ -775,7 +802,7 @@ function checkBulletCollision(bullet_index) {
     // Damage player
     g.myPlayer.hp -= 30;
     socket.emit("damagedPlayer", {id: g.myID, playerNum: g.player, damage: 30})
-    checkForDeath();
+    checkForDeath(bullet.player);
   }
 }
 
@@ -808,18 +835,21 @@ function Powerup(x, y, power) {
 	this.power = power;
 }
 
-function Bomb(x, y) {
+function Bomb(x, y, player) {
 	var bomb = this;
 	this.x = x;
 	this.y = y;
 	this.time = c.BOMB_TIME;
 	this.timerHandler = setInterval( function() { decrementTimer(bomb); }, 1000 );
+	this.player = player;
+	this.isExploding = false;
 }
 
-function Bullet(x, y, direction) {
+function Bullet(x, y, direction, player) {
   this.x = x;
   this.y = y;
   this.direction = direction;
+  this.player = player;
 }
 
 function findAngle(x, y) {
