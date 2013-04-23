@@ -120,27 +120,36 @@ var game = io.of('/game').on("connection", function (socket) {
   socket.emit("getUsername", {});
   
   socket.on("username", function(data) {
-	  console.log("Looking for ", data.username, ". Found ", usersGame[data.username]);
 	  var thisGame = games[usersGame[data.username]];
 	  thisGame.sockets[data.username] = socket;
 	  
-	  // send connected message to set up client side
-	  socket.emit("connected", {id: socket.id, player: (thisGame.players.indexOf(data.username) + 1).toString(), numPlayers: thisGame.players.length, map: map1, mapdata: map1data});
+	  var player = thisGame.players.indexOf(data.username) + 1;
+	  
+	  if (thisGame.started) {
+	    // send connected message to set up client side
+		socket.emit("connected", {id: socket.id, x: playerData[data.username].x, y: playerData[data.username].y, player: player.toString(), numPlayers: thisGame.players.length, map: map1, mapdata: map1data});
+	  }
+	  else {
+		  // send connected message to set up client side
+		  socket.emit("connected", {id: socket.id, x: map1positions[player].x, y: map1positions[player].y, player: player.toString(), numPlayers: thisGame.players.length, map: map1, mapdata: map1data});
 
-	  // save new player
-	  playerData[data.username] = {kills: 0, deaths: 0};
+		  // save new player
+		  playerData[data.username] = {kills: 0, deaths: 0, x: map1positions[player].x, y: map1positions[player].y};
 
-	  thisGame.connected++;
-	  // if all players connect, start game
-	  if (thisGame.connected === thisGame.players.length) {
-		console.log("starting game");
-		game.emit("start", {});
-		setTimeout( function() { game.emit("endGame", {}); }, 60000);
+		  thisGame.connected++;
+		  // if all players connect, start game
+		  if (thisGame.connected === thisGame.players.length) {
+			  console.log("starting game");
+			  game.emit("start", {});
+			  thisGame.started = true;
+			  setTimeout( function() { game.emit("endGame", {}); }, 60000);
+		  }
 	  }
   });
   
   socket.on("sendPosition", function (data) {
-	playerData[data.id] = data.player;
+	playerData[data.username].x = data.player.x;
+	playerData[data.username].y = data.player.y;
 	socket.broadcast.emit("receivePosition", data);
   });
 
@@ -153,6 +162,7 @@ var game = io.of('/game').on("connection", function (socket) {
   });
 
   socket.on("rockDestroyed", function (data) {
+	console.log("Rock ", data.x, " ", data.y, " destroyed");
 	if (Math.random() < powerupDropChance) {
 		game.emit("placePowerup", {x: data.x, y: data.y, power: "bullet"});
 	}
@@ -175,10 +185,6 @@ var game = io.of('/game').on("connection", function (socket) {
   socket.on("sendDeath", function (data) {
 	socket.emit("respawn", {});
 	
-	console.log(games[usersGame[data.username]]);
-	console.log(parseInt(data.killer));
-	console.log(data.killer);
-	
 	playerData[data.username].deaths++;
 	// suicide
 	if (data.killer === 0)
@@ -187,7 +193,6 @@ var game = io.of('/game').on("connection", function (socket) {
 	else
 		playerData[games[usersGame[data.username]].players[parseInt(data.killer) - 1]].kills++;
 	
-	console.log(playerData[data.username]);
 	
 	socket.broadcast.emit("playerDied", {id: data.id, playerNum: data.player, x: map1positions[parseInt(data.player)].x, y: map1positions[parseInt(data.player)].y});
   });
@@ -232,7 +237,7 @@ var gameNumber = 0;
 // number of players waiting 
 var newGamePlayerCount = 0;
 // current game being made
-var curGame = {players: [], connected: 0, sockets: new Object(), id: 0};
+var curGame = {players: [], connected: 0, sockets: new Object(), id: 0, started: false};
 var playersToStart = 2;
 
 var lobby = io.of('/lobby').on('connection', function (socket) {
@@ -280,7 +285,7 @@ var lobby = io.of('/lobby').on('connection', function (socket) {
 			
 			// reset for next new game
 			newGamePlayerCount === 0;
-			curGame = {players: [], connected: 0, sockets: new Object(), id: gameNumber};
+			curGame = {players: [], connected: 0, sockets: new Object(), id: gameNumber, started: false};
 		}
     });
 
