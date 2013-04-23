@@ -679,7 +679,7 @@ function fireBullet(playerX, playerY, angle, player) {
   var moveX = c.BALL_RADIUS * 2 * Math.cos(angle * Math.PI / 180);
   var moveY = c.BALL_RADIUS * 2 * Math.sin(angle * Math.PI / 180);
   console.log("START\nbullet.x = " + (playerX + moveX) + "\nbullet.y = " + (playerY - moveY) + "\nangle = " + angle);
-  g.bullets.push(new Bullet(playerX + moveX, playerY - moveY, angle, player));
+  g.bullets.push(new Bullet(playerX * c.GRID_WIDTH + moveX, playerY * c.GRID_HEIGHT - moveY, angle, player));
   if (g.bullets.length === 1) {
     g.bulletHandler = setInterval(moveBullets, 30);
   }
