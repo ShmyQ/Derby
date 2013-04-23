@@ -107,20 +107,37 @@ var powerupDropChance = 0.4;
 var game = io.of('/game').on("connection", function (socket) {
   console.log("Player ", socket.id, " connected");
 
-  var thisGame = games[usersGame[socket.id]];
-  
-  // send connected message to set up client side
-  socket.emit("connected", {id: socket.id, player: thisGame.players.indexOf(socket).toString(), numPlayers: thisGame.players.length, map: map1, mapdata: map1data});
+  /*temp++;
+  socket.emit("connected", {id: socket.id, player: (temp).toString(), numPlayers: 1, map: map1, mapdata: map1data});
 
-  // save new player
-  playerData[socket.id] = {x: map1positions[playerCount].x, y: map1positions[playerCount].y, hp: 100, powerups: []};
-
-  thisGame.connected++;
-  // if all players connect, start game
-  if (thisGame.connected === thisGame.players.length) {
+  if (temp === 1) {
+	console.log("starting game");
 	game.emit("start", {});
 	setTimeout( function() { game.emit("endGame", {}); }, 60000);
-  }
+  }*/
+  
+  
+  socket.emit("getUsername", {});
+  
+  socket.on("username", function(data) {
+	  console.log("Looking for ", data.username, ". Found ", usersGame[data.username]);
+	  var thisGame = games[usersGame[data.username]];
+	  thisGame.sockets[data.username] = socket;
+	  
+	  // send connected message to set up client side
+	  socket.emit("connected", {id: socket.id, player: (thisGame.players.indexOf(data.username) + 1).toString(), numPlayers: thisGame.players.length, map: map1, mapdata: map1data});
+
+	  // save new player
+	  playerData[data.username] = {kills: 0, deaths: 0};
+
+	  thisGame.connected++;
+	  // if all players connect, start game
+	  if (thisGame.connected === thisGame.players.length) {
+		console.log("starting game");
+		game.emit("start", {});
+		setTimeout( function() { game.emit("endGame", {}); }, 60000);
+	  }
+  });
   
   socket.on("sendPosition", function (data) {
 	playerData[data.id] = data.player;
@@ -157,7 +174,21 @@ var game = io.of('/game').on("connection", function (socket) {
 
   socket.on("sendDeath", function (data) {
 	socket.emit("respawn", {});
-	playerData[data.id] = {x: map1positions[parseInt(data.player)].x, y: map1positions[parseInt(data.player)].y, hp: 100, powerups: []};
+	
+	console.log(games[usersGame[data.username]]);
+	console.log(parseInt(data.killer));
+	console.log(data.killer);
+	
+	playerData[data.username].deaths++;
+	// suicide
+	if (data.killer === 0)
+		playerData[data.username].kills--;
+	// give killer a kill
+	else
+		playerData[games[usersGame[data.username]].players[parseInt(data.killer) - 1]].kills++;
+	
+	console.log(playerData[data.username]);
+	
 	socket.broadcast.emit("playerDied", {id: data.id, playerNum: data.player, x: map1positions[parseInt(data.player)].x, y: map1positions[parseInt(data.player)].y});
   });
 
@@ -173,22 +204,22 @@ var map1positions = [{},
 					 {x: 625, y: 175},
 					 {x: 175, y: 625},
 					 {x: 625, y: 625}];
-var map1 = [["O", "O", "R", "O", "O", "R", "O", "O", "O", "R", "O", "O", "O", "O", "R", "O"],
-			["R", "O", "O", "R", "O", "O", "O", "R", "O", "O", "R", "O", "O", "R", "O", "O"],
-			["O", "R", "O", "O", "O", "R", "O", "O", "O", "O", "O", "O", "O", "O", "O", "R"],
-			["O", "O", "O", "1", "O", "O", "O", "O", "O", "R", "O", "O", "2", "O", "O", "O"],
-			["O", "R", "O", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "O", "O", "R"],
-			["O", "O", "R", "O", "O", "R", "O", "O", "O", "O", "R", "O", "O", "R", "O", "O"],
-			["R", "O", "O", "O", "O", "O", "R", "R", "R", "O", "O", "O", "O", "O", "R", "O"],
-			["O", "R", "O", "R", "O", "O", "R", "R", "R", "O", "O", "O", "R", "O", "O", "O"],
-			["O", "O", "O", "O", "O", "O", "R", "R", "R", "O", "R", "O", "O", "O", "O", "R"],
-			["O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "R", "O", "O"],
-			["O", "R", "O", "O", "R", "O", "O", "R", "O", "O", "O", "R", "O", "O", "R", "O"],
-			["O", "O", "O", "O", "O", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "O"],
-			["R", "R", "O", "3", "O", "O", "R", "O", "O", "O", "O", "O", "4", "O", "O", "R"],
-			["O", "O", "O", "O", "O", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "O"],
-			["O", "R", "O", "O", "O", "R", "O", "O", "O", "O", "R", "O", "O", "R", "O", "O"],
-			["O", "O", "O", "R", "O", "O", "R", "O", "R", "O", "O", "O", "R", "O", "R", "O"]];
+var map1 = [["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"],
+			["W", "R", "O", "R", "O", "O", "O", "R", "O", "O", "R", "O", "O", "R", "O", "W"],
+			["W", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "O", "O", "O", "O", "W"],
+			["W", "O", "O", "1", "O", "O", "O", "O", "O", "R", "O", "O", "2", "O", "O", "W"],
+			["W", "R", "O", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "O", "O", "W"],
+			["W", "O", "R", "O", "O", "P", "P", "O", "P", "P", "R", "O", "O", "R", "O", "W"],
+			["W", "O", "O", "O", "O", "P", "R", "R", "R", "P", "O", "O", "O", "O", "R", "W"],
+			["W", "R", "O", "R", "O", "O", "R", "R", "R", "O", "O", "O", "R", "O", "O", "W"],
+			["W", "O", "O", "O", "O", "P", "R", "R", "R", "P", "R", "O", "O", "O", "O", "W"],
+			["W", "O", "O", "O", "O", "P", "P", "O", "P", "P", "O", "O", "O", "R", "O", "W"],
+			["W", "R", "O", "O", "R", "O", "O", "R", "O", "O", "O", "R", "O", "O", "R", "W"],
+			["W", "O", "O", "O", "O", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "W"],
+			["W", "R", "O", "3", "O", "O", "R", "O", "O", "O", "O", "O", "4", "O", "O", "W"],
+			["W", "O", "O", "O", "O", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "W"],
+			["W", "R", "R", "O", "O", "R", "O", "O", "O", "O", "R", "O", "O", "R", "O", "W"],
+			["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"]];
 
 
 // ** LOBBY	**
@@ -201,7 +232,7 @@ var gameNumber = 0;
 // number of players waiting 
 var newGamePlayerCount = 0;
 // current game being made
-var curGame = {players: [], connected: 0, id: 0};
+var curGame = {players: [], connected: 0, sockets: new Object(), id: 0};
 var playersToStart = 2;
 
 var lobby = io.of('/lobby').on('connection', function (socket) {
@@ -227,26 +258,29 @@ var lobby = io.of('/lobby').on('connection', function (socket) {
     });
 
     socket.on('findMatch', function(data){
-		curGame.players[newGamePlayerCount] = socket;
+		console.log("finding match");
+		curGame.players[newGamePlayerCount] = data.username;
+		curGame.sockets[data.username] = socket;
 		newGamePlayerCount++;
 		
 		// if there are enough players waiting
 		if (newGamePlayerCount === playersToStart) {
+			console.log("creating match");
 			gameNumber++;
 		
 			for (var i = 0; i < curGame.players.length; i++) {
 				// tell each player to join
-				curGame.players[i].emit('joinGame');
+				curGame.sockets[curGame.players[i]].emit('joinGame');
 				
-				// add hash from player id to game id
-				usersGame[curGame.players[i].id] = gameNumber;
+				// add hash from players username to game id
+				console.log("adding ", curGame.players[i], " to usersGame");
+				usersGame[curGame.players[i]] = gameNumber;
 			}
-			
 			games[gameNumber] = curGame;
 			
 			// reset for next new game
 			newGamePlayerCount === 0;
-			curGame = {players: [], connected: 0, id: gameNumber};
+			curGame = {players: [], connected: 0, sockets: new Object(), id: gameNumber};
 		}
     });
 

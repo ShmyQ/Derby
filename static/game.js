@@ -2,7 +2,7 @@ var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
 // sockets
-var socket = io.connect("http://128.237.87.127:8888/game");
+var socket = io.connect("http://128.237.123.149:8888/game");
 socket.heartbeatTimeout = 20;
 
 socket.on("connected", function (data) {
@@ -18,6 +18,10 @@ socket.on("connected", function (data) {
 	init();
 	
 	socket.emit("sendUsername", {player: data.player, username: sessionStorage["username"]});
+});
+
+socket.on("getUsername", function (data) {
+	socket.emit("username", {username: sessionStorage["username"]});
 });
 
 socket.on("start", function (data) {
@@ -106,11 +110,14 @@ var g = {
 	numPlayers: 0,
 	bombs: null,
 	rocks: null,
+	walls: null,
+	pits: null,
 	powerups: null,
   bullets: null,
 	enemies: null,
 	backgroundImg: null,
 	platformImg: null,
+	wallImg: null,
 	map: null,
 	mapdata: null,
 	isStarted: false,
@@ -142,6 +149,8 @@ var c = {
 
 	PLATFORM_IMG_WIDTH: 512,
 	PLATFORM_IMG_HEIGHT: 512,
+	WALL_IMG_WIDTH: 154,
+	WALL_IMG_HEIGHT: 154,
 
 	GRID_WIDTH: 0,
 	GRID_HEIGHT: 0,
@@ -182,6 +191,8 @@ function init() {
 	g.bombs = [];
 	g.powerups = [];
 	g.bullets = [];
+	g.walls = [];
+	g.pits = [];
 
 	// Fix Screen
 	canvas.width  = window.innerWidth;
@@ -207,9 +218,12 @@ function init() {
 	g.backgroundImg.src = "spaceBackground.jpg"
 	g.platformImg = new Image();
 	g.platformImg.src = "spacePlatform.jpg";
+	g.wallImg = new Image();
+	g.wallImg.src = "wall.jpg";
 
 	// Create map and start drawing
 	createMap();
+	g.myPlayer = new Player(c.SPAWN_X, c.SPAWN_Y);
 	g.drawHandler = setInterval(draw, 25);
 }
 
@@ -384,7 +398,30 @@ function draw() {
 			s.rocks[rock.num].x, s.rocks[rock.num].y,
 			s.rocks[rock.num].width, s.rocks[rock.num].height,
 			xpos - c.ROCK_WIDTH/2, ypos - c.ROCK_HEIGHT/2, c.ROCK_WIDTH, c.ROCK_HEIGHT);
-			// ctx.fillRect(xpos - rock.size/2, ypos - rock.size/2, rock.size, rock.size);
+		}
+	});
+	
+	// draw walls
+	g.walls.forEach( function (wall) {
+		if (wall.x + c.GRID_WIDTH/2 >= g.myPlayer.x - canvas.width/2 && wall.x - c.GRID_WIDTH/2 < g.myPlayer.x + canvas.width/2
+			&& wall.y + c.GRID_HEIGHT/2 >= g.myPlayer.y - canvas.height/2 && wall.y - c.GRID_HEIGHT/2 < g.myPlayer.y + canvas.height/2) {
+			var xpos = canvas.width/2 - (g.myPlayer.x - wall.x);
+			var ypos = canvas.height/2 - (g.myPlayer.y - wall.y);
+
+			ctx.drawImage(g.wallImg, 0, 0, c.WALL_IMG_WIDTH, c.WALL_IMG_HEIGHT, xpos - c.GRID_WIDTH/2, ypos - c.GRID_HEIGHT/2, c.GRID_WIDTH, c.GRID_HEIGHT)
+		}
+	});
+	
+	// draw pits
+	g.pits.forEach( function (pit) {
+		if (pit.x + c.GRID_WIDTH/2 >= g.myPlayer.x - canvas.width/2 && pit.x - c.GRID_WIDTH/2 < g.myPlayer.x + canvas.width/2
+			&& pit.y + c.GRID_HEIGHT/2 >= g.myPlayer.y - canvas.height/2 && pit.y - c.GRID_HEIGHT/2 < g.myPlayer.y + canvas.height/2) {
+			var xpos = canvas.width/2 - (g.myPlayer.x - pit.x);
+			var ypos = canvas.height/2 - (g.myPlayer.y - pit.y);
+
+			//ctx.fillStyle = "black";
+			//ctx.fillRect(xpos - c.GRID_WIDTH/2, ypos - c.GRID_HEIGHT/2, c.GRID_WIDTH, c.GRID_HEIGHT);
+			ctx.drawImage(g.backgroundImg, g.myPlayer.x/10 + xpos - c.GRID_WIDTH/2, g.myPlayer.y/10 + ypos - c.GRID_HEIGHT/2, c.GRID_WIDTH, c.GRID_HEIGHT, xpos - c.GRID_WIDTH/2, ypos - c.GRID_HEIGHT/2, c.GRID_WIDTH, c.GRID_HEIGHT);
 		}
 	});
 
@@ -498,12 +535,18 @@ function createMap() {
 			else if (g.map[j][i] === g.player) {
 				c.SPAWN_X = i*c.GRID_WIDTH + c.GRID_WIDTH/2;
 				c.SPAWN_Y = j*c.GRID_HEIGHT + c.GRID_HEIGHT/2;
-
-				g.myPlayer = new Player(c.SPAWN_X, c.SPAWN_Y);
 			}
 			// Open
 			else if (g.map[j][i] === "O") {
 				continue;
+			}
+			// Wall
+			else if (g.map[j][i] === "W") {
+				g.walls.push(new Wall(i*c.GRID_WIDTH + c.GRID_WIDTH/2, j*c.GRID_HEIGHT + c.GRID_HEIGHT/2));
+			}
+			// Pit
+			else if (g.map[j][i] === "P") {
+				g.pits.push(new Pit(i*c.GRID_WIDTH + c.GRID_WIDTH/2, j*c.GRID_HEIGHT + c.GRID_HEIGHT/2));
 			}
 			// Enemies spawn points -- initialize enemies
 			else {
@@ -557,9 +600,9 @@ function explodeBomb(bomb) {
 	}
 
 	// explode the bomb then remove
-	g.bombs.isExploding = true;
+	bomb.isExploding = true;
 	setTimeout( function() {
-		g.bombs.isExploding = false;
+		bomb.isExploding = false;
 		g.bombs.splice(g.bombs.indexOf(bomb), 1);
 	}, 1000);
 }
@@ -580,10 +623,14 @@ function newPowerup () {
 
 function checkForDeath(attacker) {
 	if (g.myPlayer.hp <= 0) {
-		g.isDead = true;
-
-		socket.emit("sendDeath", {id: g.myID, player: g.player, killer: attacker});
+		die(attacker);
 	}
+}
+
+function die(attacker) {
+	g.isDead = true;
+
+	socket.emit("sendDeath", {id: g.myID, player: g.player, killer: attacker, username: sessionStorage["username"]});
 }
 
 function decrementTimer(bomb) {
@@ -630,7 +677,10 @@ function checkForCollision(xvel, yvel) {
 	if (checkBoundaryCollision(xvel, yvel)) {
 		return true;
 	}
-	if (checkRockCollision(xvel, yvel)) {
+	if (checkObjectCollisions(xvel, yvel)) {
+		return true;
+	}
+	if (checkPitCollision(xvel, yvel)) {
 		return true;
 	}
 	checkPowerupCollision(xvel, yvel);
@@ -706,56 +756,74 @@ function checkBoundaryCollision(xvel, yvel) {
 	return false;
 }
 
-function checkRockCollision(xvel, yvel) {
-	var hitrock = false;
-	g.rocks.forEach( function(rock) {
-		if (hitsRock(xvel, yvel, rock)) {
+function checkPitCollision(xvel, yvel) {
+  var hit = false;
+  g.pits.forEach( function(pit) {
+    if (g.myPlayer.x + xvel >= pit.x - c.GRID_WIDTH/2 && g.myPlayer.x + xvel < pit.x + c.GRID_WIDTH/2
+      && g.myPlayer.y + yvel >= pit.y - c.GRID_HEIGHT/2 && g.myPlayer.y + yvel < pit.y + c.GRID_HEIGHT/2) {
+      die(g.player);
+	  hit = true;
+    }
+  });
+  
+  return hit;
+}
+
+// checks all collisions for objects whose dimensions are c.GRID_WIDTH and HEIGHT
+function checkObjectCollisions(xvel, yvel) {
+	var hit = false;
+	var objects = g.rocks.concat(g.walls);
+	
+	objects.forEach( function(obj) {
+		if (hitsObject(xvel, yvel, obj)) {
 			// small amount to push ball from wall (fixes a bug)
 			var e = 0.0001;
 		
-			if (!hitsRock(xvel, 0, rock)) {
-				// if the whole xvel doesnt hit a new rock, add it
+			if (!hitsObject(xvel, 0, obj)) {
+				// if the whole xvel doesnt hit a new obj, add it
 				if (!hitAnObject(xvel, 0))
 					g.myPlayer.x += xvel;
 				
-				// move y to side of rock
-				if (g.myPlayer.y + c.BALL_RADIUS <= rock.y - c.ROCK_HEIGHT/2)
-					g.myPlayer.y = rock.y - c.ROCK_HEIGHT/2 - c.BALL_RADIUS - e;
+				// move y to side of obj
+				if (g.myPlayer.y + c.BALL_RADIUS <= obj.y - c.GRID_HEIGHT/2)
+					g.myPlayer.y = obj.y - c.GRID_HEIGHT/2 - c.BALL_RADIUS - e;
 				else
-					g.myPlayer.y = rock.y + c.ROCK_HEIGHT/2 + c.BALL_RADIUS + e;
+					g.myPlayer.y = obj.y + c.GRID_HEIGHT/2 + c.BALL_RADIUS + e;
 			}
-			else if (!hitsRock(0, yvel, rock)) {
+			else if (!hitsObject(0, yvel, obj)) {
 				// if the whole yvel doesnt hit a new rock, add it
 				if (!hitAnObject(0, yvel))
 					g.myPlayer.y += yvel;
 					
-				if (g.myPlayer.x + c.BALL_RADIUS <= rock.x - c.ROCK_WIDTH/2)
-					g.myPlayer.x = rock.x - c.ROCK_WIDTH/2 - c.BALL_RADIUS - e; 
+				if (g.myPlayer.x + c.BALL_RADIUS <= obj.x - c.GRID_WIDTH/2)
+					g.myPlayer.x = obj.x - c.GRID_WIDTH/2 - c.BALL_RADIUS - e; 
 				else
-					g.myPlayer.x = rock.x + c.ROCK_WIDTH/2 + c.BALL_RADIUS + e;
+					g.myPlayer.x = obj.x + c.GRID_WIDTH/2 + c.BALL_RADIUS + e;
 			}
 			// diagonal
 			else {
-				console.log(g.myPlayer.y - c.BALL_RADIUS + yvel, rock.y + c.ROCK_HEIGHT/2);
+				// do nothing for now -- works pretty well
 			}
-			hitrock = true;
+			hit = true;
 		}
 	});
 	
-	return hitrock;
+	return hit;
 }
 
-function hitsRock(xvel, yvel, rock) {
-	if (g.myPlayer.x + c.BALL_RADIUS + xvel > rock.x - c.ROCK_WIDTH/2 && g.myPlayer.x - c.BALL_RADIUS + xvel < rock.x + c.ROCK_WIDTH/2
-		&& g.myPlayer.y + c.BALL_RADIUS + yvel > rock.y - c.ROCK_HEIGHT/2 && g.myPlayer.y - c.BALL_RADIUS + yvel < rock.y + c.ROCK_HEIGHT/2) {
+function hitsObject(xvel, yvel, obj) {
+	if (g.myPlayer.x + c.BALL_RADIUS + xvel > obj.x - c.GRID_WIDTH/2 && g.myPlayer.x - c.BALL_RADIUS + xvel < obj.x + c.GRID_WIDTH/2
+		&& g.myPlayer.y + c.BALL_RADIUS + yvel > obj.y - c.GRID_HEIGHT/2 && g.myPlayer.y - c.BALL_RADIUS + yvel < obj.y + c.GRID_HEIGHT/2) {
 		return true;
 	}
 }
 
 function hitAnObject(xvel, yvel) {
 	var hit = false;
-	g.rocks.forEach( function (rock) {
-		if (hitsRock(xvel, yvel, rock))
+	var objects = g.rocks.concat(g.walls);
+	
+	objects.forEach( function (obj) {
+		if (hitsObject(xvel, yvel, obj))
 			hit = true;
 	});
 	return hit;
@@ -827,6 +895,16 @@ function Rock(x, y, num) { // Should we use prototypes for all obstacles? >>yes<
 	this.x = x;
 	this.y = y;
     this.num = num;
+}
+
+function Wall(x, y) {
+	this.x = x;
+	this.y = y;
+}
+
+function Pit(x, y) {
+	this.x = x;
+	this.y = y;
 }
 
 function Powerup(x, y, power) {

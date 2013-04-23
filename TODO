@@ -18,10 +18,10 @@ Up for grabs:
 - User studies over carnival - observation of 4-5 people using app for half hour or so, proof of before & after
 - Add player-player collisions (maybe also player-bomb collisions)
 - Instructions screen
-- Show range of bomb explosions
 - Speed up bullets
 - Closer to bomb = more damage (knockback also?)
 - Possible powerup - bomb that explodes on impact
 - Non-destructible rocks
 - Bombs explode one another
 - Handle players joining and leaving
+- Acceleration

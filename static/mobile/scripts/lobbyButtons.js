@@ -1,3 +1,10 @@
+var lobby = io.connect('http://128.237.123.149:8888/lobby');
+
+lobby.on('joinGame', function (data) {
+	console.log("joining game");
+    window.location = '/game';
+});
+
 $(document).ready(function() {
     //==================
     //  Button Events
@@ -35,8 +42,8 @@ $(document).ready(function() {
     
      $("#findMatch").on('tap', function(e) {
         e.preventDefault();
-         window.location = '/game';
-    });
+          lobby.emit('findMatch', {username: sessionStorage["username"]});
+	});
 /*
      $("#sendChat").on('tap', function(e) {
          e.preventDefault();
