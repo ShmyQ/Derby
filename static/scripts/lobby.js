@@ -13,7 +13,8 @@ $(document).ready(function(){
     $("#menuBar").html(sessionStorage["username"]);
     $("#profileBar").html(sessionStorage["username"] +  "'s Profile");
     $("#friendsBar").html(sessionStorage["username"] +  "'s Friends");
-    
+    $("#friendsRequestBar").html(sessionStorage["username"] +  "'s Friend Requests");
+    getFriendsInfo(document.cookie.username,document.cookie.password);
     
     //==================
     //  Key Events
@@ -74,6 +75,10 @@ lobby.on('twoInstances',function(data){
     }
 });
 
+lobby.on('receiveFriends',function(data){
+    updateFriendsPanel(data.friends,data.requests);
+});
+
 //==================
 // Helpers
 //==================
@@ -97,6 +102,70 @@ function readCookie(name) {
         if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
     }
     return null;
+}
+
+function updateFriendsPanel(friends,requests){
+    if(friends !== undefined){
+        console.log("FRIENDS " + friends);
+        if( typeof friends === 'string' ) {
+            friends = [ friends ];
+        }
+        // Add friends from list
+        var friendsHTML = "";
+        for(var i = 0; i < friends.length; i++){
+           friendsHTML = friendsHTML +"<div id='friendListing'>"+  friends[i] + "</div><br />";
+        }
+         friendsHTML = friendsHTML + "<br />";
+         $("#friendsList").html(friendsHTML);
+    }
+    
+    if(requests !== undefined){
+        console.log(requests);
+        if( typeof requests === 'string' ) {
+            requests = [ requests ];
+        }
+        var requestsHTML = "";
+        for(var i in requests){
+           requestsHTML = requestsHTML +"<div id='friendListing'>" + requests[i] + " <button id = 'addPlayer" + i + "' class='smallButton'>Accept </button></div><br />";
+        }
+         $("#friendRequestsList").html(requestsHTML);
+
+        for(var i in requests){
+            $("#addPlayer" + i).click(function(e) {
+                alert('ADDING' + requests[i]);
+                e.preventDefault();
+                 post(
+                    '/addFriend', 
+                    {   
+                        otherUser: requests[i],
+                    }, 
+                    getFriendsInfo(document.cookie.username,document.cookie.password)
+                );
+            });
+        }
+     }
+}
+
+
+function getFriendsInfo(username, password){
+    post(
+        '/friends', 
+        {   
+            username: username, 
+            password: password,
+        }, 
+        handleGetFriendsInfo
+    );
+}
+
+function handleGetFriendsInfo(err, result){
+    if (err)
+        throw err;
+    else {
+        var parsedResult = $.parseJSON(result);
+        console.log(parsedResult);
+        updateFriendsPanel(parsedResult.friendsList,parsedResult.requestList);
+    }
 }
 
 //==================
@@ -162,3 +231,10 @@ function sendChatToServer(msg){
 function logoutPlayer(){
     post('/logout', undefined, handleLogoutResult);
 }
+
+function postFriendRequest(){
+    post('/friendRequest', {"friendName" : $("#friendRequestInput").val() }, handleLogoutResult);
+    $("#friendRequestInput").val("");   
+}
+
+

@@ -39,15 +39,11 @@ app.listen(8889);
 //  Routes
 //===========================
 
+var friendRequests = new Object();
+var acceptedRequests = new Object();
 require('./loginRoutes.js')(mongoExpressAuth, app);
 
-function mobileDesktopPrefixer(req){
-    var reqPrefix = 'static/desktop/';
-    if(req.useragent.isMobile)
-        reqPrefix = 'static/mobile/';
-        
-    return reqPrefix;
-}
+
 
 // Index
 app.get('/', function checkLogin(req,res,next){
@@ -55,8 +51,48 @@ app.get('/', function checkLogin(req,res,next){
         if (err) {
             res.sendfile(mobileDesktopPrefixer(req) + "/login.html");
         }
-        else
+        else {  
+            mongoExpressAuth.getAccount(req, function(err, result){
+                if (err)
+                    res.send(err);
+                else { 
+                    if(result.friendsInfo === undefined){
+                            result.friendsInfo = new Object();
+                            result.friendsInfo.friendsList = [];
+                            result.friendsInfo.requestList = [];
+                        var createFriendsInfo = { 'friendsInfo' : result.friendsInfo };
+                        mongoExpressAuth.updateAccount(req,createFriendsInfo,standardErrChecker);
+                    }
+                    // Get friend requests
+                    console.log("FRIEND REQUESTS FOR " + req.cookies.username + " : " + friendRequests[req.cookies.username]);
+                    if(friendRequests[req.cookies.username] !== undefined){ 
+                        console.log("GETTING REQUESTS FOR " + req.cookies.username + " : " +friendRequests[req.cookies.username]);
+                        for(var i in friendRequests[req.cookies.username]){ 
+                             console.log("ADDING " + friendRequests[req.cookies.username][i] + " to friendsInfo.requestList");
+                             var toUpdate = toArray(result.friendsInfo.requestList);
+                             toUpdate[toUpdate.length] = friendRequests[req.cookies.username][i];
+                             var update =    {'friendsInfo.requestList': toUpdate} ;
+                             mongoExpressAuth.updateAccount(req,update,standardErrChecker);
+                        }
+                         delete friendRequests[req.cookies.username];
+                    }
+                    
+                    // Get accepted friend requests
+                    if(acceptedRequests[req.cookies.username] !== undefined){ 
+                        for(var i in acceptedRequests[req.cookies.username]){ 
+                             var toUpdate = toArray(result.friendsInfo.friendsList);
+                             toUpdate.push(acceptedRequests[req.cookies.username][i]);
+                             var update =    {'friendsInfo.friendsList': toUpdate} ;
+                             mongoExpressAuth.updateAccount(req,update,standardErrChecker);
+                        }
+                         delete acceptedRequests[req.cookies.username];
+                    }
+                }
+            });
+            
+                
            res.sendfile(mobileDesktopPrefixer(req) + "/index.html");
+        }
     });
 });
 
@@ -80,11 +116,97 @@ app.get('/game', function(req, res){
     });
 });
 
+app.post('/friends',function(req,res){
+    mongoExpressAuth.getAccount(req, function(err, result){
+        if (err)
+            res.send(err);
+        else {
+          if(result.friendsInfo === undefined){
+            result.friendsInfo = new Object();
+            result.friendsInfo.friendsList = [];
+            result.friendsInfo.requestList = [];
+         }
+         
+          res.send(result.friendsInfo);
+          console.log("FRIENDS POST FOR  " + req.cookies.username + ": " + result.friendsInfo.requestList);
+        }
+    });
+});
+
+app.post('/addFriend',function(req,res){
+    mongoExpressAuth.getAccount(req, function(err, result){
+        if (err)
+            res.send(err);
+        else {
+            // Add to users friendslist
+            var toUpdate = result.friendsInfo.friendsList;
+            if(toUpdate === undefined)
+                toUpdate = [];
+            toUpdate.push(req.body.otherUser);
+            var update = {'friendsInfo.friendsList' : toUpdate};
+            mongoExpressAuth.updateAccount(req,update,standardErrChecker);
+            console.log("ADD FRIEND FOR " + req.cookies.username + ": " + req.body["otherUser"]);
+            
+            // Remove from users requestlist
+            var removeFrom = toArray(result.friendsInfo.requestList);
+            removeFrom.splice(removeFrom.indexOf(req.body.otherUser),1);
+            var update = {'friendsInfo.requestList' : removeFrom};
+            mongoExpressAuth.updateAccount(req,update,standardErrChecker);
+            
+            // Add to other users acceptedRequests
+            if(acceptedRequests[req.body.otherUser] === undefined)
+                acceptedRequests[req.body.otherUser] = [];
+            acceptedRequests[req.body.otherUser].push(req.cookies.username);
+            
+        }
+    });
+});
+
+app.post('/friendRequest',function(req,res){
+    mongoExpressAuth.getAccount(req, function(err, result){
+        if (err)
+            res.send(err);
+        else {
+            console.log(req.body["friendName"]);
+            if(friendRequests[req.body["friendName"]] === undefined)
+                friendRequests[req.body["friendName"]] = [];
+                
+            friendRequests[req.body["friendName"]][friendRequests[req.body["friendName"]].length] = req.cookies.username;
+        }
+        console.log("FRIENDREQUESTS for " + req.body["friendName"] + ": " + friendRequests[req.body["friendName"]]);
+    });
+});
+
 app.get('/favicon.ico', function(req,res){
     res.sendfile('favicon.ico');
 });
 
 app.use(express.static(__dirname + '/static/'));
+
+function standardErrChecker (err,result){
+    if(err)
+        console.log(err);
+}
+
+function mobileDesktopPrefixer(req){
+    var reqPrefix = 'static/desktop/';
+    if(req.useragent.isMobile)
+        reqPrefix = 'static/mobile/';
+        
+    return reqPrefix;
+}
+
+
+function toArray(input){
+    if(input === undefined)
+        return [];
+    if( typeof input === 'string' ) {
+        return [ input ];
+    }
+    
+    return input;
+}
+
 
 // ========================
 // === Socket.io server ===
@@ -220,8 +342,7 @@ var lobby = io.of('/lobby').on('connection', function (socket) {
     socket.on('findMatch', function(data){
         socket.emit('joinGame');
     });
-
-
+    
     socket.on('disconnect', function(data){
         // If not already disconnected ie: two instances.
         if(lobbyPlayers.indexOf(IDToPlayer[socket.id]) !== -1){

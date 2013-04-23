@@ -40,6 +40,11 @@ $(document).ready(function() {
         e.preventDefault();
          sendChatToServer($("#chatInput").val());
     });
+    
+    $("#sendFriendRequest").click(function(e) { 
+        e.preventDefault();
+         postFriendRequest();
+    });
    
 });
 

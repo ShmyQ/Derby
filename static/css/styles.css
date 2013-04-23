@@ -1,3 +1,35 @@
+#friendsList {
+    text-align: left;
+    margin-left: 5%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+#friendRequestsList {
+    text-align: left;
+    margin-left: 5%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    
+}
+
+#friendListing {
+    border: 3px solid rgba(64,64,64,.5);
+	border-radius: 10px 10px 10px 10px;
+	background-color: rgb(30,30,30);
+    width: 95%;
+    height: 5%;
+    padding: 10px;
+    margin: 5px 0px -20px 0px;
+    position: relative;
+}
+
+.smallButton {
+    font-size: 20px;
+    padding: 8px;
+    margin: 12px;
+}
+
 /*//////////////////////////////////
 //////////   STANDARD TAGS /////////
 //////////////////////////////////*/
@@ -25,7 +57,7 @@ h3 {
 }
 
 p {
-
+    padding: 2px;
 }
 
 input {
