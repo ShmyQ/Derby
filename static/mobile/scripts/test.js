@@ -1,4 +1,4 @@
-var socket = io.connect("http://localhost:8888");
+var socket = io.connect("http://192.168.1.115:8888");
 
 $(document).ready(function() {
   canvas = document.getElementById("myCanvas");

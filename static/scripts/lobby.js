@@ -5,16 +5,16 @@ var g = {
 
 $(document).ready(function(){
     //==================
-    //  App Related 
+    //  App Related
     //==================
     g.originalLogin = sessionStorage["username"];
-    
+
     // Write username in top bar of side menu bars
     $("#menuBar").html(sessionStorage["username"]);
     $("#profileBar").html(sessionStorage["username"] +  "'s Profile");
     $("#friendsBar").html(sessionStorage["username"] +  "'s Friends");
-    
-    
+
+
     //==================
     //  Key Events
     //==================
@@ -27,15 +27,15 @@ $(document).ready(function(){
 			sendChatToServer($("#chatInput").val());
             $("#chatInput").val("");
 		}
-     });   
+     });
 
     //==================
     //  Button Events
     //==================
-    
+
     // See /mobile/scripts/lobbyButtons.js or /desktop/scripts/lobbyButtons.js
-    
-    
+
+
 });
 
 
@@ -59,7 +59,7 @@ lobby.on('receivePlayers', function (data) {
     logoutOnDisconnect(g.originalLogin);
 });
 
-lobby.on('joinGame', function (data) { 
+lobby.on('joinGame', function (data) {
     window.location = '/game';
 });
 
@@ -67,7 +67,7 @@ lobby.on('receiveChat',function(data){
     addChatToLog(data.user,data.msg);
 });
 
-lobby.on('twoInstances',function(data){ 
+lobby.on('twoInstances',function(data){
     if(data.username === sessionStorage["username"]) {
         alert("This account is logged in twice! Loggout out...");
         logoutPlayer();
@@ -79,7 +79,7 @@ lobby.on('twoInstances',function(data){
 //==================
 
 // Logs out when username is illegal
-function logoutOnDisconnect(originalLogin){  
+function logoutOnDisconnect(originalLogin){
     sessionStorage["username"] = readCookie("username");
     if(sessionStorage["username"] === undefined || sessionStorage["username"] === "" || sessionStorage["username"] !== originalLogin){
         alert("You have been logged out!");
@@ -105,8 +105,8 @@ function readCookie(name) {
 function playersListHTML(players){
     players.sort();
     var finalHTML = "<p class='topBar' > PLAYERS </p>";
-    
-    for(var i = 0; i < players.length; i++){     
+
+    for(var i = 0; i < players.length; i++){
         finalHTML = finalHTML + "<p>" + players[i] + "</p>";
     }
     $("#playerList").html(finalHTML);
