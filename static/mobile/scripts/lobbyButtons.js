@@ -1,4 +1,4 @@
-var lobby = io.connect('http://128.237.123.149:8888/lobby');
+var lobby = io.connect('http://128.237.237.132:8888/lobby');
 
 lobby.on('joinGame', function (data) {
 	console.log("joining game");
@@ -11,35 +11,35 @@ $(document).ready(function() {
     //==================
 
     $("#logoutButton").on('tap', function(e) {
-        e.preventDefault(); 
+        e.preventDefault();
         logoutPlayer();
     });
-    
-    
+
+
      $("#menu").on('tap', function(e) {
         e.preventDefault();
-        $("#menu").toggleClass("clicked");  
-        $("#menuBox").toggleClass("slide"); 
+        $("#menu").toggleClass("clicked");
+        $("#menuBox").toggleClass("slide");
     });
-    
+
     $("#profile").on('tap', function(e) {
         e.preventDefault();
-        $("#profile").toggleClass("clicked");  
-        $("#profileBox").toggleClass("slide"); 
+        $("#profile").toggleClass("clicked");
+        $("#profileBox").toggleClass("slide");
     });
-    
+
     $("#friends").on('tap', function(e) {
-        e.preventDefault(); 
-        $("#friends").toggleClass("clicked");  
-        $("#friendsBox").toggleClass("slide"); 
+        e.preventDefault();
+        $("#friends").toggleClass("clicked");
+        $("#friendsBox").toggleClass("slide");
     });
-    
+
     $("#learn").on('tap', function(e) {
         e.preventDefault();
-        $("#learn").toggleClass("clicked");  
-        $("#learnBox").toggleClass("slide"); 
+        $("#learn").toggleClass("clicked");
+        $("#learnBox").toggleClass("slide");
     });
-    
+
      $("#findMatch").on('tap', function(e) {
         e.preventDefault();
           lobby.emit('findMatch', {username: sessionStorage["username"]});
@@ -49,6 +49,6 @@ $(document).ready(function() {
          e.preventDefault();
         sendChatToServer($("#chatInput").val());
         $("#chatInput").val("");
-        
+
     });*/
 });
