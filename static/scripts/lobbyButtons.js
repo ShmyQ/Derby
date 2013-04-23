@@ -8,7 +8,11 @@ $(document).ready(function(){
 });
 
 // lobby
+<<<<<<< HEAD
 var lobby = io.connect('http://192.168.1.115:8888/lobby');
+=======
+var lobby = io.connect('http://128.237.123.149:8888/lobby');
+>>>>>>> 45178cbed7db68327e4268480c03e46df9f77bd8
 var log = "";
 
 window.onbeforeunload = function() {
@@ -77,7 +81,7 @@ sendChatButton.onclick = function(){
 }
 
 findMatchButton.onclick = function(){
-     window.location = '/game';
+	lobby.emit('findMatch', {username: sessionStorage["username"]});
 }
 
 

@@ -1,66 +1,67 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title> Mobile Index </title>
+    <head>
+        <title> Mobile Index </title>
 
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <link rel="apple-touch-icon-precomposed" href="/mobile/icon.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <link rel="apple-touch-icon-precomposed" href="/mobile/icon.png" />
 
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
 
-    <link href='http://fonts.googleapis.com/css?family=Iceland' rel='stylesheet' type='text/css'>
-    <link href="css/reset.css" rel="stylesheet" type="text/css">
-    <link href="mobile/css/styles.css" rel="stylesheet" type="text/css">
-  </head>
-  <body>
-    <!-- Top Bar -->
-    <h1 id = "titlebar"> Mobile Derby </h1>
+        <link href='http://fonts.googleapis.com/css?family=Iceland' rel='stylesheet' type='text/css'>
+        <link href="css/reset.css" rel="stylesheet" type="text/css">
+        <link href="mobile/css/styles.css" rel="stylesheet" type="text/css">
+    </head>
+    <body>
+         <!-- Top Bar -->
+         <h1 id = "titlebar"> Mobile Derby </h1>
 
-    <!-- Side Menu-->
-    <button id="menu" class = "slideButton"> Menu </button>
-    <button id="profile" class = "slideButton"> Profile </button>
-    <button id="friends" class = "slideButton"> Friends </button>
-    <button id="learn" class = "slideButton"> Learn </button>
+          <!-- Side Menu-->
+        <button id="menu" class = "slideButton"> Menu </button>
+        <button id="profile" class = "slideButton"> Profile </button>
+        <button id="friends" class = "slideButton"> Friends </button>
+        <button id="learn" class = "slideButton"> Learn </button>
 
-    <!-- Side Menu Pullouts-->
-    <div id="menuBox" class="slideBox">
-      <p id="menuBar" class = "topBar"></p>
-      <button id="findMatch"> Find Match </button>
-      <button id="createGame"> Create Game </button>
-      <button id="joinGame"> Join Game </button>
-      <button id="logoutButton"> Logout</button>
-    </div>
-    <div id="profileBox" class="slideBox">
-      <p id="profileBar" class = "topBar"></p>
-    </div>
-    <div id="friendsBox" class="slideBox">
-      <p id="friendsBar" class = "topBar"></p>
-    </div>
-    <div id="learnBox" class="slideBox">
-      <p class = "topBar"> Power Ups </p>
-      <img src = "images/powerupsSmall.jpg" alt = "Power ups" />
-      <p class = "topBar"> Controls </p>
-    </div>
-
-
-    <div id="chatBox" class ="box">
-      <p class="topBar"> Chat </p>
-      <div id="chatArea"></div>
-      <input id="chatInput" type="text" autocapitalize="off" autocorrect="off" autocomplete="off" x-webkit-speech />
-
-      <div id= "playerList">
-        <p class = "topBar bottomPadding"> PLAYERS </p>
-      </div>
-    </div>
+         <!-- Side Menu Pullouts-->
+        <div id="menuBox" class="slideBox">
+             <p id="menuBar" class = "topBar"></p>
+            <button id="findMatch"> Find Match </button>
+            <button id="createGame"> Create Game </button>
+            <button id="joinGame"> Join Game </button>
+            <button id="logoutButton"> Logout</button>
+        </div>
+        <div id="profileBox" class="slideBox">
+            <p id="profileBar" class = "topBar"></p>
+        </div>
+        <div id="friendsBox" class="slideBox">
+            <p id="friendsBar" class = "topBar"></p>
+        </div>
+        <div id="learnBox" class="slideBox">
+            <p class = "topBar"> Power Ups </p>
+            <img src = "images/powerupsSmall.jpg" alt = "Power ups" />
+            <p class = "topBar"> Controls </p>
+        </div>
 
 
-    <!--Scripts -->
-    <script type="text/javascript" src="scripts/libs/jquery-1.9.1.min.js"></script>
-    <script type="text/javascript" src="scripts/libs/jquery.tap.js"></script>
-    <script type="text/javascript" src="http://192.168.1.115:8888/socket.io/socket.io.js"></script>
-    <script type="text/javascript" src="scripts/lobby.js"></script>
-    <script type="text/javascript" src="mobile/scripts/lobbyButtons.js"></script>
-  </body>
+        <div id="chatBox" class ="box">
+                <p class="topBar"> Chat </p>
+                <div id="chatArea"></div>
+                <input id="chatInput" type="text" autocapitalize="off" autocorrect="off" autocomplete="off" x-webkit-speech />
+
+                <div id= "playerList">
+                     <p class = "topBar bottomPadding"> PLAYERS </p>
+                </div>
+            </div>
+        </div>
+
+
+         <!--Scripts -->
+        <script type="text/javascript" src="scripts/libs/jquery-1.9.1.min.js"></script>
+        <script type="text/javascript" src="scripts/libs/jquery.tap.js"></script>
+        <script type="text/javascript" src="http://192.168.1.115:8888/socket.io/socket.io.js"></script>
+        <script type="text/javascript" src="scripts/lobby.js"></script>
+        <script type="text/javascript" src="mobile/scripts/lobbyButtons.js"></script>
+    </body>
 </html>
