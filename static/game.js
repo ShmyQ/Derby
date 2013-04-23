@@ -3,7 +3,7 @@ var ctx = canvas.getContext("2d");
 
 // sockets
 var socket = io.connect("http://128.237.237.132:8888/game");
-socket.heartbeatTimeout = 20;
+// socket.heartbeatTimeout = 20;
 
 socket.on("connected", function (data) {
 	g.myID = data.id;
@@ -17,7 +17,13 @@ socket.on("connected", function (data) {
 
 	init();
 
-	socket.emit("sendUsername", {player: data.player, username: sessionStorage["username"]});
+	// Create map and start drawing
+	createMap();
+	if (data.reconnecting)
+		g.myPlayer = new Player(data.x, data.y);
+	else
+		g.myPlayer = new Player(data.x*c.GRID_WIDTH, data.y*c.GRID_HEIGHT);
+	g.drawHandler = setInterval(draw, 25);
 });
 
 socket.on("getUsername", function (data) {
@@ -229,11 +235,6 @@ function init() {
 	g.platformImg.src = "spacePlatform.jpg";
 	g.wallImg = new Image();
 	g.wallImg.src = "wall.jpg";
-
-	// Create map and start drawing
-	createMap();
-	g.myPlayer = new Player(c.SPAWN_X, c.SPAWN_Y);
-	g.drawHandler = setInterval(draw, 25);
 }
 
 function getDevicePlatform() {
@@ -701,7 +702,7 @@ function moveBall(xvel, yvel) {
 		g.myPlayer.y = g.myPlayer.y + yvel;
 	}
 
-	socket.emit("sendPosition", {id: g.myID, playerNum: g.player, player: g.myPlayer});
+	socket.emit("sendPosition", {id: g.myID, playerNum: g.player, player: g.myPlayer, username: sessionStorage["username"]});
 }
 
 function checkForCollision(xvel, yvel) {

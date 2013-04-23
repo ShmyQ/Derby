@@ -7,7 +7,7 @@ function clicked(e) {
   	var angle = findAngle(e.x, e.y);
     if(g.myPlayer.powerups.bullets > 0) {
       g.myPlayer.powerups.bullets--;
-      fireBullet(g.myPlayer.x, g.myPlayer.y, angle, g.player);
+      // fireBullet(g.myPlayer.x, g.myPlayer.y, angle, g.player);
       socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x, playerY: g.myPlayer.y, angle: angle});
       console.log("Clickx = " + e.x);
     }
