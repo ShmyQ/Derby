@@ -45,7 +45,7 @@ function mobileDesktopPrefixer(req){
     var reqPrefix = 'static/desktop/';
     if(req.useragent.isMobile)
         reqPrefix = 'static/mobile/';
-        
+
     return reqPrefix;
 }
 
@@ -137,7 +137,7 @@ var game = io.of('/game').on("connection", function (socket) {
 	if (destroyedRocks.indexOf(data.x + "," + data.y) === -1) {
 		destroyedRocks.push(data.x + "," + data.y);
 		if (Math.random() < powerupDropChance) {
-			game.emit("placePowerup", {x: data.x, y: data.y, power: "bullet"});
+            newPowerup(data.x, data.y);
 		}
 	}
   });
@@ -188,6 +188,19 @@ var map1 = [["O", "O", "R", "O", "O", "R", "O", "O", "O", "R", "O", "O", "O", "O
 			["O", "O", "O", "O", "O", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "O"],
 			["O", "R", "O", "O", "O", "R", "O", "O", "O", "O", "R", "O", "O", "R", "O", "O"],
 			["O", "O", "O", "R", "O", "O", "R", "O", "R", "O", "O", "O", "R", "O", "R", "O"]];
+
+
+
+function newPowerup (xPos, yPos) {
+    // TODO: for adding random powerups
+    var rand = Math.random() * 2;
+    if (rand < 1) {
+        game.emit("placePowerup", {x: xPos, y: yPos, power: "bullet"});
+    }
+    else if (rand >= 1) {
+        game.emit("placePowerup", {x: xPos, y: yPos, power: "invincible"});
+    }
+}
 
 
 // ** LOBBY	**

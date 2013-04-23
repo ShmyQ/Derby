@@ -1,14 +1,14 @@
 $(document).ready(function(){
     $("#chatInput").keyup(function(event){
 		if(event.which === 13){
-			sendChatButton.onclick();  
+			sendChatButton.onclick();
             chatInput.value = "";
 		}
-     });    
+     });
 });
 
 // lobby
-var lobby = io.connect('http://localhost:8888/lobby');
+var lobby = io.connect('http://192.168.1.115:8888/lobby');
 var log = "";
 
 window.onbeforeunload = function() {
@@ -26,9 +26,9 @@ lobby.on('receivePlayers', function (data) {
 });
 
 lobby.on('joinGame', function (data) {
-    console.log("HERE");    
+    console.log("HERE");
     window.location = '/game';
-    console.log("HERE2"); 
+    console.log("HERE2");
 });
 
 lobby.on('receiveChat',function(data){
@@ -38,7 +38,7 @@ lobby.on('receiveChat',function(data){
 // lobby HELPERS
 function playersListHTML(players){
     var finalHTML = "<p id = 'playerListBar'> PLAYERS </p>";
-                  
+
     for(var i = 0; i < players.length; i++){
         if(players[i])
             finalHTML = finalHTML + "<p>" + players[i] + "</p>";
