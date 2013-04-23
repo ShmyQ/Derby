@@ -2,14 +2,14 @@
 <html>
     <head>
         <title> Mobile Index </title>
-        
+
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black">
         <link rel="apple-touch-icon-precomposed" href="/mobile/icon.png" />
-        
+
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
         <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-        
+
         <link href='http://fonts.googleapis.com/css?family=Iceland' rel='stylesheet' type='text/css'>
         <link href="css/reset.css" rel="stylesheet" type="text/css">
         <link href="mobile/css/styles.css" rel="stylesheet" type="text/css">
@@ -17,13 +17,13 @@
     <body>
          <!-- Top Bar -->
          <h1 id = "titlebar"> Mobile Derby </h1>
-         
+
           <!-- Side Menu-->
         <button id="menu" class = "slideButton"> Menu </button>
         <button id="profile" class = "slideButton"> Profile </button>
         <button id="friends" class = "slideButton"> Friends </button>
         <button id="learn" class = "slideButton"> Learn </button>
-        
+
          <!-- Side Menu Pullouts-->
         <div id="menuBox" class="slideBox">
              <h3 id="menuBar" class = "topBar"></h3>
@@ -36,35 +36,38 @@
             <h3 id="profileBar" class = "topBar"></h3>
         </div>
         <div id="friendsBox" class="slideBox">
+            <p> To send a friend request, type in their name below </p>
+            <input id="friendRequestInput"  type="text" autocapitalize="off" autocorrect="off" autocomplete="off" x-webkit-speech />
+            <button id="sendFriendRequest" class = "smallButton"> Send Request</button>
             <h3 id="friendsBar" class = "topBar"></h3>
-             <div id = "friendsList">None</div>
+            <p id = "friendsList">None</p>
              <h3 id="friendsRequestBar" class = "topBar"></h3>
-              <div id = "friendRequestsList">None</div>
+             <p id = "friendRequestsList"> None</p>
         </div>
         <div id="learnBox" class="slideBox">
             <h3 class = "topBar"> Power Ups </h3>
             <img src = "images/powerupsSmall.jpg" alt = "Power ups" />
             <h3 class = "topBar"> Controls </h3>
         </div>
-        
-        
+
+
         <div id="chatBox" class ="box">
                 <h3 class="topBar"> Chat </h3>
                 <div id="chatArea"></div>
                 <input id="chatInput" type="text" autocapitalize="off" autocorrect="off" autocomplete="off" x-webkit-speech />
-               
+
                 <div id= "playerList">
                      <p class = "topBar bottomPadding"> PLAYERS </p>
                 </div>
             </div>
         </div>
-        
-        
+
+
          <!--Scripts -->
         <script type="text/javascript" src="scripts/libs/jquery-1.9.1.min.js"></script>
         <script type="text/javascript" src="scripts/libs/jquery.tap.js"></script>
         <script type="text/javascript" src="http://128.237.87.127:8888/socket.io/socket.io.js"></script>
-        <script type="text/javascript" src="scripts/lobby.js"></script>     
+        <script type="text/javascript" src="scripts/lobby.js"></script>
         <script type="text/javascript" src="mobile/scripts/lobbyButtons.js"></script>
     </body>
 </html>

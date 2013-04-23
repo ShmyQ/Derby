@@ -38,216 +38,85 @@ app.listen(8889);
 //===========================
 //  Routes
 //===========================
-
-var friendRequests = new Object();
-var acceptedRequests = new Object();
 require('./loginRoutes.js')(mongoExpressAuth, app);
-
-
-
-// Index
-app.get('/', function checkLogin(req,res,next){
-    mongoExpressAuth.checkLogin(req, res, function(err){
-        if (err) {
-            res.sendfile(mobileDesktopPrefixer(req) + "/login.html");
-        }
-        else {  
-            mongoExpressAuth.getAccount(req, function(err, result){
-                if (err)
-                    res.send(err);
-                else { 
-                    if(result.friendsInfo === undefined){
-                            result.friendsInfo = new Object();
-                            result.friendsInfo.friendsList = [];
-                            result.friendsInfo.requestList = [];
-                        var createFriendsInfo = { 'friendsInfo' : result.friendsInfo };
-                        mongoExpressAuth.updateAccount(req,createFriendsInfo,standardErrChecker);
-                    }
-                    // Get friend requests
-                    console.log("FRIEND REQUESTS FOR " + req.cookies.username + " : " + friendRequests[req.cookies.username]);
-                    if(friendRequests[req.cookies.username] !== undefined){ 
-                        console.log("GETTING REQUESTS FOR " + req.cookies.username + " : " +friendRequests[req.cookies.username]);
-                        for(var i in friendRequests[req.cookies.username]){ 
-                             console.log("ADDING " + friendRequests[req.cookies.username][i] + " to friendsInfo.requestList");
-                             var toUpdate = toArray(result.friendsInfo.requestList);
-                             toUpdate[toUpdate.length] = friendRequests[req.cookies.username][i];
-                             var update =    {'friendsInfo.requestList': toUpdate} ;
-                             mongoExpressAuth.updateAccount(req,update,standardErrChecker);
-                        }
-                         delete friendRequests[req.cookies.username];
-                    }
-                    
-                    // Get accepted friend requests
-                    if(acceptedRequests[req.cookies.username] !== undefined){ 
-                        for(var i in acceptedRequests[req.cookies.username]){ 
-                             var toUpdate = toArray(result.friendsInfo.friendsList);
-                             toUpdate.push(acceptedRequests[req.cookies.username][i]);
-                             var update =    {'friendsInfo.friendsList': toUpdate} ;
-                             mongoExpressAuth.updateAccount(req,update,standardErrChecker);
-                        }
-                         delete acceptedRequests[req.cookies.username];
-                    }
-                }
-            });
-            
-                
-           res.sendfile(mobileDesktopPrefixer(req) + "/index.html");
-        }
-    });
-});
-
-app.get('/db', function(req, res){
-        mongoExpressAuth.getAccount(req, function(err, result){
-            if (err)
-                res.send(err);
-            else
-                res.send(result); // NOTE: for test only, remove later
-        });
-    });
-
-
-app.get('/game', function(req, res){
-   mongoExpressAuth.checkLogin(req, res, function(err){
-        if (err) {
-            res.sendfile(mobileDesktopPrefixer(req) + "/login.html");
-        }
-        else
-           res.sendfile(mobileDesktopPrefixer(req) + "/game.html");
-    });
-});
-
-app.post('/friends',function(req,res){
-    mongoExpressAuth.getAccount(req, function(err, result){
-        if (err)
-            res.send(err);
-        else {
-          if(result.friendsInfo === undefined){
-            result.friendsInfo = new Object();
-            result.friendsInfo.friendsList = [];
-            result.friendsInfo.requestList = [];
-         }
-         
-          res.send(result.friendsInfo);
-          console.log("FRIENDS POST FOR  " + req.cookies.username + ": " + result.friendsInfo.requestList);
-        }
-    });
-});
-
-app.post('/addFriend',function(req,res){
-    mongoExpressAuth.getAccount(req, function(err, result){
-        if (err)
-            res.send(err);
-        else {
-            // Add to users friendslist
-            var toUpdate = result.friendsInfo.friendsList;
-            if(toUpdate === undefined)
-                toUpdate = [];
-            toUpdate.push(req.body.otherUser);
-            var update = {'friendsInfo.friendsList' : toUpdate};
-            mongoExpressAuth.updateAccount(req,update,standardErrChecker);
-            console.log("ADD FRIEND FOR " + req.cookies.username + ": " + req.body["otherUser"]);
-            
-            // Remove from users requestlist
-            var removeFrom = toArray(result.friendsInfo.requestList);
-            removeFrom.splice(removeFrom.indexOf(req.body.otherUser),1);
-            var update = {'friendsInfo.requestList' : removeFrom};
-            mongoExpressAuth.updateAccount(req,update,standardErrChecker);
-            
-            // Add to other users acceptedRequests
-            if(acceptedRequests[req.body.otherUser] === undefined)
-                acceptedRequests[req.body.otherUser] = [];
-            acceptedRequests[req.body.otherUser].push(req.cookies.username);
-            
-        }
-    });
-});
-
-app.post('/friendRequest',function(req,res){
-    mongoExpressAuth.getAccount(req, function(err, result){
-        if (err)
-            res.send(err);
-        else {
-            console.log(req.body["friendName"]);
-            if(friendRequests[req.body["friendName"]] === undefined)
-                friendRequests[req.body["friendName"]] = [];
-                
-            friendRequests[req.body["friendName"]][friendRequests[req.body["friendName"]].length] = req.cookies.username;
-        }
-        console.log("FRIENDREQUESTS for " + req.body["friendName"] + ": " + friendRequests[req.body["friendName"]]);
-    });
-});
-
-app.get('/favicon.ico', function(req,res){
-    res.sendfile('favicon.ico');
-});
+require('./appRoutes.js')(mongoExpressAuth, app);
 
 app.use(express.static(__dirname + '/static/'));
-
-function standardErrChecker (err,result){
-    if(err)
-        console.log(err);
-}
-
-function mobileDesktopPrefixer(req){
-    var reqPrefix = 'static/desktop/';
-    if(req.useragent.isMobile)
-        reqPrefix = 'static/mobile/';
-        
-    return reqPrefix;
-}
-
-
-function toArray(input){
-    if(input === undefined)
-        return [];
-    if( typeof input === 'string' ) {
-        return [ input ];
-    }
-    
-    return input;
-}
-
 
 // ========================
 // === Socket.io server ===
 // ========================
 var io = require("socket.io").listen(8888,{ log: false });
 
+require('./lobbyServer.js')(mongoExpressAuth,app,io);
+
 // ** GAME **
 
+// each players current playing data, key is the socket id
 var playerData = new Object();
-var playerCount = 0;
-var players = 1;
-var destroyedRocks = [];
+// var playerCount = 0;
+// var players = 2;
+// var destroyedRocks = [];
+// var powerupDropChance = 0.4; was removed in conflict, commenting out in case mistake
+
+// array of all the games
+var games = [];
+
+// hash of socket ids to game number that they are in
+var usersGame = new Object();
+
 var powerupDropChance = 0.4;
 
 var game = io.of('/game').on("connection", function (socket) {
-  if (++playerCount > players)
-	return;
+  console.log("Player ", socket.id, " connected");
 
-  console.log("Player ", playerCount, " connected, id: ", socket.id);
+  /*temp++;
+  socket.emit("connected", {id: socket.id, player: (temp).toString(), numPlayers: 1, map: map1, mapdata: map1data});
 
-  // send connected message to set up client side
-  socket.emit("connected", {id: socket.id, player: playerCount.toString(), numPlayers: players, map: map1, mapdata: map1data});
-
-  // save new player
-  playerData[socket.id] = {x: map1positions[playerCount].x, y: map1positions[playerCount].y, hp: 100, powerups: []};
-
-  // if all players connect, start game
-  if (playerCount === players) {
+  if (temp === 1) {
+	console.log("starting game");
 	game.emit("start", {});
-  }
+	setTimeout( function() { game.emit("endGame", {}); }, 60000);
+  }*/
+
+
+  socket.emit("getUsername", {});
+
+  socket.on("username", function(data) {
+	  var thisGame = games[usersGame[data.username]];
+	  thisGame.sockets[data.username] = socket;
+
+	  var player = thisGame.players.indexOf(data.username) + 1;
+
+	  if (thisGame.started) {
+	    // send connected message to set up client side
+		socket.emit("connected", {id: socket.id, reconnecting: true, x: playerData[data.username].x, y: playerData[data.username].y, player: player.toString(), numPlayers: thisGame.players.length, map: map1, mapdata: map1data});
+	  }
+	  else {
+		  // send connected message to set up client side
+		  socket.emit("connected", {id: socket.id, reconnecting: false, x: map1positions[player].x/map1data.gridx, y: map1positions[player].y/map1data.gridy, player: player.toString(), numPlayers: thisGame.players.length, map: map1, mapdata: map1data});
+
+		  // save new player
+		  playerData[data.username] = {kills: 0, deaths: 0, x: map1positions[player].x, y: map1positions[player].y};
+
+		  thisGame.connected++;
+		  // if all players connect, start game
+		  if (thisGame.connected === thisGame.players.length) {
+			  console.log("starting game");
+			  game.emit("start", {});
+			  thisGame.started = true;
+			  setTimeout( function() { game.emit("endGame", {}); }, 60000);
+		  }
+	  }
+  });
 
   socket.on("sendPosition", function (data) {
-	playerData[data.id] = data.player;
+	playerData[data.username].x = data.player.x;
+	playerData[data.username].y = data.player.y;
 	socket.broadcast.emit("receivePosition", data);
   });
 
   socket.on("bombDropped", function (data) {
-	console.log("Sending bomb drop to: ");
-	for (var key in playerData)
-		console.log(key);
-	
     socket.broadcast.emit("placeBomb", data);
   });
 
@@ -256,12 +125,12 @@ var game = io.of('/game').on("connection", function (socket) {
   });
 
   socket.on("rockDestroyed", function (data) {
-	if (destroyedRocks.indexOf(data.x + "," + data.y) === -1) {
-		destroyedRocks.push(data.x + "," + data.y);
-		if (Math.random() < powerupDropChance) {
-			game.emit("placePowerup", {x: data.x, y: data.y, power: "bullet"});
-		}
+	console.log("Rock ", data.x, " ", data.y, " destroyed");
+	if (Math.random() < powerupDropChance) {
+        newPowerup(data.x, data.y);
 	}
+	else
+		game.emit("placePowerup", {x: data.x, y: data.y, power: "none"});
   });
 
   socket.on("bulletFired", function (data) {
@@ -278,7 +147,15 @@ var game = io.of('/game').on("connection", function (socket) {
 
   socket.on("sendDeath", function (data) {
 	socket.emit("respawn", {});
-	playerData[data.id] = {x: map1positions[parseInt(data.player)].x, y: map1positions[parseInt(data.player)].y, hp: 100, powerups: []};
+
+	playerData[data.username].deaths++;
+	// suicide
+	if (data.killer === 0)
+		playerData[data.username].kills--;
+	// give killer a kill
+	else
+		playerData[games[usersGame[data.username]].players[parseInt(data.killer) - 1]].kills++;
+
 	socket.broadcast.emit("playerDied", {id: data.id, playerNum: data.player, x: map1positions[parseInt(data.player)].x, y: map1positions[parseInt(data.player)].y});
   });
 
@@ -294,70 +171,35 @@ var map1positions = [{},
 					 {x: 625, y: 175},
 					 {x: 175, y: 625},
 					 {x: 625, y: 625}];
-var map1 = [["O", "O", "R", "O", "O", "R", "O", "O", "O", "R", "O", "O", "O", "O", "R", "O"],
-			["R", "O", "O", "R", "O", "O", "O", "R", "O", "O", "R", "O", "O", "R", "O", "O"],
-			["O", "R", "O", "O", "O", "R", "O", "O", "O", "O", "O", "O", "O", "O", "O", "R"],
-			["O", "O", "O", "1", "O", "O", "O", "O", "O", "R", "O", "O", "2", "O", "O", "O"],
-			["O", "R", "O", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "O", "O", "R"],
-			["O", "O", "R", "O", "O", "R", "O", "O", "O", "O", "R", "O", "O", "R", "O", "O"],
-			["R", "O", "O", "O", "O", "O", "R", "R", "R", "O", "O", "O", "O", "O", "R", "O"],
-			["O", "R", "O", "R", "O", "O", "R", "R", "R", "O", "O", "O", "R", "O", "O", "O"],
-			["O", "O", "O", "O", "O", "O", "R", "R", "R", "O", "R", "O", "O", "O", "O", "R"],
-			["O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "R", "O", "O"],
-			["O", "R", "O", "O", "R", "O", "O", "R", "O", "O", "O", "R", "O", "O", "R", "O"],
-			["O", "O", "O", "O", "O", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "O"],
-			["R", "R", "O", "3", "O", "O", "R", "O", "O", "O", "O", "O", "4", "O", "O", "R"],
-			["O", "O", "O", "O", "O", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "O"],
-			["O", "R", "O", "O", "O", "R", "O", "O", "O", "O", "R", "O", "O", "R", "O", "O"],
-			["O", "O", "O", "R", "O", "O", "R", "O", "R", "O", "O", "O", "R", "O", "R", "O"]];
+var map1 = [["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"],
+			["W", "R", "O", "R", "O", "O", "O", "R", "O", "O", "R", "O", "O", "R", "O", "W"],
+			["W", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "O", "O", "O", "O", "W"],
+			["W", "O", "O", "1", "O", "O", "O", "O", "O", "R", "O", "O", "2", "O", "O", "W"],
+			["W", "R", "O", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "O", "O", "W"],
+			["W", "O", "R", "O", "O", "P", "P", "O", "P", "P", "R", "O", "O", "R", "O", "W"],
+			["W", "O", "O", "O", "O", "P", "R", "R", "R", "P", "O", "O", "O", "O", "R", "W"],
+			["W", "R", "O", "R", "O", "O", "R", "R", "R", "O", "O", "O", "R", "O", "O", "W"],
+			["W", "O", "O", "O", "O", "P", "R", "R", "R", "P", "R", "O", "O", "O", "O", "W"],
+			["W", "O", "O", "O", "O", "P", "P", "O", "P", "P", "O", "O", "O", "R", "O", "W"],
+			["W", "R", "O", "O", "R", "O", "O", "R", "O", "O", "O", "R", "O", "O", "R", "W"],
+			["W", "O", "O", "O", "O", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "W"],
+			["W", "R", "O", "3", "O", "O", "R", "O", "O", "O", "O", "O", "4", "O", "O", "W"],
+			["W", "O", "O", "O", "O", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "W"],
+			["W", "R", "R", "O", "O", "R", "O", "O", "O", "O", "R", "O", "O", "R", "O", "W"],
+			["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"]];
 
 
-// ** LOBBY	**
 
-var IDToPlayer = new Object();
-var lobbyPlayers = [];
-
-var lobby = io.of('/lobby').on('connection', function (socket) {
-    socket.on('joined',function(data){
-        if(lobbyPlayers.indexOf(data.username) !== -1 && lobbyPlayers[lobbyPlayers.indexOf(data.username)].length === data.username.length){
-            // Sends to everybody, only needs to send to the 2 ppl
-            lobby.emit('twoInstances', data);
-        }
-        else {
-            lobbyPlayers.push(data.username);
-            IDToPlayer[socket.id] = data.username;
-            lobby.emit('receivePlayers', {
-                players: lobbyPlayers
-            });
-        }
-    });
-
-    socket.on('sendChat', function(data){
-        lobby.emit('receiveChat',{
-            user : data.username,
-            msg : removeHTML(data.msg),
-        });
-    });
-
-    socket.on('findMatch', function(data){
-        socket.emit('joinGame');
-    });
-    
-    socket.on('disconnect', function(data){
-        // If not already disconnected ie: two instances.
-        if(lobbyPlayers.indexOf(IDToPlayer[socket.id]) !== -1){
-            lobbyPlayers.splice(lobbyPlayers.indexOf(IDToPlayer[socket.id]),1);
-            delete IDToPlayer[socket.id];
-            lobby.emit('receivePlayers', {
-                players: lobbyPlayers
-            });
-         }
-    });
-});
-
-// ** LOBBY	HELPERS **
-
-// Remove html tags (<*>)from chat
-function removeHTML(input){
-   return input.replace( /<.*?>/,'');
+function newPowerup (xPos, yPos) {
+    // TODO: for adding random powerups
+    var rand = Math.random() * 2;
+    if (rand < 1) {
+        game.emit("placePowerup", {x: xPos, y: yPos, power: "bullet"});
+    }
+    else if (rand >= 1) {
+        game.emit("placePowerup", {x: xPos, y: yPos, power: "invincible"});
+    }
 }
+
+
+

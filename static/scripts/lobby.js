@@ -5,10 +5,11 @@ var g = {
 
 $(document).ready(function(){
     //==================
-    //  App Related 
+    //  App Related
     //==================
-    g.originalLogin = sessionStorage["username"];
     
+    g.originalLogin = sessionStorage["username"];
+
     // Write username in top bar of side menu bars
     $("#menuBar").html(sessionStorage["username"]);
     $("#profileBar").html(sessionStorage["username"] +  "'s Profile");
@@ -28,15 +29,15 @@ $(document).ready(function(){
 			sendChatToServer($("#chatInput").val());
             $("#chatInput").val("");
 		}
-     });   
+     });
 
     //==================
     //  Button Events
     //==================
-    
+
     // See /mobile/scripts/lobbyButtons.js or /desktop/scripts/lobbyButtons.js
-    
-    
+
+
 });
 
 
@@ -60,7 +61,7 @@ lobby.on('receivePlayers', function (data) {
     logoutOnDisconnect(g.originalLogin);
 });
 
-lobby.on('joinGame', function (data) { 
+lobby.on('joinGame', function (data) {
     window.location = '/game';
 });
 
@@ -68,7 +69,7 @@ lobby.on('receiveChat',function(data){
     addChatToLog(data.user,data.msg);
 });
 
-lobby.on('twoInstances',function(data){ 
+lobby.on('twoInstances',function(data){
     if(data.username === sessionStorage["username"]) {
         alert("This account is logged in twice! Loggout out...");
         logoutPlayer();
@@ -84,7 +85,7 @@ lobby.on('receiveFriends',function(data){
 //==================
 
 // Logs out when username is illegal
-function logoutOnDisconnect(originalLogin){  
+function logoutOnDisconnect(originalLogin){
     sessionStorage["username"] = readCookie("username");
     if(sessionStorage["username"] === undefined || sessionStorage["username"] === "" || sessionStorage["username"] !== originalLogin){
         alert("You have been logged out!");
@@ -106,7 +107,6 @@ function readCookie(name) {
 
 function updateFriendsPanel(friends,requests){
     if(friends !== undefined){
-        console.log("FRIENDS " + friends);
         if( typeof friends === 'string' ) {
             friends = [ friends ];
         }
@@ -120,7 +120,6 @@ function updateFriendsPanel(friends,requests){
     }
     
     if(requests !== undefined){
-        console.log(requests);
         if( typeof requests === 'string' ) {
             requests = [ requests ];
         }
@@ -131,18 +130,10 @@ function updateFriendsPanel(friends,requests){
          $("#friendRequestsList").html(requestsHTML);
 
         for(var i in requests){
-            $("#addPlayer" + i).click(function(e) {
-                alert('ADDING' + requests[i]);
-                e.preventDefault();
-                 post(
-                    '/addFriend', 
-                    {   
-                        otherUser: requests[i],
-                    }, 
-                    getFriendsInfo(document.cookie.username,document.cookie.password)
-                );
-            });
+            createAcceptPlayer(i,requests[i]);
         }
+        
+        
      }
 }
 
@@ -163,7 +154,7 @@ function handleGetFriendsInfo(err, result){
         throw err;
     else {
         var parsedResult = $.parseJSON(result);
-        console.log(parsedResult);
+        console.log("HANDLEING GETTING FREINDS INFO " + parsedResult);
         updateFriendsPanel(parsedResult.friendsList,parsedResult.requestList);
     }
 }
@@ -174,8 +165,8 @@ function handleGetFriendsInfo(err, result){
 function playersListHTML(players){
     players.sort();
     var finalHTML = "<p class='topBar' > PLAYERS </p>";
-    
-    for(var i = 0; i < players.length; i++){     
+
+    for(var i = 0; i < players.length; i++){
         finalHTML = finalHTML + "<p>" + players[i] + "</p>";
     }
     $("#playerList").html(finalHTML);
@@ -233,8 +224,18 @@ function logoutPlayer(){
 }
 
 function postFriendRequest(){
-    post('/friendRequest', {"friendName" : $("#friendRequestInput").val() }, handleLogoutResult);
+    post('/friendRequest', {"friendName" : $("#friendRequestInput").val() }, null);
     $("#friendRequestInput").val("");   
+}
+
+function acceptFriendRequest(i,otherUser){
+     post(
+        '/addFriend', 
+        {   
+            otherUser: otherUser
+        }, 
+        getFriendsInfo(document.cookie.username,document.cookie.password)
+    );
 }
 
 
