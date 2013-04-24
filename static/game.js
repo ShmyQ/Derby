@@ -2,7 +2,7 @@ var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
 // sockets
-var socket = io.connect("http://128.237.123.149:8888/game");
+var socket = io.connect("http://128.237.134.187:8888/game");
 // socket.heartbeatTimeout = 20;
 
 socket.on("connected", function (data) {
@@ -10,6 +10,7 @@ socket.on("connected", function (data) {
 	g.player = data.player;
 	g.numPlayers = data.numPlayers;
 
+	console.log(data.map);
 	g.map = data.map;
 	g.mapdata = data.mapdata;
 

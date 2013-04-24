@@ -43,16 +43,48 @@ require('./appRoutes.js')(mongoExpressAuth, app);
 
 app.use(express.static(__dirname + '/static/'));
 
+//===========================
+//  Maps
+//===========================
+
+var map1data = {width: 800, height: 800, gridx: 50, gridy: 50, blockx: 16, blocky: 16, maxPlayers: 4};
+var map1positions = [{},
+					 {x: 175, y: 175},
+					 {x: 625, y: 175},
+					 {x: 175, y: 625},
+					 {x: 625, y: 625}];
+var map1 = [["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"],
+			["W", "R", "O", "R", "O", "O", "O", "R", "O", "O", "R", "O", "O", "R", "O", "W"],
+			["W", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "O", "O", "O", "O", "W"],
+			["W", "O", "O", "1", "O", "O", "O", "O", "O", "R", "O", "O", "2", "O", "O", "W"],
+			["W", "R", "O", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "O", "O", "W"],
+			["W", "O", "R", "O", "O", "P", "P", "O", "P", "P", "R", "O", "O", "R", "O", "W"],
+			["W", "O", "O", "O", "O", "P", "R", "R", "R", "P", "O", "O", "O", "O", "R", "W"],
+			["W", "R", "O", "R", "O", "O", "R", "R", "R", "O", "O", "O", "R", "O", "O", "W"],
+			["W", "O", "O", "O", "O", "P", "R", "R", "R", "P", "R", "O", "O", "O", "O", "W"],
+			["W", "O", "O", "O", "O", "P", "P", "O", "P", "P", "O", "O", "O", "R", "O", "W"],
+			["W", "R", "O", "O", "R", "O", "O", "R", "O", "O", "O", "R", "O", "O", "R", "W"],
+			["W", "O", "O", "O", "O", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "W"],
+			["W", "R", "O", "3", "O", "O", "R", "O", "O", "O", "O", "O", "4", "O", "O", "W"],
+			["W", "O", "O", "O", "O", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "W"],
+			["W", "R", "R", "O", "O", "R", "O", "O", "O", "O", "R", "O", "O", "R", "O", "W"],
+			["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"]];
+
 // ========================
 // === Socket.io server ===
 // ========================
 var io = require("socket.io").listen(8888,{ log: false });
 
-require('./lobbyServer.js')(mongoExpressAuth,app,io);
+var Lobby = require('./lobbyServer.js'),
+myLobby = new Lobby(mongoExpressAuth,app,io,map1);
 
 // ** GAME ** (MOVED TO LOBBY SERVER)
 
-// each players current playing data, key is the socket id (MOVED TO LOBBYSERVER)
+// array of all the games
+var games = Lobby.games;
+	
+// hash of socket ids to game number that they are in
+var usersGame = Lobby.usersGame;
 
 // each players current playing data, key is the socket id
 var playerData = new Object();
@@ -122,6 +154,7 @@ var game = io.of('/game').on("connection", function (socket) {
 	var map = games[usersGame[data.username]].map;
 	
 	if (map[data.y - .5][data.x - .5] === "R") {
+		console.log("Removing rock");
 		if (Math.random() < powerupDropChance) {
 			newPowerup(data.x, data.y, data.username, data.x, data.y);
 		}
@@ -165,30 +198,6 @@ var game = io.of('/game').on("connection", function (socket) {
 	socket.broadcast.emit("playerLeft", {id: socket.id});
   });
 });
-
-var map1data = {width: 800, height: 800, gridx: 50, gridy: 50, blockx: 16, blocky: 16, maxPlayers: 4};
-var map1positions = [{},
-					 {x: 175, y: 175},
-					 {x: 625, y: 175},
-					 {x: 175, y: 625},
-					 {x: 625, y: 625}];
-var map1 = [["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"],
-			["W", "R", "O", "R", "O", "O", "O", "R", "O", "O", "R", "O", "O", "R", "O", "W"],
-			["W", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "O", "O", "O", "O", "W"],
-			["W", "O", "O", "1", "O", "O", "O", "O", "O", "R", "O", "O", "2", "O", "O", "W"],
-			["W", "R", "O", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "O", "O", "W"],
-			["W", "O", "R", "O", "O", "P", "P", "O", "P", "P", "R", "O", "O", "R", "O", "W"],
-			["W", "O", "O", "O", "O", "P", "R", "R", "R", "P", "O", "O", "O", "O", "R", "W"],
-			["W", "R", "O", "R", "O", "O", "R", "R", "R", "O", "O", "O", "R", "O", "O", "W"],
-			["W", "O", "O", "O", "O", "P", "R", "R", "R", "P", "R", "O", "O", "O", "O", "W"],
-			["W", "O", "O", "O", "O", "P", "P", "O", "P", "P", "O", "O", "O", "R", "O", "W"],
-			["W", "R", "O", "O", "R", "O", "O", "R", "O", "O", "O", "R", "O", "O", "R", "W"],
-			["W", "O", "O", "O", "O", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "W"],
-			["W", "R", "O", "3", "O", "O", "R", "O", "O", "O", "O", "O", "4", "O", "O", "W"],
-			["W", "O", "O", "O", "O", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "W"],
-			["W", "R", "R", "O", "O", "R", "O", "O", "O", "O", "R", "O", "O", "R", "O", "W"],
-			["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"]];
-
 
 
 function newPowerup (xPos, yPos, username, x, y) {
