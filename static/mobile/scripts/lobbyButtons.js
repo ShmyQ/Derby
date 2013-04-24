@@ -1,3 +1,4 @@
+
 var lobby = io.connect('http://128.237.123.149:8888/lobby');
 
 lobby.on('joinGame', function (data) {
@@ -52,3 +53,10 @@ $(document).ready(function() {
 
     });*/
 });
+
+function createAcceptPlayer(i,otherUser){
+    $("#addPlayer" + i).on('tap', function(e) {
+        e.preventDefault();
+        acceptFriendRequest(otherUser);
+    });
+}

@@ -1,3 +1,4 @@
+
 /*//////////////////////////////////
 //////////   STANDARD TAGS /////////
 //////////////////////////////////*/
@@ -25,7 +26,7 @@ h3 {
 }
 
 p {
-
+    padding: 2px;
 }
 
 input {
@@ -277,6 +278,34 @@ button:active {
     overflow-x: hidden;
 }
 
+#friendsList {
+    text-align: center;
+    margin-left: 5%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    height: 35%;
+}
+
+#friendRequestsList {
+    text-align: center;
+    margin-left: 5%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+     height: 20%;
+    
+}
+
+#friendListing {
+    border: 3px solid rgba(64,64,64,.5);
+	border-radius: 10px 10px 10px 10px;
+	background-color: rgb(30,30,30);
+    width: 90%;
+    height: 5%;
+    padding: 20px;
+    padding-top: 5px;
+    margin: 0px  -40px -20px 0px;
+    text-align: left;
+}
 
 
 .topBar {
@@ -308,6 +337,11 @@ button:active {
     margin-bottom: 5%;
 }
 
+.smallButton {
+    font-size: 20px;
+    padding: 8px;
+    margin: 12px;
+}
 
 
 

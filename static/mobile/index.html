@@ -26,27 +26,33 @@
 
          <!-- Side Menu Pullouts-->
         <div id="menuBox" class="slideBox">
-             <p id="menuBar" class = "topBar"></p>
+             <h3 id="menuBar" class = "topBar"></h3>
             <button id="findMatch"> Find Match </button>
             <button id="createGame"> Create Game </button>
             <button id="joinGame"> Join Game </button>
             <button id="logoutButton"> Logout</button>
         </div>
         <div id="profileBox" class="slideBox">
-            <p id="profileBar" class = "topBar"></p>
+            <h3 id="profileBar" class = "topBar"></h3>
         </div>
         <div id="friendsBox" class="slideBox">
-            <p id="friendsBar" class = "topBar"></p>
+            <p> To send a friend request, type in their name below </p>
+            <input id="friendRequestInput"  type="text" autocapitalize="off" autocorrect="off" autocomplete="off" x-webkit-speech />
+            <button id="sendFriendRequest" class = "smallButton"> Send Request</button>
+            <h3 id="friendsBar" class = "topBar"></h3>
+            <p id = "friendsList">None</p>
+             <h3 id="friendsRequestBar" class = "topBar"></h3>
+             <p id = "friendRequestsList"> None</p>
         </div>
         <div id="learnBox" class="slideBox">
-            <p class = "topBar"> Power Ups </p>
+            <h3 class = "topBar"> Power Ups </h3>
             <img src = "images/powerupsSmall.jpg" alt = "Power ups" />
-            <p class = "topBar"> Controls </p>
+            <h3 class = "topBar"> Controls </h3>
         </div>
 
 
         <div id="chatBox" class ="box">
-                <p class="topBar"> Chat </p>
+                <h3 class="topBar"> Chat </h3>
                 <div id="chatArea"></div>
                 <input id="chatInput" type="text" autocapitalize="off" autocorrect="off" autocomplete="off" x-webkit-speech />
 

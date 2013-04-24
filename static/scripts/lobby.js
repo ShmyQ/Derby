@@ -7,14 +7,16 @@ $(document).ready(function(){
     //==================
     //  App Related
     //==================
+    
     g.originalLogin = sessionStorage["username"];
 
     // Write username in top bar of side menu bars
     $("#menuBar").html(sessionStorage["username"]);
     $("#profileBar").html(sessionStorage["username"] +  "'s Profile");
     $("#friendsBar").html(sessionStorage["username"] +  "'s Friends");
-
-
+    $("#friendsRequestBar").html(sessionStorage["username"] +  "'s Friend Requests");
+    getFriendsInfo(document.cookie.username,document.cookie.password);
+    
     //==================
     //  Key Events
     //==================
@@ -99,6 +101,69 @@ function readCookie(name) {
     return null;
 }
 
+function updateFriendsPanel(friends,requests){
+    if(friends !== undefined){
+        if( typeof friends === 'string' ) {
+            friends = [ friends ];
+        }
+        if(friends.length !== 0) {
+            
+            // Add friends from list
+            var friendsHTML = "";
+            for(var i = 0; i < friends.length; i++){
+               friendsHTML = friendsHTML +"<div id='friendListing'>"+  friends[i] + "</div><br />";
+            }
+             friendsHTML = friendsHTML + "<br />";
+             $("#friendsList").html(friendsHTML);
+        }
+        else {
+           $("#friendsList").html("");
+        }
+    }
+    
+    if(requests !== undefined){
+        if( typeof requests === 'string' ) {
+            requests = [ requests ];
+        }
+        if(requests.length !== 0) {
+            
+            var requestsHTML = "";
+            for(var i in requests){
+               requestsHTML = requestsHTML +"<div id='friendListing'>" + requests[i] + " <button id = 'addPlayer" + i + "' class='smallButton'>Accept </button></div><br />";
+            }
+             $("#friendRequestsList").html(requestsHTML);
+
+            for(var i in requests){
+                createAcceptPlayer(i,requests[i]);
+            }
+        }
+        else {
+           $("#friendRequestsList").html("");
+        }
+     }
+}
+
+
+function getFriendsInfo(username, password){
+    post(
+        '/friends', 
+        {   
+            username: username, 
+            password: password,
+        }, 
+        handleGetFriendsInfo
+    );
+}
+
+function handleGetFriendsInfo(err, result){
+    if (err)
+        throw err;
+    else {
+        var parsedResult = $.parseJSON(result);
+        updateFriendsPanel(parsedResult.friendsList,parsedResult.requestList);
+    }
+}
+
 //==================
 // Helpers (for buttons)
 //==================
@@ -128,10 +193,6 @@ function sendChatToServer(msg){
     });
 }
 
- function handleLogoutResult(err, result){
-    sessionStorage["username"] = undefined;
-    window.location = '/';
-}
 
 
  function post(url, data, done){
@@ -162,3 +223,48 @@ function sendChatToServer(msg){
 function logoutPlayer(){
     post('/logout', undefined, handleLogoutResult);
 }
+
+ function handleLogoutResult(err, result){
+    sessionStorage["username"] = undefined;
+    window.location = '/';
+}
+
+function postFriendRequest(){
+    post('/friendRequest', {otherUser : $("#friendRequestInput").val() });
+    $("#friendRequestInput").val("");   
+}
+
+function acceptFriendRequest(otherUser){
+     post(
+        '/addFriend', 
+        {   
+            otherUser: otherUser
+        },
+        handleAcceptFriend
+    );
+}
+
+function handleAcceptFriend(err,result){
+    if(err)
+        console.log(err);
+    else {
+        var parsedResult = $.parseJSON(result);
+        var otherUser = parsedResult.otherUser;
+        var friendsList = parsedResult.friendsList;
+        if(friendsList === undefined)
+            friendsList = [];
+        var requestList = parsedResult.requestList;
+        if(requestList === undefined)
+            requestList = [];
+        if(friendsList.indexOf(otherUser) === -1){    
+            friendsList.push(otherUser);
+        }
+        requestList.splice(requestList.indexOf(otherUser),1);
+                
+        updateFriendsPanel(friendsList,requestList);
+        
+        
+    }
+
+}
+
