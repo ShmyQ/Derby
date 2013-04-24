@@ -76,10 +76,6 @@ lobby.on('twoInstances',function(data){
     }
 });
 
-lobby.on('receiveFriends',function(data){
-    updateFriendsPanel(data.friends,data.requests);
-});
-
 //==================
 // Helpers
 //==================
@@ -110,30 +106,40 @@ function updateFriendsPanel(friends,requests){
         if( typeof friends === 'string' ) {
             friends = [ friends ];
         }
-        // Add friends from list
-        var friendsHTML = "";
-        for(var i = 0; i < friends.length; i++){
-           friendsHTML = friendsHTML +"<div id='friendListing'>"+  friends[i] + "</div><br />";
+        if(friends.length !== 0) {
+            
+            // Add friends from list
+            var friendsHTML = "";
+            for(var i = 0; i < friends.length; i++){
+               friendsHTML = friendsHTML +"<div id='friendListing'>"+  friends[i] + "</div><br />";
+            }
+             friendsHTML = friendsHTML + "<br />";
+             $("#friendsList").html(friendsHTML);
         }
-         friendsHTML = friendsHTML + "<br />";
-         $("#friendsList").html(friendsHTML);
+        else {
+           $("#friendsList").html("");
+        }
     }
     
     if(requests !== undefined){
         if( typeof requests === 'string' ) {
             requests = [ requests ];
         }
-        var requestsHTML = "";
-        for(var i in requests){
-           requestsHTML = requestsHTML +"<div id='friendListing'>" + requests[i] + " <button id = 'addPlayer" + i + "' class='smallButton'>Accept </button></div><br />";
-        }
-         $("#friendRequestsList").html(requestsHTML);
+        if(requests.length !== 0) {
+            
+            var requestsHTML = "";
+            for(var i in requests){
+               requestsHTML = requestsHTML +"<div id='friendListing'>" + requests[i] + " <button id = 'addPlayer" + i + "' class='smallButton'>Accept </button></div><br />";
+            }
+             $("#friendRequestsList").html(requestsHTML);
 
-        for(var i in requests){
-            createAcceptPlayer(i,requests[i]);
+            for(var i in requests){
+                createAcceptPlayer(i,requests[i]);
+            }
         }
-        
-        
+        else {
+           $("#friendRequestsList").html("");
+        }
      }
 }
 
@@ -154,7 +160,6 @@ function handleGetFriendsInfo(err, result){
         throw err;
     else {
         var parsedResult = $.parseJSON(result);
-        console.log("HANDLEING GETTING FREINDS INFO " + parsedResult);
         updateFriendsPanel(parsedResult.friendsList,parsedResult.requestList);
     }
 }
@@ -188,10 +193,6 @@ function sendChatToServer(msg){
     });
 }
 
- function handleLogoutResult(err, result){
-    sessionStorage["username"] = undefined;
-    window.location = '/';
-}
 
 
  function post(url, data, done){
@@ -223,19 +224,47 @@ function logoutPlayer(){
     post('/logout', undefined, handleLogoutResult);
 }
 
+ function handleLogoutResult(err, result){
+    sessionStorage["username"] = undefined;
+    window.location = '/';
+}
+
 function postFriendRequest(){
-    post('/friendRequest', {"friendName" : $("#friendRequestInput").val() }, null);
+    post('/friendRequest', {otherUser : $("#friendRequestInput").val() });
     $("#friendRequestInput").val("");   
 }
 
-function acceptFriendRequest(i,otherUser){
+function acceptFriendRequest(otherUser){
      post(
         '/addFriend', 
         {   
             otherUser: otherUser
-        }, 
-        getFriendsInfo(document.cookie.username,document.cookie.password)
+        },
+        handleAcceptFriend
     );
 }
 
+function handleAcceptFriend(err,result){
+    if(err)
+        console.log(err);
+    else {
+        var parsedResult = $.parseJSON(result);
+        var otherUser = parsedResult.otherUser;
+        var friendsList = parsedResult.friendsList;
+        if(friendsList === undefined)
+            friendsList = [];
+        var requestList = parsedResult.requestList;
+        if(requestList === undefined)
+            requestList = [];
+        if(friendsList.indexOf(otherUser) === -1){    
+            friendsList.push(otherUser);
+        }
+        requestList.splice(requestList.indexOf(otherUser),1);
+                
+        updateFriendsPanel(friendsList,requestList);
+        
+        
+    }
+
+}
 

@@ -24,9 +24,11 @@ module.exports = function appRoutes(mongoExpressAuth, app){
                         if(friendRequests[req.cookies.username] !== undefined){ 
                             for(var i in friendRequests[req.cookies.username]){ 
                                  var toUpdate = toArray(result.friendsInfo.requestList);
-                                 toUpdate[toUpdate.length] = friendRequests[req.cookies.username][i];
-                                 var update =    {'friendsInfo.requestList': toUpdate} ;
-                                 mongoExpressAuth.updateAccount(req,update,standardErrChecker);
+                                 if(toUpdate.indexOf(friendRequests[req.cookies.username][i]) === -1) {
+                                     toUpdate[toUpdate.length] = friendRequests[req.cookies.username][i];
+                                     var update =    {'friendsInfo.requestList': toUpdate} ;
+                                     mongoExpressAuth.updateAccount(req,update,standardErrChecker);
+                                 }
                             }
                              delete friendRequests[req.cookies.username];
                         }
@@ -35,9 +37,11 @@ module.exports = function appRoutes(mongoExpressAuth, app){
                         if(acceptedRequests[req.cookies.username] !== undefined){ 
                             for(var i in acceptedRequests[req.cookies.username]){ 
                                  var toUpdate = toArray(result.friendsInfo.friendsList);
-                                 toUpdate.push(acceptedRequests[req.cookies.username][i]);
-                                 var update =    {'friendsInfo.friendsList': toUpdate} ;
-                                 mongoExpressAuth.updateAccount(req,update,standardErrChecker);
+                                 if(toUpdate.indexOf(acceptedRequests[req.cookies.username][i]) === -1) {
+                                     toUpdate.push(acceptedRequests[req.cookies.username][i]);
+                                     var update =    {'friendsInfo.friendsList': toUpdate} ;
+                                     mongoExpressAuth.updateAccount(req,update,standardErrChecker);
+                                 }
                             }
                              delete acceptedRequests[req.cookies.username];
                         }
@@ -95,21 +99,31 @@ module.exports = function appRoutes(mongoExpressAuth, app){
                 var toUpdate = result.friendsInfo.friendsList;
                 if(toUpdate === undefined)
                     toUpdate = [];
-                toUpdate.push(req.body.otherUser);
-                var update = {'friendsInfo.friendsList' : toUpdate};
-                mongoExpressAuth.updateAccount(req,update,standardErrChecker);
+                if(toUpdate.indexOf(req.body.otherUser) === -1) {
+                    toUpdate.push(req.body.otherUser);
+                    var update = {'friendsInfo.friendsList' : toUpdate};
+                    mongoExpressAuth.updateAccount(req,update,standardErrChecker);
+                    
+                    // Add to other users acceptedRequests
+                    if(acceptedRequests[req.body.otherUser] === undefined)
+                        acceptedRequests[req.body.otherUser] = [];
+                    acceptedRequests[req.body.otherUser].push(req.cookies.username);
+                }
                 
                 // Remove from users requestlist
                 var removeFrom = toArray(result.friendsInfo.requestList);
                 removeFrom.splice(removeFrom.indexOf(req.body.otherUser),1);
                 var update = {'friendsInfo.requestList' : removeFrom};
                 mongoExpressAuth.updateAccount(req,update,standardErrChecker);
-                
-                // Add to other users acceptedRequests
-                if(acceptedRequests[req.body.otherUser] === undefined)
-                    acceptedRequests[req.body.otherUser] = [];
-                acceptedRequests[req.body.otherUser].push(req.cookies.username);
-                
+            }
+        });
+       
+        mongoExpressAuth.getAccount(req, function(err, result){
+            if (err)
+                res.send(err);
+            else {
+                result.friendsInfo.otherUser = req.body.otherUser;
+                res.send(result.friendsInfo);
             }
         });
     });
@@ -119,10 +133,13 @@ module.exports = function appRoutes(mongoExpressAuth, app){
             if (err)
                 res.send(err);
             else {
-                if(friendRequests[req.body["friendName"]] === undefined)
-                    friendRequests[req.body["friendName"]] = [];
-                    
-                friendRequests[req.body["friendName"]][friendRequests[req.body["friendName"]].length] = req.cookies.username;
+                if(req.body.otherUser === req.cookies.username)
+                    return;
+                if(friendRequests[req.body.otherUser] === undefined)
+                    friendRequests[req.body.otherUser] = [];
+                if(friendRequests[req.body.otherUser].indexOf(req.cookies.username) === -1) {
+                    friendRequests[req.body.otherUser][friendRequests[req.body.otherUser].length] = req.cookies.username;
+                }
             }
         });
     });

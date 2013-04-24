@@ -50,20 +50,16 @@ var io = require("socket.io").listen(8888,{ log: false });
 
 require('./lobbyServer.js')(mongoExpressAuth,app,io);
 
-// ** GAME **
+// ** GAME ** (MOVED TO LOBBY SERVER)
 
-// each players current playing data, key is the socket id
-var playerData = new Object();
+// each players current playing data, key is the socket id (MOVED TO LOBBYSERVER)
+
 // var playerCount = 0;
 // var players = 2;
 // var destroyedRocks = [];
 // var powerupDropChance = 0.4; was removed in conflict, commenting out in case mistake
 
-// array of all the games
-var games = [];
 
-// hash of socket ids to game number that they are in
-var usersGame = new Object();
 
 var powerupDropChance = 0.4;
 

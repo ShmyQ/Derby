@@ -1,4 +1,12 @@
 module.exports = function appRoutes(mongoExpressAuth, app,io){
+    /* GAME PIECES NEEDED */
+    var playerData = new Object();
+    // array of all the games
+    var games = [];
+
+    // hash of socket ids to game number that they are in
+    var usersGame = new Object();
+    
     // ** LOBBY	**
     var IDToPlayer = new Object();
     var lobbyPlayers = [];

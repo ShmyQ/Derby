@@ -59,7 +59,7 @@ $(document).ready(function() {
 function createAcceptPlayer(i,otherUser){
     $("#addPlayer" + i).click( function(e) {
         e.preventDefault();
-        acceptFriendRequest(i,otherUser);
+        acceptFriendRequest(otherUser);
     });
 }
 

@@ -56,6 +56,6 @@ $(document).ready(function() {
 function createAcceptPlayer(i,otherUser){
     $("#addPlayer" + i).on('tap', function(e) {
         e.preventDefault();
-        acceptFriendRequest(i,otherUser);
+        acceptFriendRequest(otherUser);
     });
 }
