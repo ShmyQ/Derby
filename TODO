@@ -25,3 +25,37 @@ Up for grabs:
 - Possible powerup - bomb that explodes on impact
 - Bombs explode one another
 - Handle players joining and leaving
+
+From user testing:
+- Visual cues for what's going on in the game (powerups)
+- Controls are unclear
+- Chat - all the tabs get squished
+- Powerdowns that affect other players
+- Undefined player in chat
+- Doesn't pick up powerups if moving along wall
+- Options for duration/bombs/
+- Game creation screen for inviting & stuff
+- Get rid of top and bottom thing with a viewport tag
+- More powerups
+
+FOR TOMORROW:
+- Incorporate things from user studies
+- Things recorded from user studies
+- Things that changed
+- Screenshots of changes
+
+FUN ERROR:
+/Users/jonathantan/Documents/237/term-project/app.js:198
+a[games[usersGame[data.username]].players[parseInt(data.killer) - 1]].kills++;
+                                                                     ^
+TypeError: Cannot read property 'kills' of undefined
+    at Socket.io.of.on.socket.on.socket.broadcast.emit.id (/Users/jonathantan/Documents/237/term-project/app.js:198:81)
+    at Socket.EventEmitter.emit [as $emit] (events.js:96:17)
+    at SocketNamespace.handlePacket (/Users/jonathantan/Documents/237/term-project/node_modules/socket.io/lib/namespace.js:335:22)
+    at Manager.onClientMessage (/Users/jonathantan/Documents/237/term-project/node_modules/socket.io/lib/manager.js:488:38)
+    at WebSocket.Transport.onMessage (/Users/jonathantan/Documents/237/term-project/node_modules/socket.io/lib/transport.js:387:20)
+    at Parser.<anonymous> (/Users/jonathantan/Documents/237/term-project/node_modules/socket.io/lib/transports/websocket/hybi-16.js:39:10)
+    at Parser.EventEmitter.emit (events.js:96:17)
+    at opcodeHandlers.1.finish (/Users/jonathantan/Documents/237/term-project/node_modules/socket.io/lib/transports/websocket/hybi-16.js:288:16)
+    at Parser.opcodeHandlers.1.expectData [as expectHandler] (/Users/jonathantan/Documents/237/term-project/node_modules/socket.io/lib/transports/websocket/hybi-16.js:299:15)
+    at Parser.add (/Users/jonathantan/Documents/237/term-project/node_modules/socket.io/lib/transports/websocket/hybi-16.js:466:24)
