@@ -95,10 +95,6 @@ var io = require("socket.io").listen(8888,{ log: false });
 
 // each players current playing data, key is the socket id
 var playerData = new Object();
-// var playerCount = 0;
-// var players = 2;
-// var destroyedRocks = [];
-// var powerupDropChance = 0.4; was removed in conflict, commenting out in case mistake
 
 // array of all the games
 var games = [];
@@ -131,7 +127,7 @@ var game = io.of('/game').on("connection", function (socket) {
 
 	  if (thisGame.started) {
 	    // send connected message to set up client side
-		socket.emit("connected", {id: socket.id, reconnecting: true, x: playerData[data.username].x, y: playerData[data.username].y, player: player.toString(), numPlayers: thisGame.players.length, map: map1, mapdata: map1data});
+		socket.emit("connected", {id: socket.id, reconnecting: true, x: playerData[data.username].x, y: playerData[data.username].y, player: player.toString(), numPlayers: thisGame.players.length, map: thisGame.map, mapdata: map1data});
 	  }
 	  else {
 		  // send connected message to set up client side
@@ -167,11 +163,18 @@ var game = io.of('/game').on("connection", function (socket) {
 
   socket.on("rockDestroyed", function (data) {
 	console.log("Rock ", data.x, " ", data.y, " destroyed");
-	if (Math.random() < powerupDropChance) {
-        newPowerup(data.x, data.y);
+	
+	var map = games[usersGame[data.username]].map;
+	
+	if (map[data.y - .5][data.x - .5] === "R") {
+		if (Math.random() < powerupDropChance) {
+			newPowerup(data.x, data.y, data.username, data.x, data.y);
+		}
+		else {
+			map[data.y - .5][data.x - .5] = "O";
+			game.emit("placePowerup", {x: data.x, y: data.y, power: "none"});
+		}
 	}
-	else
-		game.emit("placePowerup", {x: data.x, y: data.y, power: "none"});
   });
 
   socket.on("bulletFired", function (data) {
@@ -188,6 +191,8 @@ var game = io.of('/game').on("connection", function (socket) {
 
   socket.on("sendDeath", function (data) {
 	socket.emit("respawn", {});
+	
+	console.log("Killer ", data.killer);
 
 	playerData[data.username].deaths++;
 	// suicide
@@ -231,13 +236,17 @@ var map1 = [["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W
 
 
 
-function newPowerup (xPos, yPos) {
+function newPowerup (xPos, yPos, username, x, y) {
+	var map = games[usersGame[username]].map;
+
     // TODO: for adding random powerups
     var rand = Math.random() * 2;
     if (rand < 1) {
+		map[y - .5][x - .5] = "B";
         game.emit("placePowerup", {x: xPos, y: yPos, power: "bullet"});
     }
     else if (rand >= 1) {
+		map[y - .5][x - .5] = "I";
         game.emit("placePowerup", {x: xPos, y: yPos, power: "invincible"});
     }
 }
@@ -253,7 +262,7 @@ var gameNumber = 0;
 // number of players waiting
 var newGamePlayerCount = 0;
 // current game being made
-var curGame = {players: [], connected: 0, sockets: new Object(), id: 0, started: false};
+var curGame = {players: [], connected: 0, sockets: new Object(), id: 0, started: false, map: map1.slice(0)};
 var playersToStart = 2;
 
 var lobby = io.of('/lobby').on('connection', function (socket) {
@@ -301,7 +310,7 @@ var lobby = io.of('/lobby').on('connection', function (socket) {
 
 			// reset for next new game
 			newGamePlayerCount === 0;
-			curGame = {players: [], connected: 0, sockets: new Object(), id: gameNumber, started: false};
+			curGame = {players: [], connected: 0, sockets: new Object(), id: gameNumber, started: false, map: map1.slice(0)};
 		}
     });
 

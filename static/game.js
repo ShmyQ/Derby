@@ -61,7 +61,7 @@ socket.on("placePowerup", function (data) {
 	console.log("Looking for rock: ", data.x*c.GRID_WIDTH, data.y*c.GRID_HEIGHT);
 	g.rocks.forEach( function(rock) {
 		console.log("Checking rock: ", rock.x, rock.y);
-		if (rock.x === data.x*c.GRID_WIDTH && rock.y === data.y*c.GRID_HEIGHT)
+		if ((Math.round(rock.x/c.GRID_WIDTH * 2) / 2).toFixed(1) === data.x && (Math.round(rock.y/c.GRID_HEIGHT * 2) / 2).toFixed(1) === data.y)
 			g.rocks.splice(g.rocks.indexOf(rock), 1);
 	});
 
@@ -584,10 +584,13 @@ function createMap() {
 				g.pits.push(new Pit(i*c.GRID_WIDTH + c.GRID_WIDTH/2, j*c.GRID_HEIGHT + c.GRID_HEIGHT/2));
 			}
 			// Enemies spawn points -- initialize enemies
-			else {
+			else if (g.map[j][i] === "1" || g.map[j][i] === "2" || g.map[j][i] === "3" || g.map[j][i] === "4" ||
+					g.map[j][i] === "5" || g.map[j][i] === "6" || g.map[j][i] === "7" || g.map[j][i] === "8") {
 				if (parseInt(g.map[j][i]) <= g.numPlayers)
 					g.enemies[g.map[j][i]] = new Player(i*c.GRID_WIDTH + c.GRID_WIDTH/2, j*c.GRID_HEIGHT + c.GRID_HEIGHT/2);
 			}
+			
+			// TODO POWERUPS
 		}
 	}
 }
@@ -650,7 +653,10 @@ function removeRocks(rocks) {
     var rockY = rock.y;
     g.rocks.splice(g.rocks.indexOf(rock), 1);
 
-	socket.emit("rockDestroyed", {id: g.myID, x: rock.x/c.GRID_WIDTH, y: rock.y/c.GRID_HEIGHT});
+	rockX = (Math.round(rockX/c.GRID_WIDTH * 2) / 2).toFixed(1);
+	rockY = (Math.round(rockY/c.GRID_HEIGHT * 2) / 2).toFixed(1);
+	
+	socket.emit("rockDestroyed", {id: g.myID, x: rockX, y: rockY, username: sessionStorage["username"]});
   });
 }
 
