@@ -59,7 +59,6 @@ input {
     height: 5%;
    }
    
-
 }
 
 
@@ -88,17 +87,24 @@ h2 {
 }
 
 h3 {
-	font-size: 40px;
-	display: inline;
+	font-size: 35px;
 	font-weight: bold;
 }
 
+@media screen and (orientation:landscape) {
+    h3 {
+        font-size: 15px;
+    }
+}
+
 p {
+    font-size: 10px;
+    padding: 2px;
 }
 
 input {
 	font-family: 'Iceland';
-	font-size: 25px;
+	font-size: 10px;
 	color: black;
 	background-color: #FFFFFF;
 	border-radius: 5px;
@@ -156,25 +162,30 @@ button:active {
     box-shadow: none;
 }
 
-#menu {
+/* Portrait */
+@media only screen and (orientation:portrait) {
+   #menu {
    top: 12%;
    padding: 5% 6.5%;
+    }
+
+    #profile{
+       top: 25%;
+       padding: 5% 4%;
+    }
+
+    #friends {
+       top: 38%;
+       padding: 5% 3%;
+    }
+
+    #learn {
+       top: 51%;
+       padding: 5% 5.3%;
+    }
 }
 
-#profile{
-   top: 25%;
-   padding: 5% 4%;
-}
 
-#friends {
-   top: 38%;
-   padding: 5% 3%;
-}
-
-#learn {
-   top: 51%;
-   padding: 5% 5.3%;
-}
 
 
 
@@ -334,6 +345,32 @@ button:active {
     font-size: 10px;
 }
 
+#friendsList {
+    text-align: left;
+    margin-left: 5%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+#friendRequestsList {
+    text-align: left;
+    margin-left: 5%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    
+}
+
+#friendListing {
+    border: 3px solid rgba(64,64,64,.5);
+	border-radius: 10px 10px 10px 10px;
+	background-color: rgb(30,30,30);
+    width: 95%;
+    height: 5%;
+    padding: 10px;
+    margin: 5px 0px -20px 0px;
+    position: relative;
+    line-height: 10em;
+}
 
 
 .topBar {
@@ -359,12 +396,13 @@ button:active {
     display: inline;
 }
 
-
-
-/* Portrait */
-@media only screen and (orientation:portrait) {
-    
+.smallButton {
+    font-size: 15px;
+    padding: 4px;
+    margin: 6px;
 }
+
+
 
 
 

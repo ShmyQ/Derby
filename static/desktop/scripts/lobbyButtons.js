@@ -1,4 +1,4 @@
-var lobby = io.connect('http://128.237.237.132:8888/lobby');
+var lobby = io.connect('http://128.237.87.127:8888/lobby');
 
 lobby.on('joinGame', function (data) {
 	console.log("joining game");
@@ -47,6 +47,19 @@ $(document).ready(function() {
         e.preventDefault();
          sendChatToServer($("#chatInput").val());
     });
-
+    
+    $("#sendFriendRequest").click(function(e) { 
+        e.preventDefault();
+         postFriendRequest();
+    });
+   
 });
+
+
+function createAcceptPlayer(i,otherUser){
+    $("#addPlayer" + i).click( function(e) {
+        e.preventDefault();
+        acceptFriendRequest(otherUser);
+    });
+}
 

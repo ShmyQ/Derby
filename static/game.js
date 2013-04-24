@@ -2,7 +2,7 @@ var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
 // sockets
-var socket = io.connect("http://128.237.237.132:8888/game");
+var socket = io.connect("http://128.237.87.127:8888/game");
 // socket.heartbeatTimeout = 20;
 
 socket.on("connected", function (data) {
