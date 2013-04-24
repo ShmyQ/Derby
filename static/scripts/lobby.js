@@ -7,7 +7,7 @@ $(document).ready(function(){
     //==================
     //  App Related
     //==================
-    
+
     g.originalLogin = sessionStorage["username"];
 
     // Write username in top bar of side menu bars
@@ -16,7 +16,7 @@ $(document).ready(function(){
     $("#friendsBar").html(sessionStorage["username"] +  "'s Friends");
     $("#friendsRequestBar").html(sessionStorage["username"] +  "'s Friend Requests");
     getFriendsInfo(document.cookie.username,document.cookie.password);
-    
+
     //==================
     //  Key Events
     //==================
@@ -44,7 +44,7 @@ $(document).ready(function(){
 //==================
 //  Lobby Chat Server
 //==================
-var lobby = io.connect('http://128.237.87.127:8888/lobby');
+var lobby = io.connect('http://192.168.1.102:8888/lobby');
 
 lobby.emit('joined', {
         username: sessionStorage["username"],
@@ -107,7 +107,7 @@ function updateFriendsPanel(friends,requests){
             friends = [ friends ];
         }
         if(friends.length !== 0) {
-            
+
             // Add friends from list
             var friendsHTML = "";
             for(var i = 0; i < friends.length; i++){
@@ -120,13 +120,13 @@ function updateFriendsPanel(friends,requests){
            $("#friendsList").html("");
         }
     }
-    
+
     if(requests !== undefined){
         if( typeof requests === 'string' ) {
             requests = [ requests ];
         }
         if(requests.length !== 0) {
-            
+
             var requestsHTML = "";
             for(var i in requests){
                requestsHTML = requestsHTML +"<div id='friendListing'>" + requests[i] + " <button id = 'addPlayer" + i + "' class='smallButton'>Accept </button></div><br />";
@@ -146,11 +146,11 @@ function updateFriendsPanel(friends,requests){
 
 function getFriendsInfo(username, password){
     post(
-        '/friends', 
-        {   
-            username: username, 
+        '/friends',
+        {
+            username: username,
             password: password,
-        }, 
+        },
         handleGetFriendsInfo
     );
 }
@@ -231,13 +231,13 @@ function logoutPlayer(){
 
 function postFriendRequest(){
     post('/friendRequest', {otherUser : $("#friendRequestInput").val() });
-    $("#friendRequestInput").val("");   
+    $("#friendRequestInput").val("");
 }
 
 function acceptFriendRequest(otherUser){
      post(
-        '/addFriend', 
-        {   
+        '/addFriend',
+        {
             otherUser: otherUser
         },
         handleAcceptFriend
@@ -256,14 +256,14 @@ function handleAcceptFriend(err,result){
         var requestList = parsedResult.requestList;
         if(requestList === undefined)
             requestList = [];
-        if(friendsList.indexOf(otherUser) === -1){    
+        if(friendsList.indexOf(otherUser) === -1){
             friendsList.push(otherUser);
         }
         requestList.splice(requestList.indexOf(otherUser),1);
-                
+
         updateFriendsPanel(friendsList,requestList);
-        
-        
+
+
     }
 
 }

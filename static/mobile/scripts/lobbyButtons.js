@@ -1,4 +1,4 @@
-var lobby = io.connect('http://128.237.87.127:8888/lobby');
+var lobby = io.connect('http://192.168.1.102:8888/lobby');
 
 lobby.on('joinGame', function (data) {
 	console.log("joining game");

@@ -2,7 +2,7 @@ var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
 // sockets
-var socket = io.connect("http://128.237.87.127:8888/game");
+var socket = io.connect("http://192.168.1.102:8888/game");
 // socket.heartbeatTimeout = 20;
 
 socket.on("connected", function (data) {
@@ -178,6 +178,8 @@ var ammoSprite = new Image();
 ammoSprite.src = "images/ammo.png";
 var starSprite = new Image();
 starSprite.src = "images/star.png";
+var healthSprite = new Image();
+healthSprite.src = "images/health.png";
 var s = {
   rocks: [{
     x: 5, y: 21, width: 104, height: 94
@@ -195,7 +197,10 @@ var s = {
     x: 2, y: 2, width: 13, height: 12
   }],
   star: [{
-    x: 0, y: 0, width: 27, height: 27
+    x: 0, y: 0, width: 27, height: 32
+  }],
+  health: [{
+    x: 0, y: 0, width: 27, height: 32
   }]
 }
 
@@ -400,6 +405,12 @@ function draw() {
         ctx.drawImage(starSprite,
         s.star[0].x, s.star[0].y,
         s.star[0].width, s.star[0].height,
+        xpos - c.POWERUP_WIDTH/2, ypos - c.POWERUP_HEIGHT/2, c.POWERUP_WIDTH, c.POWERUP_HEIGHT);
+      }
+      else if (powerup.power === "health") {
+        ctx.drawImage(healthSprite,
+        s.health[0].x, s.health[0].y,
+        s.health[0].width, s.health[0].height,
         xpos - c.POWERUP_WIDTH/2, ypos - c.POWERUP_HEIGHT/2, c.POWERUP_WIDTH, c.POWERUP_HEIGHT);
       }
 		}
@@ -918,6 +929,12 @@ function addPowerup(powerup) {
       g.invincibleHandler = setInterval(decrementInvinvible, 1000);
     }
     g.myPlayer.powerups.invincible += 10;
+  }
+  else if (powerup.power === "health") {
+    g.myPlayer.hp += 25;
+    if (g.myPlayer.hp > 100) {
+      g.myPlayer.hp = 100;
+    }
   }
 
   g.powerups.splice(g.powerups.indexOf(powerup), 1);
