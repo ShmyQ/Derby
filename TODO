@@ -26,18 +26,23 @@ Up for grabs:
 - Bombs explode one another
 - Handle players joining and leaving
 
-visual cues for what's going on in the game
-tilt to move unclear
-chat - all the tabs get squished
-powerdowns that affect other players
+From user testing:
+- Visual cues for what's going on in the game (powerups)
+- Controls are unclear
+- Chat - all the tabs get squished
+- Powerdowns that affect other players
+- Undefined player in chat
+- Doesn't pick up powerups if moving along wall
+- Options for duration/bombs/
+- Game creation screen for inviting & stuff
+- Get rid of top and bottom thing with a viewport tag
+- More powerups
 
-undefined player in chat
-doesn't pick up powerups if moving along wall
-options for duration/bombs/
-game creation screen for inviting & stuff
-
-get rid of top and bottom thing with a viewport tag
-
+FOR TOMORROW:
+- Incorporate things from user studies
+- Things recorded from user studies
+- Things that changed
+- Screenshots of changes
 
 FUN ERROR:
 /Users/jonathantan/Documents/237/term-project/app.js:198
@@ -54,9 +59,3 @@ TypeError: Cannot read property 'kills' of undefined
     at opcodeHandlers.1.finish (/Users/jonathantan/Documents/237/term-project/node_modules/socket.io/lib/transports/websocket/hybi-16.js:288:16)
     at Parser.opcodeHandlers.1.expectData [as expectHandler] (/Users/jonathantan/Documents/237/term-project/node_modules/socket.io/lib/transports/websocket/hybi-16.js:299:15)
     at Parser.add (/Users/jonathantan/Documents/237/term-project/node_modules/socket.io/lib/transports/websocket/hybi-16.js:466:24)
-
-FOR TOMORROW:
-incorporate things from user studies
-thigns recorded from userstudies
-things that changed
-screenshots of changes
