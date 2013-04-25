@@ -1,11 +1,14 @@
-module.exports = function(mongoExpressAuth, app,io){
+
+module.exports = function (mongoExpressAuth, app,io, map){
     /* GAME PIECES NEEDED */
-    var playerData = new Object();
+	
     // array of all the games
     var games = [];
-
+	module.exports.games = games;
+	
     // hash of socket ids to game number that they are in
     var usersGame = new Object();
+	module.exports.usersGame = usersGame;
     
     // ** LOBBY	**
     var IDToPlayer = new Object();
@@ -15,10 +18,8 @@ module.exports = function(mongoExpressAuth, app,io){
     // number of players waiting
     var newGamePlayerCount = 0;
     // current game being made
-    var curGame = {players: [], connected: 0, sockets: new Object(), id: 0, started: false};
+    var curGame = {players: [], connected: 0, sockets: new Object(), id: 0, started: false, map: map.slice(0)};
     var playersToStart = 2;
-
-
    
     var lobby = io.of('/lobby').on('connection', function (socket) {
         socket.on('joined',function(data){
@@ -65,7 +66,7 @@ module.exports = function(mongoExpressAuth, app,io){
 
                 // reset for next new game
                 newGamePlayerCount === 0;
-                curGame = {players: [], connected: 0, sockets: new Object(), id: gameNumber, started: false};
+                curGame = {players: [], connected: 0, sockets: new Object(), id: gameNumber, started: false, map: map.slice(0)};
             }
         });
         

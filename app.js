@@ -43,23 +43,51 @@ require('./appRoutes.js')(mongoExpressAuth, app);
 
 app.use(express.static(__dirname + '/static/'));
 
+//===========================
+//  Maps
+//===========================
+
+var map1data = {width: 800, height: 800, gridx: 50, gridy: 50, blockx: 16, blocky: 16, maxPlayers: 4};
+var map1positions = [{},
+					 {x: 175, y: 175},
+					 {x: 625, y: 175},
+					 {x: 175, y: 625},
+					 {x: 625, y: 625}];
+var map1 = [["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"],
+			["W", "R", "O", "R", "O", "O", "O", "R", "O", "O", "R", "O", "O", "R", "O", "W"],
+			["W", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "O", "O", "O", "O", "W"],
+			["W", "O", "O", "1", "O", "O", "O", "O", "O", "R", "O", "O", "2", "O", "O", "W"],
+			["W", "R", "O", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "O", "O", "W"],
+			["W", "O", "R", "O", "O", "P", "P", "O", "P", "P", "R", "O", "O", "R", "O", "W"],
+			["W", "O", "O", "O", "O", "P", "R", "R", "R", "P", "O", "O", "O", "O", "R", "W"],
+			["W", "R", "O", "R", "O", "O", "R", "R", "R", "O", "O", "O", "R", "O", "O", "W"],
+			["W", "O", "O", "O", "O", "P", "R", "R", "R", "P", "R", "O", "O", "O", "O", "W"],
+			["W", "O", "O", "O", "O", "P", "P", "O", "P", "P", "O", "O", "O", "R", "O", "W"],
+			["W", "R", "O", "O", "R", "O", "O", "R", "O", "O", "O", "R", "O", "O", "R", "W"],
+			["W", "O", "O", "O", "O", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "W"],
+			["W", "R", "O", "3", "O", "O", "R", "O", "O", "O", "O", "O", "4", "O", "O", "W"],
+			["W", "O", "O", "O", "O", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "W"],
+			["W", "R", "R", "O", "O", "R", "O", "O", "O", "O", "R", "O", "O", "R", "O", "W"],
+			["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"]];
+
 // ========================
 // === Socket.io server ===
 // ========================
 var io = require("socket.io").listen(8888,{ log: false });
 
-require('./lobbyServer.js')(mongoExpressAuth,app,io);
+var Lobby = require('./lobbyServer.js'),
+myLobby = new Lobby(mongoExpressAuth,app,io,map1);
 
 // ** GAME ** (MOVED TO LOBBY SERVER)
 
-// each players current playing data, key is the socket id (MOVED TO LOBBYSERVER)
+// array of all the games
+var games = Lobby.games;
+	
+// hash of socket ids to game number that they are in
+var usersGame = Lobby.usersGame;
 
-// var playerCount = 0;
-// var players = 2;
-// var destroyedRocks = [];
-// var powerupDropChance = 0.4; was removed in conflict, commenting out in case mistake
-
-
+// each players current playing data, key is the socket id
+var playerData = new Object();
 
 var powerupDropChance = 0.4;
 
@@ -86,7 +114,7 @@ var game = io.of('/game').on("connection", function (socket) {
 
 	  if (thisGame.started) {
 	    // send connected message to set up client side
-		socket.emit("connected", {id: socket.id, reconnecting: true, x: playerData[data.username].x, y: playerData[data.username].y, player: player.toString(), numPlayers: thisGame.players.length, map: map1, mapdata: map1data});
+		socket.emit("connected", {id: socket.id, reconnecting: true, x: playerData[data.username].x, y: playerData[data.username].y, player: player.toString(), numPlayers: thisGame.players.length, map: thisGame.map, mapdata: map1data});
 	  }
 	  else {
 		  // send connected message to set up client side
@@ -122,11 +150,19 @@ var game = io.of('/game').on("connection", function (socket) {
 
   socket.on("rockDestroyed", function (data) {
 	console.log("Rock ", data.x, " ", data.y, " destroyed");
-	if (Math.random() < powerupDropChance) {
-        newPowerup(data.x, data.y);
+	
+	var map = games[usersGame[data.username]].map;
+	
+	if (map[data.y - .5][data.x - .5] === "R") {
+		console.log("Removing rock");
+		if (Math.random() < powerupDropChance) {
+			newPowerup(data.x, data.y, data.username, data.x, data.y);
+		}
+		else {
+			map[data.y - .5][data.x - .5] = "O";
+			game.emit("placePowerup", {x: data.x, y: data.y, power: "none"});
+		}
 	}
-	else
-		game.emit("placePowerup", {x: data.x, y: data.y, power: "none"});
   });
 
   socket.on("bulletFired", function (data) {
@@ -143,6 +179,8 @@ var game = io.of('/game').on("connection", function (socket) {
 
   socket.on("sendDeath", function (data) {
 	socket.emit("respawn", {});
+	
+	console.log("Killer ", data.killer);
 
 	playerData[data.username].deaths++;
 	// suicide
@@ -161,41 +199,18 @@ var game = io.of('/game').on("connection", function (socket) {
   });
 });
 
-var map1data = {width: 800, height: 800, gridx: 50, gridy: 50, blockx: 16, blocky: 16, maxPlayers: 4};
-var map1positions = [{},
-					 {x: 175, y: 175},
-					 {x: 625, y: 175},
-					 {x: 175, y: 625},
-					 {x: 625, y: 625}];
-var map1 = [["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"],
-			["W", "R", "O", "R", "O", "O", "O", "R", "O", "O", "R", "O", "O", "R", "O", "W"],
-			["W", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "O", "O", "O", "O", "W"],
-			["W", "O", "O", "1", "O", "O", "O", "O", "O", "R", "O", "O", "2", "O", "O", "W"],
-			["W", "R", "O", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "O", "O", "W"],
-			["W", "O", "R", "O", "O", "P", "P", "O", "P", "P", "R", "O", "O", "R", "O", "W"],
-			["W", "O", "O", "O", "O", "P", "R", "R", "R", "P", "O", "O", "O", "O", "R", "W"],
-			["W", "R", "O", "R", "O", "O", "R", "R", "R", "O", "O", "O", "R", "O", "O", "W"],
-			["W", "O", "O", "O", "O", "P", "R", "R", "R", "P", "R", "O", "O", "O", "O", "W"],
-			["W", "O", "O", "O", "O", "P", "P", "O", "P", "P", "O", "O", "O", "R", "O", "W"],
-			["W", "R", "O", "O", "R", "O", "O", "R", "O", "O", "O", "R", "O", "O", "R", "W"],
-			["W", "O", "O", "O", "O", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "W"],
-			["W", "R", "O", "3", "O", "O", "R", "O", "O", "O", "O", "O", "4", "O", "O", "W"],
-			["W", "O", "O", "O", "O", "O", "O", "O", "O", "R", "O", "O", "O", "O", "O", "W"],
-			["W", "R", "R", "O", "O", "R", "O", "O", "O", "O", "R", "O", "O", "R", "O", "W"],
-			["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"]];
 
+function newPowerup (xPos, yPos, username, x, y) {
+	var map = games[usersGame[username]].map;
 
-
-function newPowerup (xPos, yPos) {
     // TODO: for adding random powerups
     var rand = Math.random() * 2;
     if (rand < 1) {
+		map[y - .5][x - .5] = "B";
         game.emit("placePowerup", {x: xPos, y: yPos, power: "bullet"});
     }
     else if (rand >= 1) {
+		map[y - .5][x - .5] = "I";
         game.emit("placePowerup", {x: xPos, y: yPos, power: "invincible"});
     }
 }
-
-
-
