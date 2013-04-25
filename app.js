@@ -203,18 +203,20 @@ var game = io.of('/game').on("connection", function (socket) {
 function newPowerup (xPos, yPos, username, x, y) {
 	var map = games[usersGame[username]].map;
 
-    // TODO: for adding random powerups
     var rand = Math.random() * 3;
-    if (rand <= 1) {
+    if (rand < 1) {
 		map[y - 0.5][x - 0.5] = "B";
         game.emit("placePowerup", {x: xPos, y: yPos, power: "bullet"});
+        console.log("BULLET");
     }
-    else if (rand > 1 && rand <= 2) {
+    else if (rand < 2) {
 		map[y - 0.5][x - 0.5] = "I";
         game.emit("placePowerup", {x: xPos, y: yPos, power: "invincible"});
+        console.log("INVINCIBLE");
     }
-    else if (rand > 2) {
+    else {
         map[y - 0.5][x - 0.5] = "H";
         game.emit("placePowerup", {x: xPos, y: yPos, power: "health"});
+        console.log("HEALTH");
     }
 }

@@ -114,22 +114,6 @@ function readCookie(name) {
 }
 
 function updateFriendsPanel(friends,requests){
-<<<<<<< HEAD
-    if(friends !== undefined){
-        if( typeof friends === 'string' ) {
-            friends = [ friends ];
-        }
-        if(friends.length !== 0) {
-
-            // Add friends from list
-            var friendsHTML = "";
-            for(var i = 0; i < friends.length; i++){
-               friendsHTML = friendsHTML +"<div id='friendListing'>"+  friends[i] + "</div><br />";
-            }
-             friendsHTML = friendsHTML + "<br />";
-             $("#friendsList").html(friendsHTML);
-=======
-
     friends = toArray(friends);
     if(friends.length !== 0) {
         // Add friends from list
@@ -138,7 +122,6 @@ function updateFriendsPanel(friends,requests){
         for(var i = 0; i < friends.length; i++){
            friendsHTML = friendsHTML +"<div class='friendListing'>"+  friends[i]
            + "<span class = 'rightAlign'><button id = 'removePlayer" + i + "' class='smallButton'> Remove </button>" + "</span></div><br />";
->>>>>>> 7b42227cbc3f38da9d47ff9c57f080dfea475f84
         }
 
          friendsHTML = friendsHTML + "<br />";
@@ -148,24 +131,6 @@ function updateFriendsPanel(friends,requests){
             createRemovePlayer(i,friends[i]);
         }
     }
-<<<<<<< HEAD
-
-    if(requests !== undefined){
-        if( typeof requests === 'string' ) {
-            requests = [ requests ];
-        }
-        if(requests.length !== 0) {
-
-            var requestsHTML = "";
-            for(var i in requests){
-               requestsHTML = requestsHTML +"<div id='friendListing'>" + requests[i] + " <button id = 'addPlayer" + i + "' class='smallButton'>Accept </button></div><br />";
-            }
-             $("#friendRequestsList").html(requestsHTML);
-
-            for(var i in requests){
-                createAcceptPlayer(i,requests[i]);
-            }
-=======
     else {
        $("#friendsList").html("None");
     }
@@ -178,7 +143,6 @@ function updateFriendsPanel(friends,requests){
            requestsHTML = requestsHTML +"<div class='friendListing'>" + requests[i]
            + "<span class = 'rightAlign'> <button id = 'addPlayer" + i + "' class='smallButton'>Accept </button>"
            + "<button id = 'rejectPlayer" + i + "' class='smallButton'>Reject </button></span></div><br />";
->>>>>>> 7b42227cbc3f38da9d47ff9c57f080dfea475f84
         }
 
         $("#friendRequestsList").html(requestsHTML);
@@ -301,19 +265,9 @@ function handleAcceptFriend(err,result){
     else {
         var parsedResult = $.parseJSON(result);
         var otherUser = parsedResult.otherUser;
-<<<<<<< HEAD
-        var friendsList = parsedResult.friendsList;
-        if(friendsList === undefined)
-            friendsList = [];
-        var requestList = parsedResult.requestList;
-        if(requestList === undefined)
-            requestList = [];
-        if(friendsList.indexOf(otherUser) === -1){
-=======
         var friendsList = toArray(parsedResult.friendsList);
         var requestList = toArray(parsedResult.requestList);
         if(friendsList.indexOf(otherUser) === -1){
->>>>>>> 7b42227cbc3f38da9d47ff9c57f080dfea475f84
             friendsList.push(otherUser);
         }
         requestList.splice(requestList.indexOf(otherUser),1);

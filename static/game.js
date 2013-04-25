@@ -59,9 +59,9 @@ socket.on("removePowerup", function (data) {
 });
 
 socket.on("placePowerup", function (data) {
-	console.log("Looking for rock: ", data.x*c.GRID_WIDTH, data.y*c.GRID_HEIGHT);
+	// console.log("Looking for rock: ", data.x*c.GRID_WIDTH, data.y*c.GRID_HEIGHT);
 	g.rocks.forEach( function(rock) {
-		console.log("Checking rock: ", rock.x, rock.y);
+		// console.log("Checking rock: ", rock.x, rock.y);
 		if ((Math.round(rock.x/c.GRID_WIDTH * 2) / 2).toFixed(1) === data.x && (Math.round(rock.y/c.GRID_HEIGHT * 2) / 2).toFixed(1) === data.y)
 			g.rocks.splice(g.rocks.indexOf(rock), 1);
 	});
@@ -407,6 +407,7 @@ function draw() {
         s.star[0].x, s.star[0].y,
         s.star[0].width, s.star[0].height,
         xpos - c.POWERUP_WIDTH/2, ypos - c.POWERUP_HEIGHT/2, c.POWERUP_WIDTH, c.POWERUP_HEIGHT);
+        console.log("DRAWING INVINCIBILITY\nstarSprite.src = " + starSprite.src);
       }
       else if (powerup.power === "health") {
         ctx.drawImage(healthSprite,
@@ -932,6 +933,7 @@ function addPowerup(powerup) {
     g.myPlayer.powerups.bullets += 5;
   }
   else if (powerup.power === "invincible") {
+    console.log("ADDED INVINCIBILITY");
     if (g.myPlayer.powerups.invincible === 0) {
       g.invincibleHandler = setInterval(decrementInvinvible, 1000);
     }
