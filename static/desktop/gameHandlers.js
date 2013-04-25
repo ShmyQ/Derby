@@ -2,7 +2,7 @@ canvas.addEventListener('mousedown', clicked, false);
 document.onkeydown = onKeyDown;
 
 function clicked(e) {
-  if (g.isStarted) {
+  if (g.isStarted && !g.isOver) {
     var e = window.event || e;
   	var angle = findAngle(e.x, e.y);
     if(g.myPlayer.powerups.bullets > 0) {
@@ -18,7 +18,7 @@ function clicked(e) {
 }
 
 function onKeyDown(e) {
-	if (g.isStarted) {
+	if (g.isStarted && !g.isOver) {
 		// move left
 		if (e.keyCode === 65) {
 			moveBall(-5, 0);

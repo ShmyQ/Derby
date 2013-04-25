@@ -68,6 +68,14 @@ module.exports = function appRoutes(mongoExpressAuth, app,io, map){
                 curGame = {players: [], connected: 0, sockets: new Object(), id: gameNumber, started: false, map: map.slice(0)};
             }
         });
+		
+		socket.on('cancelFindMatch', function(data){
+			newGamePlayerCount--;
+			delete curGame.sockets[data.username];
+			curGame.players.splice(curGame.players.indexOf(data.username), 1);
+			
+			console.log("Remainging queued players: ", curGame.players);
+		});
         
         socket.on('disconnect', function(data){
             // If not already disconnected ie: two instances.
