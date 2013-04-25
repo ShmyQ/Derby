@@ -1,6 +1,7 @@
 module.exports = function appRoutes(mongoExpressAuth, app){
     var friendRequests = new Object();
     var acceptedRequests = new Object();
+    var friendRemovals = new Object();
     
     // Index
     app.get('/', function checkLogin(req,res,next){
@@ -24,7 +25,8 @@ module.exports = function appRoutes(mongoExpressAuth, app){
                         if(friendRequests[req.cookies.username] !== undefined){ 
                             for(var i in friendRequests[req.cookies.username]){ 
                                  var toUpdate = toArray(result.friendsInfo.requestList);
-                                 if(toUpdate.indexOf(friendRequests[req.cookies.username][i]) === -1) {
+                                 var toCheck = toArray(result.friendsInfo.friendsList);
+                                 if(toUpdate.indexOf(friendRequests[req.cookies.username][i]) === -1 && toCheck.indexOf(friendRequests[req.cookies.username][i]) === -1) {
                                      toUpdate[toUpdate.length] = friendRequests[req.cookies.username][i];
                                      var update =    {'friendsInfo.requestList': toUpdate} ;
                                      mongoExpressAuth.updateAccount(req,update,standardErrChecker);
@@ -44,6 +46,19 @@ module.exports = function appRoutes(mongoExpressAuth, app){
                                  }
                             }
                              delete acceptedRequests[req.cookies.username];
+                        }
+                        
+                        // Get friend removals
+                        if(friendRemovals[req.cookies.username] !== undefined){ 
+                            for(var i in friendRemovals[req.cookies.username]){ 
+                                 var toUpdate = toArray(result.friendsInfo.friendsList);
+                                 if(toUpdate.indexOf(friendRemovals[req.cookies.username][i]) !== -1) {
+                                     toUpdate.splice(friendRemovals[req.cookies.username][i],1);
+                                     var update =    {'friendsInfo.friendsList': toUpdate} ;
+                                     mongoExpressAuth.updateAccount(req,update,standardErrChecker);
+                                 }
+                            }
+                             delete friendRemovals[req.cookies.username];
                         }
                     }
                 });
@@ -96,17 +111,15 @@ module.exports = function appRoutes(mongoExpressAuth, app){
                 res.send(err);
             else {
                 // Add to users friendslist
-                var toUpdate = result.friendsInfo.friendsList;
-                if(toUpdate === undefined)
-                    toUpdate = [];
+                var toUpdate = toArray(result.friendsInfo.friendsList);
+
                 if(toUpdate.indexOf(req.body.otherUser) === -1) {
                     toUpdate.push(req.body.otherUser);
                     var update = {'friendsInfo.friendsList' : toUpdate};
                     mongoExpressAuth.updateAccount(req,update,standardErrChecker);
                     
                     // Add to other users acceptedRequests
-                    if(acceptedRequests[req.body.otherUser] === undefined)
-                        acceptedRequests[req.body.otherUser] = [];
+                    acceptedRequests[req.body.otherUser] = toArray(acceptedRequests[req.body.otherUser]);
                     acceptedRequests[req.body.otherUser].push(req.cookies.username);
                 }
                 
@@ -127,6 +140,54 @@ module.exports = function appRoutes(mongoExpressAuth, app){
             }
         });
     });
+    
+    app.post('/rejectFriend',function(req,res){
+        mongoExpressAuth.getAccount(req, function(err, result){
+            if (err)
+                res.send(err);
+            else { 
+                // Remove from users requestlist
+                var removeFrom = toArray(result.friendsInfo.requestList);
+                removeFrom.splice(removeFrom.indexOf(req.body.otherUser),1);
+                var update = {'friendsInfo.requestList' : removeFrom};
+                mongoExpressAuth.updateAccount(req,update,standardErrChecker);
+            }
+        });
+       
+        mongoExpressAuth.getAccount(req, function(err, result){
+            if (err)
+                res.send(err);
+            else {
+                result.friendsInfo.otherUser = req.body.otherUser;
+                res.send(result.friendsInfo);
+            }
+        });
+    });
+    
+    app.post('/removeFriend',function(req,res){
+        mongoExpressAuth.getAccount(req, function(err, result){
+            if (err)
+                res.send(err);
+            else { 
+                // Remove from users friendlist
+                var removeFrom = toArray(result.friendsInfo.friendsList);
+                removeFrom.splice(removeFrom.indexOf(req.body.otherUser),1);
+                var update = {'friendsInfo.friendsList' : removeFrom};
+                mongoExpressAuth.updateAccount(req,update,standardErrChecker);
+            }
+        });
+       
+        mongoExpressAuth.getAccount(req, function(err, result){
+            if (err)
+                res.send(err);
+            else {
+                friendRemovals[req.body.otherUser] = toArray(friendRemovals[req.body.otherUser]);
+                friendRemovals[req.body.otherUser].push(req.cookies.username);
+                result.friendsInfo.otherUser = req.body.otherUser;
+                res.send(result.friendsInfo);
+            }
+        });
+    });
 
     app.post('/friendRequest',function(req,res){
         mongoExpressAuth.getAccount(req, function(err, result){
@@ -135,10 +196,11 @@ module.exports = function appRoutes(mongoExpressAuth, app){
             else {
                 if(req.body.otherUser === req.cookies.username)
                     return;
-                if(friendRequests[req.body.otherUser] === undefined)
-                    friendRequests[req.body.otherUser] = [];
+                    
+                friendRequests[req.body.otherUser] = toArray(friendRequests[req.body.otherUser]);
+   
                 if(friendRequests[req.body.otherUser].indexOf(req.cookies.username) === -1) {
-                    friendRequests[req.body.otherUser][friendRequests[req.body.otherUser].length] = req.cookies.username;
+                    friendRequests[req.body.otherUser].push(req.cookies.username);
                 }
             }
         });
@@ -168,6 +230,7 @@ function mobileDesktopPrefixer(req){
 }
 
 
+// Returns a blank array if undefined or makes into a single element array
 function toArray(input){
     if(input === undefined)
         return [];

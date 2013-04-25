@@ -59,8 +59,16 @@ input {
     height: 5%;
    }
    
+   h3 {
+        font-size: 15px;
+    }
+    
+    #sendChat {
+        padding: 10px;
+        margin: 12px;
+    }
+   
 }
-
 
 
 /*//////////////////////////////////
@@ -87,14 +95,9 @@ h2 {
 }
 
 h3 {
-	font-size: 35px;
+    margin-bottom: -10px;
+	font-size: 25px;
 	font-weight: bold;
-}
-
-@media screen and (orientation:landscape) {
-    h3 {
-        font-size: 15px;
-    }
 }
 
 p {
@@ -104,7 +107,7 @@ p {
 
 input {
 	font-family: 'Iceland';
-	font-size: 10px;
+	font-size: 14px;
 	color: black;
 	background-color: #FFFFFF;
 	border-radius: 5px;
@@ -210,8 +213,7 @@ button:active {
     position: absolute; 
     right: -4%;
     bottom: 1%;   
-    height: 16%;
-    padding: 0px;
+    padding: 2px;
     font-size: 15px;
 }
 
@@ -299,7 +301,7 @@ button:active {
     left: 0px;
     width: 100%;
     height: 10%;
-    z-index: 2;
+    z-index: 100;
 }
 
 
@@ -318,7 +320,7 @@ button:active {
     top:18%;
     left: 4%;
     background-color: rgb(0,0,0);
-    overflow-y: hidden;
+    overflow-y: scroll;
     overflow-x: hidden;
     text-align: left;
     font-size: 15px;
@@ -328,9 +330,15 @@ button:active {
     position: absolute; 
     left:0%;
     bottom: 1%;
-    width: 80%;
+    width: 50%;
 }
 
+@media only screen and (orientation:portrait) {
+    #sendChat {
+        height: 13%;
+        margin: 10px;
+    }
+}
 #playerList {
     height: 48%;
     width: 25%;
@@ -346,30 +354,30 @@ button:active {
 }
 
 #friendsList {
-    text-align: left;
+    text-align: center;
     margin-left: 5%;
-    overflow-y: scroll;
     overflow-x: hidden;
+    height: 30%;
 }
 
 #friendRequestsList {
-    text-align: left;
+    text-align: center;
     margin-left: 5%;
     overflow-y: scroll;
     overflow-x: hidden;
+     height: 20%;
     
 }
 
-#friendListing {
+.friendListing {
     border: 3px solid rgba(64,64,64,.5);
 	border-radius: 10px 10px 10px 10px;
 	background-color: rgb(30,30,30);
-    width: 95%;
-    height: 5%;
-    padding: 10px;
-    margin: 5px 0px -20px 0px;
-    position: relative;
-    line-height: 10em;
+    width: 90%;
+    padding: 5px;
+    padding-top: 5px;
+    margin-bottom: -5px;
+    margin-top: 5px;
 }
 
 
@@ -379,7 +387,7 @@ button:active {
     padding-top:5px;
     padding-bottom:5px;
     width: 100%;
-    height: 10%;
+    height: 8%;
     border-radius: 10px 10px 0px 0px;  
 }
 
@@ -397,11 +405,24 @@ button:active {
 }
 
 .smallButton {
-    font-size: 15px;
+    font-size: 12px;
     padding: 4px;
-    margin: 6px;
+    margin: 8px;
+    
 }
 
+.smallButton:focus {
+    margin: 8px;
+}
+
+.smallButton:active {
+    margin-bottom: 9px;
+}
+
+.rightAlign {
+    text-align: right;
+
+}
 
 
 

@@ -50,7 +50,9 @@ $(document).ready(function() {
     
     $("#sendFriendRequest").click(function(e) { 
         e.preventDefault();
+         alert("Friend request sent to " +  $("#friendRequestInput").val());
          postFriendRequest();
+        
     });
    
 });
@@ -62,4 +64,20 @@ function createAcceptPlayer(i,otherUser){
         acceptFriendRequest(otherUser);
     });
 }
+
+function createRejectPlayer(i,otherUser){
+    $("#rejectPlayer" + i).click(function(e) {
+        e.preventDefault();
+        rejectFriendRequest(otherUser);
+    });
+}
+
+function createRemovePlayer(i,otherUser){
+    $("#removePlayer" + i).click(function(e) {
+        e.preventDefault();
+        removeFriendRequest(otherUser);
+        alert("You are no longer friends with " + otherUser);
+    });
+}
+
 

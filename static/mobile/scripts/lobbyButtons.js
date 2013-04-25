@@ -44,18 +44,39 @@ $(document).ready(function() {
         e.preventDefault();
           lobby.emit('findMatch', {username: sessionStorage["username"]});
 	});
-/*
+    
+    $("#sendFriendRequest").click(function(e) { 
+        e.preventDefault();
+         alert("Friend request sent to '" +  $("#friendRequestInput").val() + "'");
+         postFriendRequest();  
+    });
+
      $("#sendChat").on('tap', function(e) {
          e.preventDefault();
         sendChatToServer($("#chatInput").val());
         $("#chatInput").val("");
 
-    });*/
+    });
 });
 
 function createAcceptPlayer(i,otherUser){
     $("#addPlayer" + i).on('tap', function(e) {
         e.preventDefault();
         acceptFriendRequest(otherUser);
+        alert("You are now friends with " + otherUser);
+    });
+}
+
+function createRejectPlayer(i,otherUser){
+    $("#rejectPlayer" + i).on('tap', function(e) {
+        e.preventDefault();
+        rejectFriendRequest(otherUser);
+    });
+}
+function createRemovePlayer(i,otherUser){
+    $("#removePlayer" + i).on('tap', function(e) {
+        e.preventDefault();
+        removeFriendRequest(otherUser);
+        alert("You are no longer friends with " + otherUser);
     });
 }
