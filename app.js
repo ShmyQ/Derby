@@ -130,7 +130,16 @@ var game = io.of('/game').on("connection", function (socket) {
 			  console.log("starting game");
 			  game.emit("start", {});
 			  thisGame.started = true;
-			  setTimeout( function() { game.emit("endGame", {}); }, roundSeconds*1000);
+			  setTimeout( function() { 
+				// get player stats to send back
+				/*var stats = new Object();
+				for (var i = 0; i < thisGame.players.length; i++) {
+					var username = thisGame.players[i];
+					stats[username] = {kills: playerData[username].kills, deaths: playerData[username].deaths};
+				}*/
+			  
+				game.emit("endGame", {});
+			  }, roundSeconds*1000);
 		  }
 	  }
   });
