@@ -82,7 +82,7 @@ myLobby = new Lobby(mongoExpressAuth,app,io,map1);
 
 // array of all the games
 var games = Lobby.games;
-	
+
 // hash of socket ids to game number that they are in
 var usersGame = Lobby.usersGame;
 
@@ -150,9 +150,9 @@ var game = io.of('/game').on("connection", function (socket) {
 
   socket.on("rockDestroyed", function (data) {
 	console.log("Rock ", data.x, " ", data.y, " destroyed");
-	
+
 	var map = games[usersGame[data.username]].map;
-	
+
 	if (map[data.y - .5][data.x - .5] === "R") {
 		console.log("Removing rock");
 		if (Math.random() < powerupDropChance) {
@@ -179,7 +179,7 @@ var game = io.of('/game').on("connection", function (socket) {
 
   socket.on("sendDeath", function (data) {
 	socket.emit("respawn", {});
-	
+
 	console.log("Killer ", data.killer);
 
 	playerData[data.username].deaths++;
@@ -204,13 +204,17 @@ function newPowerup (xPos, yPos, username, x, y) {
 	var map = games[usersGame[username]].map;
 
     // TODO: for adding random powerups
-    var rand = Math.random() * 2;
-    if (rand < 1) {
-		map[y - .5][x - .5] = "B";
+    var rand = Math.random() * 3;
+    if (rand <= 1) {
+		map[y - 0.5][x - 0.5] = "B";
         game.emit("placePowerup", {x: xPos, y: yPos, power: "bullet"});
     }
-    else if (rand >= 1) {
-		map[y - .5][x - .5] = "I";
+    else if (rand > 1 && rand <= 2) {
+		map[y - 0.5][x - 0.5] = "I";
         game.emit("placePowerup", {x: xPos, y: yPos, power: "invincible"});
+    }
+    else if (rand > 2) {
+        map[y - 0.5][x - 0.5] = "H";
+        game.emit("placePowerup", {x: xPos, y: yPos, power: "health"});
     }
 }

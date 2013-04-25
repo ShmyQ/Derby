@@ -696,7 +696,7 @@ function decrementTimer(bomb) {
 function fireBullet(playerX, playerY, angle, player) {
   var moveX = c.BALL_RADIUS * 2 * Math.cos(angle * Math.PI / 180);
   var moveY = c.BALL_RADIUS * 2 * Math.sin(angle * Math.PI / 180);
-  console.log("START\nbullet.x = " + (playerX + moveX) + "\nbullet.y = " + (playerY - moveY) + "\nangle = " + angle);
+  // console.log("START\nbullet.x = " + (playerX + moveX) + "\nbullet.y = " + (playerY - moveY) + "\nangle = " + angle);
   g.bullets.push(new Bullet(playerX * c.GRID_WIDTH + moveX, playerY * c.GRID_HEIGHT - moveY, angle, player));
   if (g.bullets.length === 1) {
     g.bulletHandler = setInterval(moveBullets, 30);
@@ -949,7 +949,7 @@ function addPowerup(powerup) {
 }
 
 function decrementInvinvible() {
-  console.log("Invinibility counter: " + g.myPlayer.powerups.invincible);
+  // console.log("Invincibility counter: " + g.myPlayer.powerups.invincible);
   if (g.myPlayer.powerups.invincible-- <= 0) {
     g.myPlayer.powerups.invincible = 0;
     clearInterval(g.invincibleHandler);
