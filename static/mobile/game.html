@@ -15,10 +15,12 @@
     </head>
     <body>
          <h1 id = "titlebar"> Mobile Derby </h1>
-        <canvas id="myCanvas" width="600" height="500"style="border:1px solid #000000;">
+        <canvas id="myCanvas" width="0" height="0"style="border:1px solid #000000;">
           No canvas available!
         </canvas>
-
+		<div id="buttonDiv" style="position:absolute; left:50%; top:50%;"></div>
+		<script type="text/javascript" src="scripts/libs/jquery-1.9.1.min.js"></script>
+        <script type="text/javascript" src="scripts/libs/jquery.tap.js"></script>
         <script src ="http://192.168.1.102:8888/socket.io/socket.io.js"></script>
         <script src="game.js"></script>
         <script src="mobile/gameHandlers.js"></script>

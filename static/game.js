@@ -10,7 +10,6 @@ socket.on("connected", function (data) {
 	g.player = data.player;
 	g.numPlayers = data.numPlayers;
 
-	console.log(data.map);
 	g.map = data.map;
 	g.mapdata = data.mapdata;
 
@@ -101,6 +100,8 @@ socket.on("damagePlayer", function (data) {
 
 socket.on("endGame", function(data) {
 	isOver = true;
+	clearInterval(g.drawHandler);
+	drawEndScreen();
 });
 
 // Globals
@@ -536,6 +537,23 @@ function draw() {
 		ctx.fillText("Waiting for other players...", canvas.width/2, canvas.height/2);
 		ctx.restore();
 	}
+}
+
+function drawEndScreen() {
+	ctx.clearRect(0,0,canvas.width, canvas.height);
+	canvas.width = 0;
+	canvas.height = 0;
+	
+	var buttonDiv = $("#buttonDiv");
+	var backButton = $("<button>");
+	backButton.html("Back");
+	
+	backButton.click(function(e) {
+        e.preventDefault();
+		window.location = '/';
+    });
+	
+	buttonDiv.append(backButton);
 }
 
 function drawGrid(x, y, width, height) {

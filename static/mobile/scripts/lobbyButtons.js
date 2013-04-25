@@ -40,16 +40,51 @@ $(document).ready(function() {
         $("#learnBox").toggleClass("slide");
     });
 
-     $("#findMatch").on('tap', function(e) {
+    $("#findMatch").click(findMatchClick);
+	 
+	 function findMatchClick(e) {
+		console.log("Finding match");
         e.preventDefault();
-          lobby.emit('findMatch', {username: sessionStorage["username"]});
-	});
-    
-    $("#sendFriendRequest").click(function(e) { 
-        e.preventDefault();
-         alert("Friend request sent to '" +  $("#friendRequestInput").val() + "'");
-         postFriendRequest();  
-    });
+        lobby.emit('findMatch', {username: sessionStorage["username"]});
+		  
+		$("#findMatch").remove();
+		$("#createGame").remove();
+		$("#joinGame").remove();
+		$("#logoutButton").remove();
+		  
+		var cancelButton = $("<button>");
+		cancelButton.html("Cancel");
+		cancelButton.attr("id", "cancelButton");
+	
+		cancelButton.click(function(e) {
+			e.preventDefault();
+			lobby.emit('cancelFindMatch', {username: sessionStorage["username"]});
+			
+			$("#cancelButton").remove();
+			
+			var findMatch = $("<button>");
+			findMatch.html("Find Match");
+			findMatch.attr("id", "findMatch");
+			findMatch.click(findMatchClick);
+			var createGame = $("<button>");
+			createGame.html("Create Game");
+			createGame.attr("id", "createGame");
+			var joinGame = $("<button>");
+			joinGame.html("Join Game");
+			joinGame.attr("id", "joinGame");
+			var logout = $("<button>");
+			logout.html("Logout");
+			logout.attr("id", "logoutButton");
+			
+			var menuBox = $("#menuBox");
+			menuBox.append(findMatch);
+			menuBox.append(createGame);
+			menuBox.append(joinGame);
+			menuBox.append(logout);
+		});
+		
+		$("#menuBox").append(cancelButton);
+    }
 
      $("#sendChat").on('tap', function(e) {
          e.preventDefault();

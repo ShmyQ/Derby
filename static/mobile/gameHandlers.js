@@ -3,7 +3,7 @@ window.addEventListener('devicemotion', deviceMotion);
 
 
 function onTouch(e) {
-  if (g.isStarted) {
+  if (g.isStarted && !g.isOver) {
     var angle = findAngle(e.changedTouches[0].pageX, e.changedTouches[0].pageY);
   	if(g.myPlayer.powerups.bullets > 0) {
       g.myPlayer.powerups.bullets--;
@@ -17,7 +17,7 @@ function onTouch(e) {
 }
 
 function deviceMotion(e) {
-	if (g.isStarted) {
+	if (g.isStarted && !g.isOver) {
 	  var xvel = -e.accelerationIncludingGravity.x / 2;
 	  var yvel = e.accelerationIncludingGravity.y / 2;
 
