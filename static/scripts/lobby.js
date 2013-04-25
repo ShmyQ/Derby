@@ -3,6 +3,7 @@ var g = {
     log: "",
 };
 
+
 $(document).ready(function(){
     //==================
     //  App Related
@@ -13,19 +14,29 @@ $(document).ready(function(){
     // Write username in top bar of side menu bars
     $("#menuBar").html(sessionStorage["username"]);
     $("#profileBar").html(sessionStorage["username"] +  "'s Profile");
-    $("#friendsBar").html(sessionStorage["username"] +  "'s Friends");
-    $("#friendsRequestBar").html(sessionStorage["username"] +  "'s Friend Requests");
     getFriendsInfo(document.cookie.username,document.cookie.password);
 
     //==================
     //  Key Events
     //==================
-    $("#chatInput").keyup(function(event){
+    $("#friendRequestInput").keyup(function(event){
+        event.preventDefault();
+        if($("#friendRequestInput").val() === "")
+            return;
+		if(event.which === 13){
+			event.preventDefault();
+            alert("Friend request sent to '" +  $("#friendRequestInput").val() + "'");
+            postFriendRequest();
+		}
+     });
+
+     $("#chatInput").keyup(function(event){
         event.preventDefault();
     /*    // Blank input
         if($("#chatInput").val() === "")
             return;*/
 		if(event.which === 13){
+            event.preventDefault();
 			sendChatToServer($("#chatInput").val());
             $("#chatInput").val("");
 		}
@@ -37,7 +48,7 @@ $(document).ready(function(){
 
     // See /mobile/scripts/lobbyButtons.js or /desktop/scripts/lobbyButtons.js
 
-
+    $("#chatBox").focus();
 });
 
 
@@ -67,6 +78,7 @@ lobby.on('joinGame', function (data) {
 
 lobby.on('receiveChat',function(data){
     addChatToLog(data.user,data.msg);
+    logoutOnDisconnect(g.originalLogin);
 });
 
 lobby.on('twoInstances',function(data){
@@ -84,7 +96,7 @@ lobby.on('twoInstances',function(data){
 function logoutOnDisconnect(originalLogin){
     sessionStorage["username"] = readCookie("username");
     if(sessionStorage["username"] === undefined || sessionStorage["username"] === "" || sessionStorage["username"] !== originalLogin){
-        alert("You have been logged out!");
+        alert("You have disconnected from the server!");
         logoutPlayer();
     }
 }
@@ -102,6 +114,7 @@ function readCookie(name) {
 }
 
 function updateFriendsPanel(friends,requests){
+<<<<<<< HEAD
     if(friends !== undefined){
         if( typeof friends === 'string' ) {
             friends = [ friends ];
@@ -115,11 +128,27 @@ function updateFriendsPanel(friends,requests){
             }
              friendsHTML = friendsHTML + "<br />";
              $("#friendsList").html(friendsHTML);
+=======
+
+    friends = toArray(friends);
+    if(friends.length !== 0) {
+        // Add friends from list
+        var friendsHTML = "";
+
+        for(var i = 0; i < friends.length; i++){
+           friendsHTML = friendsHTML +"<div class='friendListing'>"+  friends[i]
+           + "<span class = 'rightAlign'><button id = 'removePlayer" + i + "' class='smallButton'> Remove </button>" + "</span></div><br />";
+>>>>>>> 7b42227cbc3f38da9d47ff9c57f080dfea475f84
         }
-        else {
-           $("#friendsList").html("");
+
+         friendsHTML = friendsHTML + "<br />";
+         $("#friendsList").html(friendsHTML);
+
+         for(var i in friends){
+            createRemovePlayer(i,friends[i]);
         }
     }
+<<<<<<< HEAD
 
     if(requests !== undefined){
         if( typeof requests === 'string' ) {
@@ -136,11 +165,33 @@ function updateFriendsPanel(friends,requests){
             for(var i in requests){
                 createAcceptPlayer(i,requests[i]);
             }
+=======
+    else {
+       $("#friendsList").html("None");
+    }
+
+    requests = toArray(requests);
+    if(requests.length !== 0) {
+        var requestsHTML = "";
+
+        for(var i in requests){
+           requestsHTML = requestsHTML +"<div class='friendListing'>" + requests[i]
+           + "<span class = 'rightAlign'> <button id = 'addPlayer" + i + "' class='smallButton'>Accept </button>"
+           + "<button id = 'rejectPlayer" + i + "' class='smallButton'>Reject </button></span></div><br />";
+>>>>>>> 7b42227cbc3f38da9d47ff9c57f080dfea475f84
         }
-        else {
-           $("#friendRequestsList").html("");
+
+        $("#friendRequestsList").html(requestsHTML);
+
+        for(var i in requests){
+            createAcceptPlayer(i,requests[i]);
+            createRejectPlayer(i,requests[i]);
         }
-     }
+    }
+    else {
+       $("#friendRequestsList").html("None");
+    }
+
 }
 
 
@@ -250,6 +301,7 @@ function handleAcceptFriend(err,result){
     else {
         var parsedResult = $.parseJSON(result);
         var otherUser = parsedResult.otherUser;
+<<<<<<< HEAD
         var friendsList = parsedResult.friendsList;
         if(friendsList === undefined)
             friendsList = [];
@@ -257,6 +309,11 @@ function handleAcceptFriend(err,result){
         if(requestList === undefined)
             requestList = [];
         if(friendsList.indexOf(otherUser) === -1){
+=======
+        var friendsList = toArray(parsedResult.friendsList);
+        var requestList = toArray(parsedResult.requestList);
+        if(friendsList.indexOf(otherUser) === -1){
+>>>>>>> 7b42227cbc3f38da9d47ff9c57f080dfea475f84
             friendsList.push(otherUser);
         }
         requestList.splice(requestList.indexOf(otherUser),1);
@@ -265,6 +322,71 @@ function handleAcceptFriend(err,result){
 
 
     }
+}
 
+function rejectFriendRequest(otherUser){
+     post(
+        '/rejectFriend',
+        {
+            otherUser: otherUser
+        },
+        handleRejectFriend
+    );
+}
+
+function handleRejectFriend(err,result){
+    if(err)
+        console.log(err);
+    else {
+        var parsedResult = $.parseJSON(result);
+
+        var otherUser = parsedResult.otherUser;
+        var friendsList = toArray(parsedResult.friendsList);
+        var requestList = toArray(parsedResult.requestList);
+
+        requestList.splice(requestList.indexOf(otherUser),1);
+        updateFriendsPanel(friendsList,requestList);
+
+
+    }
+
+}
+
+function removeFriendRequest(otherUser){
+     post(
+        '/removeFriend',
+        {
+            otherUser: otherUser
+        },
+        handleRemoveFriend
+    );
+}
+
+function handleRemoveFriend(err,result){
+    if(err)
+        console.log(err);
+    else {
+        var parsedResult = $.parseJSON(result);
+
+        var otherUser = parsedResult.otherUser;
+        var friendsList = toArray(parsedResult.friendsList);
+        var requestList = toArray(parsedResult.requestList);
+
+        friendsList.splice(friendsList.indexOf(otherUser),1);
+        updateFriendsPanel(friendsList,requestList);
+
+
+    }
+
+}
+
+function toArray(input){
+    if(input === undefined)
+        return [];
+    if( typeof input === 'string' ) {
+        return [ input ];
+    }
+
+    return input;
 }
 

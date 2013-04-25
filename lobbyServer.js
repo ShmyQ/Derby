@@ -1,4 +1,5 @@
-module.exports = function appRoutes(mongoExpressAuth, app,io, map){
+
+module.exports = function (mongoExpressAuth, app,io, map){
     /* GAME PIECES NEEDED */
 	
     // array of all the games
