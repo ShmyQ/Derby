@@ -110,6 +110,7 @@ var g = {
 	drawHandler: null,
   bulletHandler: null,
   invincibleHandler: null,
+  invertHandler: null,
 	myPlayer: null,
 	// socket id
 	myID: 0,
@@ -182,6 +183,8 @@ var starSprite = new Image();
 starSprite.src = "images/star.png";
 var healthSprite = new Image();
 healthSprite.src = "images/health.png";
+var invertSprite = new Image();
+invertSprite.src = "images/invert.png";
 var s = {
   rocks: [{
     x: 5, y: 21, width: 104, height: 94
@@ -199,10 +202,13 @@ var s = {
     x: 2, y: 2, width: 13, height: 12
   }],
   star: [{
-    x: 0, y: 0, width: 27, height: 32
+    x: 0, y: 0, width: 27, height: 27
   }],
   health: [{
-    x: 0, y: 0, width: 27, height: 32
+    x: 0, y: 0, width: 32, height: 32
+  }],
+  invert: [{
+    x: 0, y: 0, width: 50, height: 50
   }]
 }
 
@@ -262,6 +268,7 @@ function getDevicePlatform() {
 function draw() {
 	ctx.clearRect(0,0,canvas.width, canvas.height);
 
+  // TODO: Should try with a smaller image file on repeat, might reduce lag
 	// background
 	ctx.drawImage(g.backgroundImg, g.myPlayer.x/10, g.myPlayer.y/10, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
 
@@ -403,17 +410,22 @@ function draw() {
         s.ammo[0].width, s.ammo[0].height,
         xpos - c.POWERUP_WIDTH/2, ypos - c.POWERUP_HEIGHT/2, c.POWERUP_WIDTH, c.POWERUP_HEIGHT);
       }
+      else if (powerup.power === "health") {
+        ctx.drawImage(healthSprite,
+        s.health[0].x, s.health[0].y,
+        s.health[0].width, s.health[0].height,
+        xpos - c.POWERUP_WIDTH/2, ypos - c.POWERUP_HEIGHT/2, c.POWERUP_WIDTH, c.POWERUP_HEIGHT);
+      }
       else if (powerup.power === "invincible") {
         ctx.drawImage(starSprite,
         s.star[0].x, s.star[0].y,
         s.star[0].width, s.star[0].height,
         xpos - c.POWERUP_WIDTH/2, ypos - c.POWERUP_HEIGHT/2, c.POWERUP_WIDTH, c.POWERUP_HEIGHT);
-        console.log("DRAWING INVINCIBILITY\nstarSprite.src = " + starSprite.src);
       }
-      else if (powerup.power === "health") {
-        ctx.drawImage(healthSprite,
-        s.health[0].x, s.health[0].y,
-        s.health[0].width, s.health[0].height,
+      else if (powerup.power === "invert") {
+        ctx.drawImage(invertSprite,
+        s.invert[0].x, s.invert[0].y,
+        s.invert[0].width, s.invert[0].height,
         xpos - c.POWERUP_WIDTH/2, ypos - c.POWERUP_HEIGHT/2, c.POWERUP_WIDTH, c.POWERUP_HEIGHT);
       }
 		}
@@ -502,6 +514,15 @@ function draw() {
       //   s.star[0].width, s.star[0].height,
       //   xpos - c.BALL_RADIUS/2, ypos - c.BALL_RADIUS/2, c.POWERUP_WIDTH, c.POWERUP_HEIGHT);
       // }
+
+      // copy pasted for invert possibly
+      // TODO: need to emit invincibility or have server handle it to draw on enemies
+      // if (g.enemies[enemyID].powerups.invincible > 0) {
+      //   ctx.drawImage(starSprite,
+      //   s.star[0].x, s.star[0].y,
+      //   s.star[0].width, s.star[0].height,
+      //   xpos - c.BALL_RADIUS/2, ypos - c.BALL_RADIUS/2, c.POWERUP_WIDTH, c.POWERUP_HEIGHT);
+      // }
 		}
 	}
 
@@ -543,16 +564,16 @@ function drawEndScreen() {
 	ctx.clearRect(0,0,canvas.width, canvas.height);
 	canvas.width = 0;
 	canvas.height = 0;
-	
+
 	var buttonDiv = $("#buttonDiv");
 	var backButton = $("<button>");
 	backButton.html("Back");
-	
+
 	backButton.click(function(e) {
         e.preventDefault();
 		window.location = '/';
     });
-	
+
 	buttonDiv.append(backButton);
 }
 
@@ -951,7 +972,6 @@ function addPowerup(powerup) {
     g.myPlayer.powerups.bullets += 5;
   }
   else if (powerup.power === "invincible") {
-    console.log("ADDED INVINCIBILITY");
     if (g.myPlayer.powerups.invincible === 0) {
       g.invincibleHandler = setInterval(decrementInvinvible, 1000);
     }
@@ -962,6 +982,15 @@ function addPowerup(powerup) {
     if (g.myPlayer.hp > 100) {
       g.myPlayer.hp = 100;
     }
+  }
+  else if (powerup.power === "invert") {
+    if (!canvas.classList.contains('inverted')) {
+      canvas.classList.add('inverted');
+    }
+    if (g.myPlayer.powerups.invert === 0) {
+      g.invertHandler = setInterval(decrementInvert, 1000);
+    }
+    g.myPlayer.powerups.invert += 10;
   }
 
   g.powerups.splice(g.powerups.indexOf(powerup), 1);
@@ -976,10 +1005,20 @@ function decrementInvinvible() {
   }
 }
 
+// Better to have 2 setintervals that individually stop when not needed but will run at the same time?
+function decrementInvert() {
+  console.log("Invert counter: " + g.myPlayer.powerups.invert);
+  if (g.myPlayer.powerups.invert-- <= 0) {
+    canvas.classList.remove('inverted');
+    g.myPlayer.powerups.invert = 0;
+    clearInterval(g.invertHandler);
+  }
+}
+
 function Player(x, y) {
 	this.x = x;
 	this.y = y;
-  this.powerups = {bullets: 0, invincible: 0};
+  this.powerups = {bullets: 0, invincible: 0, invert: 0};
 	this.hp = c.BASE_HP;
 	this.gridx = c.GRID_WIDTH;
 	this.gridy = c.GRID_HEIGHT;

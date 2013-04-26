@@ -130,14 +130,14 @@ var game = io.of('/game').on("connection", function (socket) {
 			  console.log("starting game");
 			  game.emit("start", {});
 			  thisGame.started = true;
-			  setTimeout( function() { 
+			  setTimeout( function() {
 				// get player stats to send back
 				/*var stats = new Object();
 				for (var i = 0; i < thisGame.players.length; i++) {
 					var username = thisGame.players[i];
 					stats[username] = {kills: playerData[username].kills, deaths: playerData[username].deaths};
 				}*/
-			  
+
 				game.emit("endGame", {});
 			  }, roundSeconds*1000);
 		  }
@@ -213,20 +213,25 @@ var game = io.of('/game').on("connection", function (socket) {
 function newPowerup (xPos, yPos, username, x, y) {
 	var map = games[usersGame[username]].map;
 
-    var rand = Math.random() * 3;
+    var rand = Math.random() * 4;
     if (rand < 1) {
 		map[y - 0.5][x - 0.5] = "B";
         game.emit("placePowerup", {x: xPos, y: yPos, power: "bullet"});
-        console.log("BULLET");
+        // console.log("BULLET");
     }
-    else if (rand < 2) {
+    else if (rand >= 1 && rand < 2) {
 		map[y - 0.5][x - 0.5] = "I";
         game.emit("placePowerup", {x: xPos, y: yPos, power: "invincible"});
-        console.log("INVINCIBLE");
+        // console.log("INVINCIBLE");
     }
-    else {
+    else if (rand >= 2 && rand < 3) {
         map[y - 0.5][x - 0.5] = "H";
         game.emit("placePowerup", {x: xPos, y: yPos, power: "health"});
-        console.log("HEALTH");
+        // console.log("HEALTH");
+    }
+    else if (rand >= 3) {
+        map[y - 0.5][x - 0.5] = "C";
+        game.emit("placePowerup", {x: xPos, y: yPos, power: "invert"});
+        // console.log("INVERT");
     }
 }
