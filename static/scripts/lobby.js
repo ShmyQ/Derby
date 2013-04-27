@@ -1,6 +1,10 @@
+
+var lobby = io.connect('http://128.237.87.127:8888/lobby');
+
 var g = {
     originalLogin: null,
     log: "",
+    players: [],
 };
 
 
@@ -8,13 +12,27 @@ $(document).ready(function(){
     //==================
     //  App Related
     //==================
-    
+   
     g.originalLogin = sessionStorage["username"];
+
+    lobby.emit('joined', {
+            username: sessionStorage["username"],
+    });
+    
+    window.onbeforeunload = function() {
+       lobby.emit('disconnect',{
+            username: sessionStorage["username"],
+       });
+    };
+    
+    getPlayersRequest();
+    getFriendsInfo(document.cookie.username,document.cookie.password);
+   
 
     // Write username in top bar of side menu bars
     $("#menuBar").html(sessionStorage["username"]);
     $("#profileBar").html(sessionStorage["username"] +  "'s Profile");
-    getFriendsInfo(document.cookie.username,document.cookie.password);
+    
     
     
     //==================
@@ -48,7 +66,8 @@ $(document).ready(function(){
     //==================
 
     // See /mobile/scripts/lobbyButtons.js or /desktop/scripts/lobbyButtons.js
-
+     logoutOnDisconnect(g.originalLogin);
+     
     $("#chatBox").focus();
 });
 
@@ -56,17 +75,9 @@ $(document).ready(function(){
 //==================
 //  Lobby Chat Server
 //==================
-var lobby = io.connect('http://128.237.134.187:8888/lobby');
 
-lobby.emit('joined', {
-        username: sessionStorage["username"],
-});
 
-window.onbeforeunload = function() {
-   lobby.emit('disconnect',{
-        username: sessionStorage["username"],
-   });
-};
+
 
 lobby.on('receivePlayers', function (data) {
     playersListHTML(data.players);
@@ -115,15 +126,24 @@ function readCookie(name) {
 }
 
 function updateFriendsPanel(friends,requests){
-
-    friends = toArray(friends);
+    
+    friends = toArray(friends).sort();
     if(friends.length !== 0) {   
+       
         // Add friends from list
         var friendsHTML = "";
         
         for(var i = 0; i < friends.length; i++){
-           friendsHTML = friendsHTML +"<div class='friendListing'>"+  friends[i] 
-           + "<span class = 'rightAlign'><button id = 'removePlayer" + i + "' class='smallButton'> Remove </button>" + "</span></div><br />";
+             console.log(g.players);
+             console.log(friends[i]);
+       
+             var statusPic = "<img src = 'images/offline.png' alt = 'Offline' />"
+            if(g.players.indexOf(friends[i]) !== -1){
+            statusPic = "<img src = 'images/online.png' alt = 'Online' />"
+            }
+           friendsHTML = friendsHTML +"<div class='friendListing'>"
+            + "<div class = 'leftAlign'><button id = 'removePlayer" + i + "' class='tinyButton removeFriend'></button>" + "</div>"
+           +  friends[i] + "<div class='rightAlign'>" + statusPic + "</div></div><br />";
         }
         
          friendsHTML = friendsHTML + "<br />";
@@ -137,14 +157,17 @@ function updateFriendsPanel(friends,requests){
        $("#friendsList").html("None");
     }
 
-    requests = toArray(requests);
+    requests = toArray(requests).sort();
     if(requests.length !== 0) {
         var requestsHTML = "";
         
         for(var i in requests){
-           requestsHTML = requestsHTML +"<div class='friendListing'>" + requests[i] 
-           + "<span class = 'rightAlign'> <button id = 'addPlayer" + i + "' class='smallButton'>Accept </button>"
-           + "<button id = 'rejectPlayer" + i + "' class='smallButton'>Reject </button></span></div><br />";
+  
+            
+            
+           requestsHTML = requestsHTML +"<div class='friendListing'><div class = 'leftCenterAlign'>" + requests[i] + "</div>"
+           + "<div class='rightAlign'><button id = 'addPlayer" + i + "' class='acceptFriend tinyButton'> </button>"
+           + "<button id = 'rejectPlayer" + i + "' class='removeFriend tinyButton'> </button></div></div><br />";
         }
         
         $("#friendRequestsList").html(requestsHTML);
@@ -186,11 +209,16 @@ function handleGetFriendsInfo(err, result){
 //==================
 function playersListHTML(players){
     players.sort();
-    var finalHTML = "<p class='topBar' > PLAYERS </p>";
+    var finalHTML = "<p class='topBar' > PLAYERS </p>"
+    
+    g.players = [];
 
     for(var i = 0; i < players.length; i++){
+        g.players[g.players.length] = players[i];
         finalHTML = finalHTML + "<p>" + players[i] + "</p>";
     }
+    
+    console.log(g.players);
     $("#playerList").html(finalHTML);
 }
 
@@ -330,6 +358,31 @@ function handleRemoveFriend(err,result){
         
         friendsList.splice(friendsList.indexOf(otherUser),1);
         updateFriendsPanel(friendsList,requestList);
+        
+        
+    }
+
+}
+
+function getPlayersRequest(){
+     post(
+        '/getPlayers', 
+        {   
+           username: sessionStorage["username"],
+        },
+        handleGetPlayers
+    );
+}
+
+function handleGetPlayers(err,result){
+    if(err)
+        console.log(err);
+    else {
+        var parsedResult = $.parseJSON(result);
+        
+        var playerList = toArray(parsedResult);
+        
+        g.players = playerList;
         
         
     }

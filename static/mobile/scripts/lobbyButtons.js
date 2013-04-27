@@ -1,5 +1,5 @@
 
-var lobby = io.connect('http://128.237.134.187:8888/lobby');
+var lobby = io.connect('http://128.237.87.127:8888/lobby');
 
 lobby.on('joinGame', function (data) {
 	console.log("joining game");
@@ -57,6 +57,32 @@ $(document).ready(function() {
         sendChatToServer($("#chatInput").val());
         $("#chatInput").val("");
 
+    });
+    
+    $("#scrollUpFriends").on('tap', function(e) {
+         e.preventDefault();
+         $('#friendsList').scrollTo( '-=20px' );
+    });
+    
+    $("#scrollUpRequests").on('tap', function(e) {
+         e.preventDefault();
+         $('#requestList').scrollTo( '-=20px' );
+
+    });
+    
+    $("#scrollDownFriends").on('tap', function(e) {     
+        e.preventDefault();
+        $('#friendsList').scrollTo( '+=20px' );
+    });
+    
+    $("#scrollDownRequests").on('tap', function(e) {
+        e.preventDefault();
+        $('#requestList').scrollTo( '+=20px' );
+ 
+    });
+    
+    $("#stopHighlight").on('tap', function(e) {
+        e.preventDefault();
     });
 });
 

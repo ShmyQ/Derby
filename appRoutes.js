@@ -53,7 +53,7 @@ module.exports = function appRoutes(mongoExpressAuth, app){
                             for(var i in friendRemovals[req.cookies.username]){ 
                                  var toUpdate = toArray(result.friendsInfo.friendsList);
                                  if(toUpdate.indexOf(friendRemovals[req.cookies.username][i]) !== -1) {
-                                     toUpdate.splice(friendRemovals[req.cookies.username][i],1);
+                                     toUpdate.splice(toUpdate.indexOf(friendRemovals[req.cookies.username][i]),1);
                                      var update =    {'friendsInfo.friendsList': toUpdate} ;
                                      mongoExpressAuth.updateAccount(req,update,standardErrChecker);
                                  }
@@ -205,6 +205,8 @@ module.exports = function appRoutes(mongoExpressAuth, app){
             }
         });
     });
+    
+ 
 
     app.get('/favicon.ico', function(req,res){
         res.sendfile('favicon.ico');

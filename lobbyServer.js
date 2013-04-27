@@ -81,6 +81,16 @@ module.exports = function (mongoExpressAuth, app,io, map){
              }
         });
     });
+    
+       app.post('/getPlayers',function(req,res){
+        mongoExpressAuth.getAccount(req, function(err, result){
+            if (err)
+                res.send(err);
+            else {
+                res.send(lobbyPlayers);
+            }
+        });
+    });
 
     //==================
     // Helpers

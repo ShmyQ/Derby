@@ -196,7 +196,7 @@ button:active {
 }
 
 .slideBox{
-    position:fixed;
+    position: fixed;
     left:-41%;
     top: 100px;
 	border: 5px solid rgba(44,44,44,.5);
@@ -206,7 +206,7 @@ button:active {
     height: 75%;
     width: 40%;
     display: inline-block;
-    z-index: 2;
+    z-index: 101;
     
    -webkit-transition: left  1s ease;  
    -moz-transition: left  1s ease;  
@@ -283,13 +283,15 @@ button:active {
     margin-left: 5%;
     overflow-y: scroll;
     overflow-x: hidden;
-    height: 35%;
+    height: 20%;
+    position: relative;
+    display: block;
 }
 
 #friendRequestsList {
     text-align: center;
     margin-left: 5%;
-    overflow-y: scroll;
+    overflow-y: auto;
     overflow-x: hidden;
      height: 20%;
     
@@ -301,9 +303,14 @@ button:active {
 	background-color: rgb(30,30,30);
     width: 90%; 
     padding: 5px;
-    margin-bottom: -20px;
+    
     padding-top: 5px;
     margin-top: 5px;
+    position: relative;
+    top: 15px;
+    z-index: 100;
+    display: block;
+
 }
 
 
@@ -313,7 +320,10 @@ button:active {
     padding-top: 10px;
     width: 100%;
     height: 10%;
-    border-radius: 10px 10px 0px 0px;  
+    border-radius: 10px 10px 0px 0px;
+    position: relative;
+    z-index: 100;
+    display: block;    
 }
 
 
@@ -350,6 +360,39 @@ button:active {
     margin-left: 30%;
 
 }
+
+#scrollDown1 {
+   top: 8%;
+
+}
+
+#scrollUp1 {
+   top: 16%;
+  
+}
+
+#scrollDown2{ 
+   top: 34%;
+    background: url(/images/downarrow.png) 4px 1px no-repeat;
+}
+
+#scrollUp2{
+   top: 42%;
+   background: url(/images/uparrow.png) 4px 2px no-repeat;
+}
+
+
+.scrollButton {
+   right: -4px;
+   z-index:100;
+   padding: 10px;
+   margin-bottom: -2px;
+   position: absolute;
+   display: block;
+}
+
+
+
 
 
 

@@ -3,21 +3,33 @@
 //////////   MOBILE QUIRKS   ///////
 //////////////////////////////////*/
 
-/* turn off the annoying highlight on a tap*/
-input {
-  -webkit-tap-highlight-color: transparent;
-}
 /* prevent the user from highlighting any text */
 * {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
+    outline: none;
+   -webkit-tap-highlight-color: rgba(255, 255, 255, 0); 
+   -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
+
 /* allow highlighting text in inputs */
 input {
+  outline: none;
   -webkit-user-select: text;
   -moz-user-select: text;
   -ms-user-select: text;
+}
+
+#stopHighlight {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
 }
 
 
@@ -67,6 +79,14 @@ input {
         padding: 10px;
         margin: 12px;
     }
+    
+    #scrollDownImg {
+        left: 100%;
+    }
+
+    #scrollDownImg2 {
+       left: 100%;
+    }
    
 }
 
@@ -76,7 +96,7 @@ input {
 //////////////////////////////////*/
 
 body {
-	font-size: 25px;
+    font-size: 25px;
 	font-family: 'Iceland';
 	background-color: rgb(35,35,35);
 	color: white;
@@ -269,7 +289,7 @@ button:active {
 }
 
 .slideBox{
-    position:fixed;
+    position: absolute;
     left:-73%;
     top: 9%;
 	border: 5px solid rgba(44,44,44,.5);
@@ -355,35 +375,46 @@ button:active {
 
 #friendsList {
     text-align: center;
-    margin-left: 5%;
     overflow-x: hidden;
-    height: 30%;
+    height: 15%;
+    position: relative;
 }
 
 #friendRequestsList {
     text-align: center;
-    margin-left: 5%;
     overflow-y: scroll;
     overflow-x: hidden;
-     height: 20%;
+    height: 15%;
     
+}
+
+
+#friendRequestInput {
+   margin: 1px;
+   margin-top: 5px;
 }
 
 .friendListing {
     border: 3px solid rgba(64,64,64,.5);
 	border-radius: 10px 10px 10px 10px;
 	background-color: rgb(30,30,30);
-    width: 90%;
-    padding: 5px;
-    padding-top: 5px;
-    margin-bottom: -5px;
-    margin-top: 5px;
+    width: 70%;
+    padding: 3px;
+    position: relative;
+    margin-left: 10px;
+    z-index: 2;
+    font-size: 20px;
+    height: 22px;
+    margin-top: 3px;
+    margin-bottom: -7px;
+    
 }
 
 
 .topBar {
     background-color: rgb(25,25,25);
-    margin: 0px;
+    margin-bottom: -1px;
+    margin-top: -1px;
     padding-top:5px;
     padding-bottom:5px;
     width: 100%;
@@ -391,8 +422,19 @@ button:active {
     border-radius: 10px 10px 0px 0px;  
 }
 
+.innerBar {
+    background-color: rgb(25,25,25);
+    margin-bottom: -1px;
+    margin-top: -1px;
+    padding-top:5px;
+    padding-bottom:5px;
+    width: 100%;
+    height: 8%;
+    border-radius: 0px 0px 0px 0px;  
+}
+
 /*//////////////////////////////////
-//////////  ATTRIBUTES   ///////////
+//////////  MISC        ///////////
 //////////////////////////////////*/
 
 .red {
@@ -407,7 +449,7 @@ button:active {
 .smallButton {
     font-size: 12px;
     padding: 4px;
-    margin: 8px;
+    margin: 4px;
     
 }
 
@@ -419,11 +461,95 @@ button:active {
     margin-bottom: 9px;
 }
 
-.rightAlign {
-    text-align: right;
-
+.leftAlign {
+    width: 100%;
+    text-align: left;
+    display: inline;
+    position: absolute;
+    left: 2px;  
 }
 
+.leftCenterAlign {
+    width: 50%;
+    text-align: center;
+    display: inline;
+    position: absolute;
+    left: 2px;  
+}
+
+.rightAlign {
+    width: 100%;
+    text-align: right;
+    position: absolute;
+    right: 2px;
+    margin-right: 2px;
+    display: inline;
+}
+
+#scrollDownFriends {
+    top: 16%;
+    background: url(/images/downarrow.png) 50% 50% no-repeat;
+}
+
+#scrollUpFriends {
+   top: 8%;
+   background: url(/images/uparrow.png) 50% 50% no-repeat;
+}
+
+#scrollDownRequests{ 
+    top: 42%;
+    background: url(/images/downarrow.png) 50% 50% no-repeat;
+}
+
+#scrollUpRequests{
+   top: 34%;
+   background: url(/images/uparrow.png) 50% 50% no-repeat;
+}
+
+.scrollButton {
+   right: -4px;
+   z-index:100;
+   padding: 10px;
+   margin-bottom: -2px;
+   position: absolute;
+   display: block;
+}
+
+.tinyButton {
+    position: relative;
+    margin: 2px;
+    padding: 8px;
+    margin-right: 8px;
+    top: -5px;
+}
+
+.tinyButton:focus {
+    margin: 2px;
+}
+
+.removeFriend {
+     background: url(/images/remove.png) 50% 50% no-repeat;
+}
+
+.acceptFriend {
+    background: url(/images/accept.png) 50% 50% no-repeat;
+}
+@media screen and (orientation:landscape) {
+
+    
+    h3 {
+	font-size: 15px;
+    }   
+    h1 {
+        font-size: 25px;
+
+    }
+    
+    .scrollButton {
+        right: 200%;
+    }
+   
+}
 
 
 
