@@ -54,31 +54,32 @@ input {
     #learn {
        left: -100%;
     }
-    
+
     #titlebar {
     height: 15%;
    }
-   
+
    #chatBox {
     height: 70%;
     width: 70%;
-    position: absolute; 
+    position: absolute;
     left: 30%;
     bottom: 5%;
    }
-   
+
    #chatInput {
     height: 5%;
    }
-   
+
    h3 {
         font-size: 15px;
     }
-    
+
     #sendChat {
         padding: 10px;
         margin: 12px;
     }
+
     
     #scrollDownImg {
         left: 100%;
@@ -151,7 +152,7 @@ input:focus {
 //////////   BUTTONS   /////////////
 //////////////////////////////////*/
 
-button {    
+button {
 	background: #2B2B2B;
 	background: -moz-linear-gradient(0% 100% 90deg, #4D4D4D, #1A1A1A);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#1F1F1F), to(#4D4D4D));
@@ -230,9 +231,9 @@ button:active {
 }
 
 #sendChat {
-    position: absolute; 
+    position: absolute;
     right: -4%;
-    bottom: 1%;   
+    bottom: 1%;
     padding: 2px;
     font-size: 15px;
 }
@@ -244,10 +245,10 @@ button:active {
    z-index: 2;
    position: absolute;
 
-   -webkit-transition: left  1s ease;  
-   -moz-transition: left  1s ease;  
-   -o-transition: left  1s ease;  
-   -ms-transition: left 1s ease; 
+   -webkit-transition: left  1s ease;
+   -moz-transition: left  1s ease;
+   -o-transition: left  1s ease;
+   -ms-transition: left 1s ease;
    transition: left 1s ease;
 }
 
@@ -282,7 +283,7 @@ button:active {
 	border: 3px solid rgba(44,44,44,.5);
 	border-radius: 10px 10px 10px 10px;
 	background-color: rgb(35,35,35);
-	margin: 5px auto;	
+	margin: 5px auto;
     height: 15%;
     width: 70%;
     display: block;
@@ -295,18 +296,18 @@ button:active {
 	border: 5px solid rgba(44,44,44,.5);
     border-radius: 13px 13px 13px 13px;
 	background-color: rgb(35,35,35);
-	margin: 5px auto;	
+	margin: 5px auto;
     height: 85%;
     width: 70%;
     display: inline-block;
     z-index: 2;
-    
+
    transition: left  1s ease;
-   -webkit-transition: left  1s ease;  
-   -moz-transition: left  1s ease;  
-   -o-transition: left  1s ease;  
-   -ms-transition: left 1s ease; 
-   
+   -webkit-transition: left  1s ease;
+   -moz-transition: left  1s ease;
+   -o-transition: left  1s ease;
+   -ms-transition: left 1s ease;
+
 }
 
 .slide{
@@ -328,7 +329,7 @@ button:active {
 #chatBox{
     height: 70%;
     width: 58%;
-    position: absolute; 
+    position: absolute;
     left: 35%;
     bottom: 5%;
 }
@@ -336,7 +337,7 @@ button:active {
 #chatArea {
     height: 50%;
     width: 65%;
-    position: absolute; 
+    position: absolute;
     top:18%;
     left: 4%;
     background-color: rgb(0,0,0);
@@ -347,7 +348,7 @@ button:active {
 }
 
 #chatInput {
-    position: absolute; 
+    position: absolute;
     left:0%;
     bottom: 1%;
     width: 50%;
@@ -384,8 +385,8 @@ button:active {
     text-align: center;
     overflow-y: scroll;
     overflow-x: hidden;
-    height: 15%;
-    
+     height: 20%;
+
 }
 
 
@@ -419,7 +420,7 @@ button:active {
     padding-bottom:5px;
     width: 100%;
     height: 8%;
-    border-radius: 10px 10px 0px 0px;  
+    border-radius: 10px 10px 0px 0px;
 }
 
 .innerBar {
@@ -449,8 +450,7 @@ button:active {
 .smallButton {
     font-size: 12px;
     padding: 4px;
-    margin: 4px;
-    
+    margin: 8px;
 }
 
 .smallButton:focus {
@@ -490,6 +490,7 @@ button:active {
     top: 16%;
     background: url(/images/downarrow.png) 50% 50% no-repeat;
 }
+
 
 #scrollUpFriends {
    top: 8%;
@@ -551,5 +552,18 @@ button:active {
    
 }
 
-
+.inverted {
+  -webkit-perspective: 400px;
+     -moz-perspective: 400px;
+      -ms-perspective: 400px;
+          perspective: 400px;
+  -webkit-transform: rotate3d(1, 1, 0, 180deg);
+     -moz-transform: rotate3d(1, 1, 0, 180deg);
+      -ms-transform: rotate3d(1, 1, 0, 180deg);
+          transform: rotate3d(1, 1, 0, 180deg);
+  -webkit-transition: all 0.5s ease-in-out;
+     -moz-transition: all 0.5s ease-in-out;
+       -o-transition: all 0.5s ease-in-out;
+          transition: all 0.5s ease-in-out;
+}
 
