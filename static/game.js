@@ -1,14 +1,31 @@
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
+
+$(document).ready(function() {
+	$("#gamemenu").click(function(e) {
+        e.preventDefault();
+        $("#gamemenu").toggleClass("clicked");
+        $("#gameBox").toggleClass("slide");
+    });
+	
+	$("#quitMatch").click(function(e) {
+        e.preventDefault();
+		window.location = '/';
+    });
+});
+
 // sockets
-var socket = io.connect("http://192.168.1.102:8888/game");
+var socket = io.connect("http://128.237.121.146:8888/game");
 // socket.heartbeatTimeout = 20;
 
 socket.on("connected", function (data) {
 	g.myID = data.id;
 	g.player = data.player;
 	g.numPlayers = data.numPlayers;
+	
+	g.stats = data.stats;
+	drawTable();
 
 	g.map = data.map;
 	g.mapdata = data.mapdata;
@@ -76,7 +93,12 @@ socket.on("respawn", function (data) {
 });
 
 socket.on("playerDied", function (data) {
-	g.enemies[data.playerNum] = new Player(data.x/g.mapdata.gridx * c.GRID_WIDTH, data.y/g.mapdata.gridy * c.GRID_HEIGHT);
+	g.stats = data.stats;
+	drawTable();
+	
+	if (data.playerNum != g.player) {
+		g.enemies[data.playerNum] = new Player(data.x/g.mapdata.gridx * c.GRID_WIDTH, data.y/g.mapdata.gridy * c.GRID_HEIGHT);
+	}
 });
 
 socket.on("playerLeft", function (data) {
@@ -99,9 +121,10 @@ socket.on("damagePlayer", function (data) {
 });
 
 socket.on("endGame", function(data) {
+	$("#gamemenu").remove();
 	isOver = true;
 	clearInterval(g.drawHandler);
-	drawEndScreen();
+	drawEndScreen(data);
 });
 
 // Globals
@@ -133,6 +156,7 @@ var g = {
 	isStarted: false,
 	isOver: false,
 	bombCooldown: false,
+	stats: null,
 }
 
 // Constants
@@ -576,21 +600,128 @@ function draw() {
 	}
 }
 
-function drawEndScreen() {
+function drawEndScreen(stats) {
 	ctx.clearRect(0,0,canvas.width, canvas.height);
 	canvas.width = 0;
 	canvas.height = 0;
-
+	
+	var table = $("<table>");
+	var firstRow = $("<tr>");
+	var nameCol = $("<td>");
+	var killsCol = $("<td>");
+	var deathsCol = $("<td>");
+	
+	table.attr("id", "scoreTable");
+	nameCol.html("Username");
+	nameCol.addClass("cell1");
+	killsCol.html("Kills");
+	killsCol.addClass("cell2");
+	deathsCol.html("Deaths");
+	deathsCol.addClass("cell1");
+	
+	firstRow.append(nameCol);
+	firstRow.append(killsCol);
+	firstRow.append(deathsCol);
+	table.append(firstRow);
+	
+	var swap = true;
+	for (var username in stats) {
+		var row = $("<tr>");
+		var name = $("<td>");
+		var kills = $("<td>");
+		var deaths = $("<td>");
+		
+		name.html(username);
+		kills.html(stats[username].kills);
+		deaths.html(stats[username].deaths);
+		
+		if (swap) {
+			name.addClass("cell2");
+			kills.addClass("cell1");
+			deaths.addClass("cell2");
+		}
+		else {
+			name.addClass("cell1");
+			kills.addClass("cell2");
+			deaths.addClass("cell1");
+		}
+		swap = !swap;
+		
+		row.append(name);
+		row.append(kills);
+		row.append(deaths);
+		table.append(row);
+	}
+	
 	var buttonDiv = $("#buttonDiv");
 	var backButton = $("<button>");
-	backButton.html("Back");
+	backButton.attr("id", "backButton");
+	backButton.html("Done");
 
 	backButton.click(function(e) {
         e.preventDefault();
 		window.location = '/';
     });
 
+	buttonDiv.append(table);
 	buttonDiv.append(backButton);
+}
+
+function drawTable() {
+	var gameBox = $("#gameBox");
+
+	$("#scoreTable").remove();
+	
+	var table = $("<table>");
+	var firstRow = $("<tr>");
+	var nameCol = $("<td>");
+	var killsCol = $("<td>");
+	var deathsCol = $("<td>");
+	
+	table.attr("id", "scoreTable");
+	nameCol.html("Username");
+	nameCol.addClass("cell1");
+	killsCol.html("Kills");
+	killsCol.addClass("cell2");
+	deathsCol.html("Deaths");
+	deathsCol.addClass("cell1");
+	
+	firstRow.append(nameCol);
+	firstRow.append(killsCol);
+	firstRow.append(deathsCol);
+	table.append(firstRow);
+	
+	var swap = true;
+	for (var username in g.stats) {
+		console.log(username);
+		var row = $("<tr>");
+		var name = $("<td>");
+		var kills = $("<td>");
+		var deaths = $("<td>");
+		
+		name.html(username);
+		kills.html(g.stats[username].kills);
+		deaths.html(g.stats[username].deaths);
+		
+		if (swap) {
+			name.addClass("cell2");
+			kills.addClass("cell1");
+			deaths.addClass("cell2");
+		}
+		else {
+			name.addClass("cell1");
+			kills.addClass("cell2");
+			deaths.addClass("cell1");
+		}
+		swap = !swap;
+		
+		row.append(name);
+		row.append(kills);
+		row.append(deaths);
+		table.append(row);
+	}
+	
+	gameBox.append(table);
 }
 
 function drawGrid(x, y, width, height) {
@@ -982,7 +1113,7 @@ function checkBulletCollision(bullet_index) {
     if (g.myPlayer.powerups.invincible <= 0) {
       g.myPlayer.hp -= 30;
       socket.emit("damagedPlayer", {id: g.myID, playerNum: g.player, damage: 30})
-      checkForDeath(bullet.player);
+      checkForDeath(bullet.player); 
     }
   }
 }

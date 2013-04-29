@@ -102,6 +102,11 @@ button:active {
     box-shadow: none;
 }
 
+#gamemenu {
+   top: 1%;
+   padding: 2.2% 2.8%;
+}
+
 #menu {
    top: 20%;
    padding: 2.2% 2.8%;
@@ -128,6 +133,10 @@ button:active {
 
 #createGame {
     padding: 8% 8% 8% 8%;
+}
+
+#backButton {
+	padding: 2.2% 2.4%;
 }
 
 #sendChat {
@@ -166,7 +175,6 @@ button:active {
     left:39%;
 
 }
-
 
 /*//////////////////////////////////
 //////////   BOXES   /////////////
@@ -213,6 +221,10 @@ button:active {
    -o-transition: left  1s ease;
    -ms-transition: left 1s ease;
    transition: left  1s ease;
+}
+
+#gameBox {
+  top: 1%;
 }
 
 .slide{
@@ -349,6 +361,40 @@ button:active {
     text-align: right;
     margin-left: 30%;
 
+}
+
+/*//////////////////////////////////
+//////////   TABLES /////////
+//////////////////////////////////*/
+
+#buttonDiv {
+	position: absolute;
+    top: 5%;
+	left:0;
+    right:0;
+    margin-left:auto;
+    margin-right:auto;
+}
+
+#scoreTable {
+	left:0;
+    right:0;
+    margin-left:auto;
+    margin-right:auto;
+}
+
+.cell1 {
+	background-color: #111;
+	text-align: center;
+	padding: 5px;
+	width: 100px;
+}
+
+.cell2 {
+	background-color: #444;
+	text-align: center;
+	padding: 5px;
+	width: 100px;
 }
 
 .inverted {

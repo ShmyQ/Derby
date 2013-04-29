@@ -70,6 +70,22 @@ var map1 = [["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W
 			["W", "R", "R", "O", "O", "R", "O", "O", "O", "O", "R", "O", "O", "R", "O", "W"],
 			["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"]];
 
+var map2data = {width: 500, height: 500, gridx: 50, gridy: 50, blockx: 10, blocky: 10, maxPlayers: 2};
+var map2positions = [{},
+					 {x: 125, y: 125},
+					 {x: 375, y: 375}];
+var map2 = [["O", "R", "R", "O", "O", "O", "R", "R", "R", "R"],
+			["R", "O", "O", "R", "O", "O", "O", "R", "R", "R"],
+			["R", "O", "1", "O", "O", "P", "W", "O", "R", "R"],
+			["O", "R", "O", "O", "O", "O", "P", "W", "O", "R"],
+			["O", "O", "O", "O", "R", "O", "O", "P", "O", "O"],
+			["O", "O", "P", "O", "O", "R", "O", "O", "O", "O"],
+			["R", "O", "W", "P", "O", "O", "O", "O", "R", "O"],
+			["R", "R", "O", "W", "P", "O", "O", "2", "O", "R"],
+			["R", "R", "R", "O", "O", "O", "R", "O", "O", "R"],
+			["R", "R", "R", "R", "O", "O", "O", "R", "R", "O"]];
+
+
 // ========================
 // === Socket.io server ===
 // ========================
@@ -108,18 +124,27 @@ var game = io.of('/game').on("connection", function (socket) {
   socket.emit("getUsername", {});
 
   socket.on("username", function(data) {
+	console.log("connecting with username: ", data.username);
 	  var thisGame = games[usersGame[data.username]];
 	  thisGame.sockets[data.username] = socket;
 
 	  var player = thisGame.players.indexOf(data.username) + 1;
 
+	  var stats = new Object();
+	  for (var i = 0; i < thisGame.players.length; i++) {
+		  var username = thisGame.players[i];
+		  stats[username] = {kills: 0, deaths: 0};
+	  }
+
+	  console.log("Beginning stats: ", stats);
+
 	  if (thisGame.started) {
 	    // send connected message to set up client side
-		socket.emit("connected", {id: socket.id, reconnecting: true, x: playerData[data.username].x, y: playerData[data.username].y, player: player.toString(), numPlayers: thisGame.players.length, map: thisGame.map, mapdata: map1data});
+		socket.emit("connected", {id: socket.id, reconnecting: true, x: playerData[data.username].x, y: playerData[data.username].y, player: player.toString(), numPlayers: thisGame.players.length, map: thisGame.map, mapdata: map1data, stats: stats});
 	  }
 	  else {
 		  // send connected message to set up client side
-		  socket.emit("connected", {id: socket.id, reconnecting: false, x: map1positions[player].x/map1data.gridx, y: map1positions[player].y/map1data.gridy, player: player.toString(), numPlayers: thisGame.players.length, map: map1, mapdata: map1data});
+		  socket.emit("connected", {id: socket.id, reconnecting: false, x: map1positions[player].x/map1data.gridx, y: map1positions[player].y/map1data.gridy, player: player.toString(), numPlayers: thisGame.players.length, map: map1, mapdata: map1data, stats: stats});
 
 		  // save new player
 		  playerData[data.username] = {kills: 0, deaths: 0, x: map1positions[player].x, y: map1positions[player].y};
@@ -132,13 +157,13 @@ var game = io.of('/game').on("connection", function (socket) {
 			  thisGame.started = true;
 			  setTimeout( function() {
 				// get player stats to send back
-				/*var stats = new Object();
+				var stats = new Object();
 				for (var i = 0; i < thisGame.players.length; i++) {
 					var username = thisGame.players[i];
 					stats[username] = {kills: playerData[username].kills, deaths: playerData[username].deaths};
-				}*/
+				}
 
-				game.emit("endGame", {});
+				game.emit("endGame", stats);
 			  }, roundSeconds*1000);
 		  }
 	  }
@@ -194,13 +219,22 @@ var game = io.of('/game').on("connection", function (socket) {
 
 	playerData[data.username].deaths++;
 	// suicide
-	if (data.killer === 0)
+	if (data.killer === data.player)
 		playerData[data.username].kills--;
 	// give killer a kill
 	else
 		playerData[games[usersGame[data.username]].players[parseInt(data.killer) - 1]].kills++;
 
-	socket.broadcast.emit("playerDied", {id: data.id, playerNum: data.player, x: map1positions[parseInt(data.player)].x, y: map1positions[parseInt(data.player)].y});
+	var thisGame = games[usersGame[data.username]];
+	var stats = new Object();
+	for (var i = 0; i < thisGame.players.length; i++) {
+		var username = thisGame.players[i];
+		stats[username] = {kills: playerData[username].kills, deaths: playerData[username].deaths};
+	}
+
+	console.log("Sending stats: ", stats);
+
+	game.emit("playerDied", {id: data.id, playerNum: data.player, x: map1positions[parseInt(data.player)].x, y: map1positions[parseInt(data.player)].y, stats: stats});
   });
 
   socket.on("disconnect", function () {

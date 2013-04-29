@@ -65,7 +65,7 @@ module.exports = function (mongoExpressAuth, app,io, map){
                 games[gameNumber] = curGame;
 
                 // reset for next new game
-                newGamePlayerCount === 0;
+                newGamePlayerCount = 0;
                 curGame = {players: [], connected: 0, sockets: new Object(), id: gameNumber, started: false, map: map.slice(0)};
             }
         });
