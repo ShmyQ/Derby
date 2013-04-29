@@ -138,7 +138,7 @@ function updateFriendsPanel(friends,requests){
                 statusPic = "<img src = 'images/online.png' alt = 'Online' />"
             }
             friendsHTML = friendsHTML +"<div class='friendListing'>"
-            + "<div class = 'leftAlign'><button id = 'removePlayer" + i + "' class='tinyButton removeFriend'></button>" + "</div>"
+            + "<div class = 'leftAlign'><button id = 'removePlayer" + i + "' class='tinyButton removeFriend'></button></div>"
             +  friends[i] + "<div class='rightAlign'>" + statusPic + "</div></div><br />";
 
         }
@@ -213,7 +213,6 @@ function playersListHTML(players){
         finalHTML = finalHTML + "<p>" + players[i] + "</p>";
     }
     
-    console.log(g.players);
     $("#playerList").html(finalHTML);
 }
 

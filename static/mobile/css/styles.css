@@ -307,6 +307,8 @@ button:active {
    -moz-transition: left  1s ease;
    -o-transition: left  1s ease;
    -ms-transition: left 1s ease;
+   
+   overflow: scroll;
 
 }
 
@@ -377,7 +379,7 @@ button:active {
 #friendsList {
     text-align: center;
     overflow-x: hidden;
-    height: 15%;
+    height: 25%;
     position: relative;
 }
 
@@ -403,7 +405,6 @@ button:active {
     padding: 3px;
     position: relative;
     margin-left: 10px;
-    z-index: 2;
     font-size: 20px;
     height: 22px;
     margin-top: 3px;
@@ -487,7 +488,7 @@ button:active {
 }
 
 #scrollDownFriends {
-    top: 16%;
+    top: 25%;
     background: url(/images/downarrow.png) 50% 50% no-repeat;
 }
 
@@ -498,12 +499,12 @@ button:active {
 }
 
 #scrollDownRequests{ 
-    top: 42%;
+    top: 44%;
     background: url(/images/downarrow.png) 50% 50% no-repeat;
 }
 
 #scrollUpRequests{
-   top: 34%;
+   top: 56%;
    background: url(/images/uparrow.png) 50% 50% no-repeat;
 }
 
@@ -519,13 +520,15 @@ button:active {
 .tinyButton {
     position: relative;
     margin: 2px;
-    padding: 8px;
+    padding: 10px;
     margin-right: 8px;
     top: -5px;
+    z-index: 99;
 }
 
 .tinyButton:focus {
     margin: 2px;
+    margin-right: 8px;
 }
 
 .removeFriend {
