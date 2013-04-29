@@ -2,7 +2,7 @@ var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
 // sockets
-var socket = io.connect("http://192.168.1.102:8888/game");
+var socket = io.connect("http://128.237.121.146:8888/game");
 // socket.heartbeatTimeout = 20;
 
 socket.on("connected", function (data) {
@@ -101,7 +101,7 @@ socket.on("damagePlayer", function (data) {
 socket.on("endGame", function(data) {
 	isOver = true;
 	clearInterval(g.drawHandler);
-	drawEndScreen();
+	drawEndScreen(data);
 });
 
 // Globals
@@ -224,8 +224,8 @@ function init() {
 	canvas.width  = window.innerWidth;
 	canvas.height = window.innerHeight;
 
-	var blockHeight = window.innerHeight/12;
-	var blockWidth = window.innerWidth/8;
+	var blockHeight = window.innerHeight/8;
+	var blockWidth = window.innerWidth/12;
 	c.MAP_WIDTH = blockWidth*16;
 	c.MAP_HEIGHT = blockHeight*16;
 	c.BALL_RADIUS = Math.min(blockWidth, blockHeight)/3;
@@ -383,9 +383,6 @@ function draw() {
 				ctx.fill();
 
 				ctx.save();
-				ctx.translate(xpos, ypos);
-				ctx.rotate(Math.PI/2);
-				ctx.translate(-xpos, -ypos);
 				ctx.fillStyle = "white";
 				ctx.font = c.BOMB_RADIUS + "px Arial";
 				ctx.textAlign = "center";
@@ -560,14 +557,62 @@ function draw() {
 	}
 }
 
-function drawEndScreen() {
+function drawEndScreen(stats) {
 	ctx.clearRect(0,0,canvas.width, canvas.height);
 	canvas.width = 0;
 	canvas.height = 0;
-
+	
+	var table = $("<table>");
+	var firstRow = $("<tr>");
+	var nameCol = $("<td>");
+	var killsCol = $("<td>");
+	var deathsCol = $("<td>");
+	
+	table.attr("id", "scoreTable");
+	nameCol.html("Username");
+	nameCol.addClass("cell1");
+	killsCol.html("Kills");
+	killsCol.addClass("cell2");
+	deathsCol.html("Deaths");
+	deathsCol.addClass("cell1");
+	
+	firstRow.append(nameCol);
+	firstRow.append(killsCol);
+	firstRow.append(deathsCol);
+	table.append(firstRow);
+	
+	var swap = true;
+	for (var username in stats) {
+		var row = $("<tr>");
+		var name = $("<td>");
+		var kills = $("<td>");
+		var deaths = $("<td>");
+		
+		name.html(username);
+		kills.html(stats[username].kills);
+		deaths.html(stats[username].deaths);
+		
+		if (swap) {
+			name.addClass("cell2");
+			kills.addClass("cell1");
+			deaths.addClass("cell2");
+		}
+		else {
+			name.addClass("cell1");
+			kills.addClass("cell2");
+			deaths.addClass("cell1");
+		}
+		swap = !swap;
+		
+		row.append(name);
+		row.append(kills);
+		row.append(deaths);
+		table.append(row);
+	}
+	
 	var buttonDiv = $("#buttonDiv");
 	var backButton = $("<button>");
-	backButton.html("Back");
+	backButton.html("Done");
 
 	backButton.click(function(e) {
         e.preventDefault();
@@ -575,6 +620,7 @@ function drawEndScreen() {
     });
 
 	buttonDiv.append(backButton);
+	buttonDiv.append(table);
 }
 
 function drawGrid(x, y, width, height) {
@@ -962,7 +1008,7 @@ function checkBulletCollision(bullet_index) {
     if (g.myPlayer.powerups.invincible <= 0) {
       g.myPlayer.hp -= 30;
       socket.emit("damagedPlayer", {id: g.myID, playerNum: g.player, damage: 30})
-      checkForDeath(bullet.player);
+      checkForDeath(bullet.player); 
     }
   }
 }

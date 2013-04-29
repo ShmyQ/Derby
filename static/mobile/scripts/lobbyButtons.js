@@ -1,18 +1,8 @@
-
-
-var lobby = io.connect('http://128.237.87.127:8888/lobby');
-
-
-lobby.on('joinGame', function (data) {
-	console.log("joining game");
-    window.location = '/game';
-});
-
 $(document).ready(function() {
     //==================
     //  Button Events
     //==================
-
+    var lobby = io.connect('http://128.237.87.127:8888/lobby');
     $("#logoutButton").on('tap', function(e) {
         e.preventDefault();
         logoutPlayer();
@@ -144,3 +134,8 @@ function createRemovePlayer(i,otherUser){
         alert("You are no longer friends with " + otherUser);
     });
 }
+
+lobby.on('joinGame', function (data) {
+	console.log("joining game");
+    window.location = '/game';
+});

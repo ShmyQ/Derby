@@ -74,9 +74,6 @@ $(document).ready(function(){
 //  Lobby Chat Server
 //==================
 
-
-
-
 lobby.on('receivePlayers', function (data) {
     playersListHTML(data.players);
     logoutOnDisconnect(g.originalLogin);
