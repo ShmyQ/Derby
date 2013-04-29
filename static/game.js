@@ -146,7 +146,7 @@ var c = {
 	ROCK_HEIGHT: 0,
 
 	BOMB_RADIUS: 0,
-	BOMB_TIME: 5,
+	BOMB_TIME: 6,
 	BOMB_EXPLOSION_RADIUS: 0,
 
 	POWERUP_WIDTH: 0,
@@ -397,41 +397,18 @@ function draw() {
 			var ypos = canvas.height/2 - (g.myPlayer.y - bomb.y);
 
 			if (bomb.isExploding > 0) {
-        console.log("bomb.isExploding = " + bomb.isExploding);
         var ratio = s.explosion[bomb.isExploding - 1].width / 162;
-        console.log("ratio = " + ratio);
         ctx.drawImage(explosionSprite,
         s.explosion[bomb.isExploding - 1].x, s.explosion[bomb.isExploding - 1].y,
         s.explosion[bomb.isExploding - 1].width, s.explosion[bomb.isExploding - 1].height,
         xpos - (c.BOMB_EXPLOSION_RADIUS * ratio), ypos - (c.BOMB_EXPLOSION_RADIUS * ratio),
         (c.BOMB_EXPLOSION_RADIUS * 2 * ratio), (c.BOMB_EXPLOSION_RADIUS * 2 * ratio));
-
-				// ctx.fillStyle = "orange";
-				// ctx.beginPath();
-				// ctx.arc(xpos, ypos, c.BOMB_EXPLOSION_RADIUS, 0, 2*Math.PI, true);
-				// ctx.fill();
 			}
 			else {
         ctx.drawImage(bombSprite,
-        s.bombs[bomb.time].x, s.bombs[bomb.time].y,
-        s.bombs[bomb.time].width, s.bombs[bomb.time].height,
+        s.bombs[bomb.time - 1].x, s.bombs[bomb.time - 1].y,
+        s.bombs[bomb.time - 1].width, s.bombs[bomb.time - 1].height,
         xpos - c.POWERUP_WIDTH/2, ypos - c.POWERUP_HEIGHT/2, c.POWERUP_WIDTH, c.POWERUP_HEIGHT);
-
-
-				// ctx.fillStyle = "red";
-				// ctx.beginPath();
-				// ctx.arc(xpos, ypos, c.BOMB_RADIUS, 0, 2*Math.PI, true);
-				// ctx.fill();
-
-				// ctx.save();
-				// ctx.translate(xpos, ypos);
-				// ctx.rotate(Math.PI/2);
-				// ctx.translate(-xpos, -ypos);
-				// ctx.fillStyle = "white";
-				// ctx.font = c.BOMB_RADIUS + "px Arial";
-				// ctx.textAlign = "center";
-				// ctx.fillText(bomb.time + "", xpos, ypos);
-				// ctx.restore();
 			}
 		}
 	});
@@ -725,21 +702,20 @@ function explodeBomb(bomb) {
 	if (dist < c.BOMB_EXPLOSION_RADIUS) {
     if (g.myPlayer.powerups.invincible <= 0) {
       g.myPlayer.hp -= 50;
-      // TODO: emit damage here?
       checkForDeath(bomb.player);
     }
 	}
 
   // explode the bomb then remove
   bomb.isExploding = 4;
-  bomb.explosionHandler = setInterval(function() { explodeAnimation(bomb); }, 400);
+  bomb.explosionHandler = setInterval(function() { explodeAnimation(bomb); }, 40);
 }
 
 function explodeAnimation(bomb) {
-  if(bomb.isExploding-- <= 0) {
+  if(--bomb.isExploding <= 0) {
     bomb.isExploding = 0;
     g.bombs.splice(g.bombs.indexOf(bomb), 1);
-    clearInterval(g.explosionHandler);
+    clearInterval(bomb.explosionHandler);
   }
 }
 
@@ -1095,7 +1071,7 @@ function Bomb(x, y, player) {
 	this.x = x;
 	this.y = y;
 	this.time = c.BOMB_TIME;
-	this.timerHandler = setInterval( function() { decrementTimer(bomb); }, 1000 );
+	this.timerHandler = setInterval( function() { decrementTimer(bomb); }, 550 );
 	this.player = player;
 	this.isExploding = 0;
   this.explosionHandler;
