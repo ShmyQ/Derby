@@ -76,6 +76,7 @@ $(document).ready(function(){
 
 lobby.on('receivePlayers', function (data) {
     playersListHTML(data.players);
+    getFriendsInfo(document.cookie.username,document.cookie.password);
     logoutOnDisconnect(g.originalLogin);
 });
 
@@ -102,7 +103,7 @@ lobby.on('twoInstances',function(data){
 // Logs out when username is illegal
 function logoutOnDisconnect(originalLogin){
     sessionStorage["username"] = readCookie("username");
-    if(sessionStorage["username"] === undefined || sessionStorage["username"] === "" || sessionStorage["username"] !== originalLogin){
+    if(sessionStorage["username"] === undefined || sessionStorage["username"] === "" || sessionStorage["username"] !== originalLogin || $("#playersList").html === "" ){
         alert("You have disconnected from the server!");
         logoutPlayer();
     }

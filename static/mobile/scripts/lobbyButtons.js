@@ -116,22 +116,29 @@ $(document).ready(function() {
 function createAcceptPlayer(i,otherUser){
     $("#addPlayer" + i).on('tap', function(e) {
         e.preventDefault();
-        acceptFriendRequest(otherUser);
-        alert("You are now friends with " + otherUser);
+        var r=confirm("Are you sure you want to accept " + otherUser + "'s friend request?");
+        if (r===true){
+            acceptFriendRequest(otherUser);
+        }
     });
 }
 
 function createRejectPlayer(i,otherUser){
     $("#rejectPlayer" + i).on('tap', function(e) {
         e.preventDefault();
-        rejectFriendRequest(otherUser);
+        var r=confirm("Are you sure you want to reject " + otherUser + "'s friend request?");
+        if (r===true){
+           rejectFriendRequest(otherUser);
+        }
     });
 }
 function createRemovePlayer(i,otherUser){
     $("#removePlayer" + i).on('tap', function(e) {
         e.preventDefault();
-        removeFriendRequest(otherUser);
-        alert("You are no longer friends with " + otherUser);
+        var r=confirm("Are you sure you want to remove " + otherUser + " from your friends?");
+        if (r===true){
+          removeFriendRequest(otherUser);
+        }      
     });
 }
 

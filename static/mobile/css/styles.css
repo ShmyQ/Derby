@@ -36,24 +36,22 @@ input {
 
 /* Landscape */
 @media screen and (orientation:landscape) {
-      #menu {
+     #menu {
        top: 18%;
-       padding: 4% 5.2%;
+       padding: 4% 4.6%;
     }
 
-    #profile{
+    #friends{
        top: 40%;
-       padding: 4% 3.5%;
-    }
-
-    #friends {
-       top:62%;
-       padding: 4% 3%;
+       padding: 4% 1.2%;
+       
     }
 
     #learn {
-       left: -100%;
+       top:62%;
+       padding: 4% 3.4%;
     }
+
 
     #titlebar {
     height: 15%;
@@ -80,15 +78,6 @@ input {
         margin: 12px;
     }
 
-    
-    #scrollDownImg {
-        left: 100%;
-    }
-
-    #scrollDownImg2 {
-       left: 100%;
-    }
-   
 }
 
 
@@ -190,23 +179,20 @@ button:active {
 @media only screen and (orientation:portrait) {
    #menu {
    top: 12%;
-   padding: 5% 6.5%;
+   padding: 5% 5.8%;
     }
 
-    #profile{
+    #friends{
        top: 25%;
-       padding: 5% 4%;
-    }
-
-    #friends {
-       top: 38%;
-       padding: 5% 3%;
+        padding: 5% 2.6%;
+      
     }
 
     #learn {
-       top: 51%;
-       padding: 5% 5.3%;
+       top: 38%;
+       padding: 5% 5%;
     }
+
 }
 
 
@@ -225,9 +211,10 @@ button:active {
      font-size: 20px;
 }
 
-#findMatch {
-    padding: 8% 8% 8% 8%;
+#play {
+    padding: 12% 12% 12% 12%;
     font-size: 25px;
+    margin-top: 10%;
 }
 
 #sendChat {
@@ -260,6 +247,78 @@ button:active {
 
 .clicked{
     left:69%
+}
+
+#scrollDownFriends {
+    top: 25%;
+    background: url(/images/downarrow.png) 50% 50% no-repeat;
+}
+
+
+#scrollUpFriends {
+   top: 8%;
+   background: url(/images/uparrow.png) 50% 50% no-repeat;
+}
+
+#scrollDownRequests{ 
+    top: 44%;
+    background: url(/images/downarrow.png) 50% 50% no-repeat;
+}
+
+#scrollUpRequests{
+   top: 56%;
+   background: url(/images/uparrow.png) 50% 50% no-repeat;
+}
+
+
+
+.scrollButton {
+   right: -4px;
+   z-index:100;
+   padding: 10px;
+   margin-bottom: -2px;
+   position: absolute;
+   display: block;
+}
+
+.tinyButton {
+    position: relative;
+    margin: 2px;
+    padding: 10px;
+    margin-right: 8px;
+    top: -5px;
+    z-index: 99;
+}
+
+.tinyButton:focus {
+    margin: 2px;
+    margin-right: 8px;
+}
+
+.removeFriend {
+     background: url(/images/remove.png) 50% 50% no-repeat;
+}
+
+.acceptFriend {
+    background: url(/images/accept.png) 50% 50% no-repeat;
+}
+
+.smallButton {
+    font-size: 12px;
+    padding: 4px;
+    margin: 8px;
+}
+
+.smallButton:focus {
+    margin: 8px;
+}
+
+.smallButton:active {
+    margin-bottom: 9px;
+}
+#logoutButton {
+    margin-top: 50%;
+    
 }
 
 /*//////////////////////////////////
@@ -334,6 +393,7 @@ button:active {
     position: absolute;
     left: 35%;
     bottom: 5%;
+   
 }
 
 #chatArea {
@@ -347,6 +407,10 @@ button:active {
     overflow-x: hidden;
     text-align: left;
     font-size: 15px;
+    overflow-y: scroll;
+    -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
 }
 
 #chatInput {
@@ -371,7 +435,7 @@ button:active {
     border: 3px solid rgba(64,64,64,.5);
 	border-radius: 10px 10px 10px 10px;
 	background-color: rgb(30,30,30);
-    overflow-y: hidden;
+    overflow-y: scroll;
     overflow-x: hidden;
     font-size: 10px;
 }
@@ -381,6 +445,7 @@ button:active {
     overflow-x: hidden;
     height: 25%;
     position: relative;
+    overflow-y: scroll;
 }
 
 #friendRequestsList {
@@ -435,6 +500,10 @@ button:active {
     border-radius: 0px 0px 0px 0px;  
 }
 
+#r {
+    padding: 20px;
+}
+
 /*//////////////////////////////////
 //////////  MISC        ///////////
 //////////////////////////////////*/
@@ -446,20 +515,6 @@ button:active {
 .chatName {
     color: gray;
     display: inline;
-}
-
-.smallButton {
-    font-size: 12px;
-    padding: 4px;
-    margin: 8px;
-}
-
-.smallButton:focus {
-    margin: 8px;
-}
-
-.smallButton:active {
-    margin-bottom: 9px;
 }
 
 .leftAlign {
@@ -487,57 +542,8 @@ button:active {
     display: inline;
 }
 
-#scrollDownFriends {
-    top: 25%;
-    background: url(/images/downarrow.png) 50% 50% no-repeat;
-}
 
 
-#scrollUpFriends {
-   top: 8%;
-   background: url(/images/uparrow.png) 50% 50% no-repeat;
-}
-
-#scrollDownRequests{ 
-    top: 44%;
-    background: url(/images/downarrow.png) 50% 50% no-repeat;
-}
-
-#scrollUpRequests{
-   top: 56%;
-   background: url(/images/uparrow.png) 50% 50% no-repeat;
-}
-
-.scrollButton {
-   right: -4px;
-   z-index:100;
-   padding: 10px;
-   margin-bottom: -2px;
-   position: absolute;
-   display: block;
-}
-
-.tinyButton {
-    position: relative;
-    margin: 2px;
-    padding: 10px;
-    margin-right: 8px;
-    top: -5px;
-    z-index: 99;
-}
-
-.tinyButton:focus {
-    margin: 2px;
-    margin-right: 8px;
-}
-
-.removeFriend {
-     background: url(/images/remove.png) 50% 50% no-repeat;
-}
-
-.acceptFriend {
-    background: url(/images/accept.png) 50% 50% no-repeat;
-}
 @media screen and (orientation:landscape) {
 
     
