@@ -89,14 +89,14 @@ $(document).ready(function() {
         e.preventDefault();
          sendChatToServer($("#chatInput").val());
     });
-    
-    $("#sendFriendRequest").click(function(e) { 
+
+    $("#sendFriendRequest").click(function(e) {
         e.preventDefault();
          alert("Friend request sent to " +  $("#friendRequestInput").val());
          postFriendRequest();
         
     });
-   
+
 });
 
 

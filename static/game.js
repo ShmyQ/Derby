@@ -58,9 +58,9 @@ socket.on("removePowerup", function (data) {
 });
 
 socket.on("placePowerup", function (data) {
-	console.log("Looking for rock: ", data.x*c.GRID_WIDTH, data.y*c.GRID_HEIGHT);
+	// console.log("Looking for rock: ", data.x*c.GRID_WIDTH, data.y*c.GRID_HEIGHT);
 	g.rocks.forEach( function(rock) {
-		console.log("Checking rock: ", rock.x, rock.y);
+		// console.log("Checking rock: ", rock.x, rock.y);
 		if ((Math.round(rock.x/c.GRID_WIDTH * 2) / 2).toFixed(1) === data.x && (Math.round(rock.y/c.GRID_HEIGHT * 2) / 2).toFixed(1) === data.y)
 			g.rocks.splice(g.rocks.indexOf(rock), 1);
 	});
@@ -110,6 +110,7 @@ var g = {
 	drawHandler: null,
   bulletHandler: null,
   invincibleHandler: null,
+  invertHandler: null,
 	myPlayer: null,
 	// socket id
 	myID: 0,
@@ -180,6 +181,10 @@ var ammoSprite = new Image();
 ammoSprite.src = "images/ammo.png";
 var starSprite = new Image();
 starSprite.src = "images/star.png";
+var healthSprite = new Image();
+healthSprite.src = "images/health.png";
+var invertSprite = new Image();
+invertSprite.src = "images/invert.png";
 var s = {
   rocks: [{
     x: 5, y: 21, width: 104, height: 94
@@ -198,6 +203,12 @@ var s = {
   }],
   star: [{
     x: 0, y: 0, width: 27, height: 27
+  }],
+  health: [{
+    x: 0, y: 0, width: 32, height: 32
+  }],
+  invert: [{
+    x: 0, y: 0, width: 50, height: 50
   }]
 }
 
@@ -257,6 +268,7 @@ function getDevicePlatform() {
 function draw() {
 	ctx.clearRect(0,0,canvas.width, canvas.height);
 
+  // TODO: Should try with a smaller image file on repeat, might reduce lag
 	// background
 	ctx.drawImage(g.backgroundImg, g.myPlayer.x/10, g.myPlayer.y/10, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
 
@@ -395,10 +407,22 @@ function draw() {
         s.ammo[0].width, s.ammo[0].height,
         xpos - c.POWERUP_WIDTH/2, ypos - c.POWERUP_HEIGHT/2, c.POWERUP_WIDTH, c.POWERUP_HEIGHT);
       }
+      else if (powerup.power === "health") {
+        ctx.drawImage(healthSprite,
+        s.health[0].x, s.health[0].y,
+        s.health[0].width, s.health[0].height,
+        xpos - c.POWERUP_WIDTH/2, ypos - c.POWERUP_HEIGHT/2, c.POWERUP_WIDTH, c.POWERUP_HEIGHT);
+      }
       else if (powerup.power === "invincible") {
         ctx.drawImage(starSprite,
         s.star[0].x, s.star[0].y,
         s.star[0].width, s.star[0].height,
+        xpos - c.POWERUP_WIDTH/2, ypos - c.POWERUP_HEIGHT/2, c.POWERUP_WIDTH, c.POWERUP_HEIGHT);
+      }
+      else if (powerup.power === "invert") {
+        ctx.drawImage(invertSprite,
+        s.invert[0].x, s.invert[0].y,
+        s.invert[0].width, s.invert[0].height,
         xpos - c.POWERUP_WIDTH/2, ypos - c.POWERUP_HEIGHT/2, c.POWERUP_WIDTH, c.POWERUP_HEIGHT);
       }
 		}
@@ -480,6 +504,15 @@ function draw() {
 			ctx.fill();
 
       // invincible
+      // TODO: need to emit invincibility or have server handle it to draw on enemies
+      // if (g.enemies[enemyID].powerups.invincible > 0) {
+      //   ctx.drawImage(starSprite,
+      //   s.star[0].x, s.star[0].y,
+      //   s.star[0].width, s.star[0].height,
+      //   xpos - c.BALL_RADIUS/2, ypos - c.BALL_RADIUS/2, c.POWERUP_WIDTH, c.POWERUP_HEIGHT);
+      // }
+
+      // copy pasted for invert possibly
       // TODO: need to emit invincibility or have server handle it to draw on enemies
       // if (g.enemies[enemyID].powerups.invincible > 0) {
       //   ctx.drawImage(starSprite,
@@ -580,12 +613,12 @@ function drawEndScreen(stats) {
 	var buttonDiv = $("#buttonDiv");
 	var backButton = $("<button>");
 	backButton.html("Done");
-	
+
 	backButton.click(function(e) {
         e.preventDefault();
 		window.location = '/';
     });
-	
+
 	buttonDiv.append(backButton);
 	buttonDiv.append(table);
 }
@@ -654,7 +687,7 @@ function createMap() {
 				if (parseInt(g.map[j][i]) <= g.numPlayers)
 					g.enemies[g.map[j][i]] = new Player(i*c.GRID_WIDTH + c.GRID_WIDTH/2, j*c.GRID_HEIGHT + c.GRID_HEIGHT/2);
 			}
-			
+
 			// TODO POWERUPS
 		}
 	}
@@ -720,7 +753,7 @@ function removeRocks(rocks) {
 
 	rockX = (Math.round(rockX/c.GRID_WIDTH * 2) / 2).toFixed(1);
 	rockY = (Math.round(rockY/c.GRID_HEIGHT * 2) / 2).toFixed(1);
-	
+
 	socket.emit("rockDestroyed", {id: g.myID, x: rockX, y: rockY, username: sessionStorage["username"]});
   });
 }
@@ -749,7 +782,7 @@ function decrementTimer(bomb) {
 function fireBullet(playerX, playerY, angle, player) {
   var moveX = c.BALL_RADIUS * 2 * Math.cos(angle * Math.PI / 180);
   var moveY = c.BALL_RADIUS * 2 * Math.sin(angle * Math.PI / 180);
-  console.log("START\nbullet.x = " + (playerX + moveX) + "\nbullet.y = " + (playerY - moveY) + "\nangle = " + angle);
+  // console.log("START\nbullet.x = " + (playerX + moveX) + "\nbullet.y = " + (playerY - moveY) + "\nangle = " + angle);
   g.bullets.push(new Bullet(playerX * c.GRID_WIDTH + moveX, playerY * c.GRID_HEIGHT - moveY, angle, player));
   if (g.bullets.length === 1) {
     g.bulletHandler = setInterval(moveBullets, 30);
@@ -990,23 +1023,48 @@ function addPowerup(powerup) {
     }
     g.myPlayer.powerups.invincible += 10;
   }
+  else if (powerup.power === "health") {
+    g.myPlayer.hp += 25;
+    if (g.myPlayer.hp > 100) {
+      g.myPlayer.hp = 100;
+    }
+  }
+  else if (powerup.power === "invert") {
+    if (!canvas.classList.contains('inverted')) {
+      canvas.classList.add('inverted');
+    }
+    if (g.myPlayer.powerups.invert === 0) {
+      g.invertHandler = setInterval(decrementInvert, 1000);
+    }
+    g.myPlayer.powerups.invert += 10;
+  }
 
   g.powerups.splice(g.powerups.indexOf(powerup), 1);
   socket.emit("powerupTaken", {id: g.myID, x: powerup.x/c.POWERUP_WIDTH, y: powerup.y/c.POWERUP_HEIGHT, power: powerup.power});
 }
 
 function decrementInvinvible() {
-  console.log("Invinibility counter: " + g.myPlayer.powerups.invincible);
+  // console.log("Invincibility counter: " + g.myPlayer.powerups.invincible);
   if (g.myPlayer.powerups.invincible-- <= 0) {
     g.myPlayer.powerups.invincible = 0;
     clearInterval(g.invincibleHandler);
   }
 }
 
+// Better to have 2 setintervals that individually stop when not needed but will run at the same time?
+function decrementInvert() {
+  console.log("Invert counter: " + g.myPlayer.powerups.invert);
+  if (g.myPlayer.powerups.invert-- <= 0) {
+    canvas.classList.remove('inverted');
+    g.myPlayer.powerups.invert = 0;
+    clearInterval(g.invertHandler);
+  }
+}
+
 function Player(x, y) {
 	this.x = x;
 	this.y = y;
-  this.powerups = {bullets: 0, invincible: 0};
+  this.powerups = {bullets: 0, invincible: 0, invert: 0};
 	this.hp = c.BASE_HP;
 	this.gridx = c.GRID_WIDTH;
 	this.gridy = c.GRID_HEIGHT;
