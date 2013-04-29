@@ -102,6 +102,11 @@ button:active {
     box-shadow: none;
 }
 
+#gamemenu {
+   top: 1%;
+   padding: 2.2% 2.8%;
+}
+
 #menu {
    top: 20%;
    padding: 2.2% 2.8%;
@@ -128,6 +133,10 @@ button:active {
 
 #createGame {
     padding: 8% 8% 8% 8%;
+}
+
+#backButton {
+	padding: 2.2% 2.4%;
 }
 
 #sendChat {
@@ -212,6 +221,10 @@ button:active {
    -o-transition: left  1s ease;
    -ms-transition: left 1s ease;
    transition: left  1s ease;
+}
+
+#gameBox {
+  top: 1%;
 }
 
 .slide{
@@ -356,7 +369,7 @@ button:active {
 
 #buttonDiv {
 	position: absolute;
-    top: 20%;
+    top: 5%;
 	left:0;
     right:0;
     margin-left:auto;
