@@ -167,7 +167,6 @@ button:active {
     
 }
 
-
 /*//////////////////////////////////
 //////////   BOXES   /////////////
 //////////////////////////////////*/
@@ -351,7 +350,37 @@ button:active {
 
 }
 
+/*//////////////////////////////////
+//////////   TABLES /////////
+//////////////////////////////////*/
 
+#buttonDiv {
+	position: absolute;
+    top: 20%;
+	left:0;
+    right:0;
+    margin-left:auto;
+    margin-right:auto;
+}
 
+#scoreTable {
+	left:0;
+    right:0;
+    margin-left:auto;
+    margin-right:auto;
+}
 
+.cell1 {
+	background-color: #111;
+	text-align: center;
+	padding: 5px;
+	width: 100px;
+}
+
+.cell2 {
+	background-color: #444;
+	text-align: center;
+	padding: 5px;
+	width: 100px;
+}
 

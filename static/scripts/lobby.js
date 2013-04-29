@@ -56,7 +56,7 @@ $(document).ready(function(){
 //==================
 //  Lobby Chat Server
 //==================
-var lobby = io.connect('http://128.237.134.187:8888/lobby');
+var lobby = io.connect('http://128.237.121.146:8888/lobby');
 
 lobby.emit('joined', {
         username: sessionStorage["username"],

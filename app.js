@@ -70,6 +70,22 @@ var map1 = [["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W
 			["W", "R", "R", "O", "O", "R", "O", "O", "O", "O", "R", "O", "O", "R", "O", "W"],
 			["W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W", "W"]];
 
+var map2data = {width: 500, height: 500, gridx: 50, gridy: 50, blockx: 10, blocky: 10, maxPlayers: 2};
+var map2positions = [{},
+					 {x: 125, y: 125},
+					 {x: 375, y: 375}];
+var map2 = [["O", "R", "R", "O", "O", "O", "R", "R", "R", "R"],
+			["R", "O", "O", "R", "O", "O", "O", "R", "R", "R"],
+			["R", "O", "1", "O", "O", "P", "W", "O", "R", "R"],
+			["O", "R", "O", "O", "O", "O", "P", "W", "O", "R"],
+			["O", "O", "O", "O", "R", "O", "O", "P", "O", "O"],
+			["O", "O", "P", "O", "O", "R", "O", "O", "O", "O"],
+			["R", "O", "W", "P", "O", "O", "O", "O", "R", "O"],
+			["R", "R", "O", "W", "P", "O", "O", "2", "O", "R"],
+			["R", "R", "R", "O", "O", "O", "R", "O", "O", "R"],
+			["R", "R", "R", "R", "O", "O", "O", "R", "R", "O"]];
+		
+			
 // ========================
 // === Socket.io server ===
 // ========================
@@ -108,6 +124,7 @@ var game = io.of('/game').on("connection", function (socket) {
   socket.emit("getUsername", {});
 
   socket.on("username", function(data) {
+	console.log("connecting with username: ", data.username);
 	  var thisGame = games[usersGame[data.username]];
 	  thisGame.sockets[data.username] = socket;
 
@@ -132,13 +149,13 @@ var game = io.of('/game').on("connection", function (socket) {
 			  thisGame.started = true;
 			  setTimeout( function() { 
 				// get player stats to send back
-				/*var stats = new Object();
+				var stats = new Object();
 				for (var i = 0; i < thisGame.players.length; i++) {
 					var username = thisGame.players[i];
 					stats[username] = {kills: playerData[username].kills, deaths: playerData[username].deaths};
-				}*/
+				}
 			  
-				game.emit("endGame", {});
+				game.emit("endGame", stats);
 			  }, roundSeconds*1000);
 		  }
 	  }
@@ -194,7 +211,7 @@ var game = io.of('/game').on("connection", function (socket) {
 
 	playerData[data.username].deaths++;
 	// suicide
-	if (data.killer === 0)
+	if (data.killer === data.player)
 		playerData[data.username].kills--;
 	// give killer a kill
 	else

@@ -8,7 +8,7 @@ function clicked(e) {
     if(g.myPlayer.powerups.bullets > 0) {
       g.myPlayer.powerups.bullets--;
       fireBullet(g.myPlayer.x / c.GRID_WIDTH, g.myPlayer.y / c.GRID_HEIGHT, angle, g.player);
-      socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x / c.GRID_WIDTH, playerY: g.myPlayer.y / c.GRID_HEIGHT, angle: angle});
+      socket.emit("bulletFired", {id: g.myID, playerX: g.myPlayer.x / c.GRID_WIDTH, playerY: g.myPlayer.y / c.GRID_HEIGHT, angle: angle, player: g.player});
       console.log("Clickx = " + e.x);
     }
     else {

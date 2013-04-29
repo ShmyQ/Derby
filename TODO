@@ -12,8 +12,8 @@ JON
 WILL
 - Program game interface such as menu and game commands?
 - Portrait/landscape
-- Non-destructible rocks
-- Show range of bomb explosions
+- Multiple maps
+- Reduce drawImgs
 
 Up for grabs:
 - Endgame
