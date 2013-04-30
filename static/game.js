@@ -16,7 +16,7 @@ $(document).ready(function() {
 });
 
 // sockets
-var socket = io.connect("http://192.168.1.115:8888/game");
+var socket = io.connect("http://192.168.1.108:8888/game");
 // socket.heartbeatTimeout = 20;
 
 socket.on("connected", function (data) {
@@ -106,13 +106,22 @@ socket.on("playerLeft", function (data) {
 });
 
 socket.on("fireBullet", function (data) {
-  fireBullet(data.playerX, data.playerY, data.angle, data.player);
+  fireBullet(data.playerX, data.playerY, data.angle, data.player, data.id);
+  // console.log("data.id = " + data.id);
 });
 
-socket.on("playerHit", function (data) {
-  g.bullets.splice(data.bullet_index, 1);
-  if (g.bullets.length === 0) {
-    clearInterval(g.bulletHandler);
+socket.on("bulletHit", function (data) {
+  var bullet_index;
+  console.log("data.bullet_id = " + data.bullet);
+  for (bullet_index in g.bullets) {
+    console.log("g.bullets[bullet_index].id = " + g.bullets[bullet_index].id);
+    if (g.bullets[bullet_index].id === data.bullet) {
+      g.bullets.splice(bullet_index, 1);
+      if (g.bullets.length === 0) {
+        clearInterval(g.bulletHandler);
+      }
+      return;
+    }
   }
 });
 
@@ -194,7 +203,7 @@ var c = {
 	SPAWN_X: 0,
 	SPAWN_Y: 0,
 
-	BOMB_COOLDOWN_TIME: 5000,
+	BOMB_COOLDOWN_TIME: 4000,
 }
 
 // Sprites
@@ -885,20 +894,19 @@ function decrementTimer(bomb) {
 	}
 }
 
-function fireBullet(playerX, playerY, angle, player) {
+function fireBullet(playerX, playerY, angle, player, id) {
   var moveX = c.BALL_RADIUS * 2 * Math.cos(angle * Math.PI / 180);
   var moveY = c.BALL_RADIUS * 2 * Math.sin(angle * Math.PI / 180);
   // console.log("START\nbullet.x = " + (playerX + moveX) + "\nbullet.y = " + (playerY - moveY) + "\nangle = " + angle);
-  g.bullets.push(new Bullet(playerX * c.GRID_WIDTH + moveX, playerY * c.GRID_HEIGHT - moveY, angle, player));
+  g.bullets.push(new Bullet(playerX * c.GRID_WIDTH + moveX, playerY * c.GRID_HEIGHT - moveY, angle, player, id));
   if (g.bullets.length === 1) {
     g.bulletHandler = setInterval(moveBullets, 30);
   }
 }
 
 function moveBullets() {
-  // TODO: move bullets relative to grid size (deltaX = cos * c.GRID_WIDTH, deltaY = "")
-  g.bullets.forEach(function (bullet, index) {
-    checkBulletCollision(index);
+  g.bullets.forEach(function (bullet) {
+    checkBulletCollision(bullet.id);
     var deltaX = c.BULLET_X_MOVE * Math.cos(bullet.direction * Math.PI / 180);
     var deltaY = c.BULLET_Y_MOVE * Math.sin(bullet.direction * Math.PI / 180);
     bullet.x += deltaX;
@@ -1082,12 +1090,21 @@ function checkPowerupCollision(xvel, yvel) {
 }
 
 function checkBulletCollision(bullet_id) {
-  bullet = g.bullets[bullet_id];
+  var bullet;
+  var bullet_index;
+  for (bullet_index in g.bullets) {
+    if (g.bullets[bullet_index].id === bullet_id) {
+      bullet = g.bullets[bullet_index];
+      break;
+    }
+    return;
+  }
   if (bullet.x < 0 || bullet.y < 0 || bullet.x > c.MAP_WIDTH || bullet.y > c.MAP_HEIGHT) {
-    g.bullets.splice(bullet_id, 1);
+    g.bullets.splice(bullet_index, 1);
     if (g.bullets.length === 0) {
       clearInterval(g.bulletHandler);
     }
+    socket.emit("hitBullet", {bullet: bullet_id});
   }
   // TODO: Must be a more efficient way to do this
   g.rocks.forEach( function(rock) {
@@ -1096,20 +1113,22 @@ function checkBulletCollision(bullet_id) {
       // Remove exploded rock
       var rocks = [rock];
       removeRocks(rocks);
-      g.bullets.splice(bullet_id, 1);
+      g.bullets.splice(bullet_index, 1);
       if (g.bullets.length === 0) {
         clearInterval(g.bulletHandler);
       }
+      console.log("bullet_id might be undefined here? " + bullet_id);
+      socket.emit("hitBullet", {bullet: bullet_id});
       return;
     }
   });
   if (g.myPlayer.x + c.BALL_RADIUS >= bullet.x - c.BULLET_SIZE/2 && g.myPlayer.x - c.BALL_RADIUS < bullet.x + c.BULLET_SIZE/2
     && g.myPlayer.y + c.BALL_RADIUS >= bullet.y - c.BULLET_SIZE/2 && g.myPlayer.y - c.BALL_RADIUS < bullet.y + c.BULLET_SIZE/2) {
-    g.bullets.splice(bullet_id, 1);
+    g.bullets.splice(bullet_index, 1);
     if (g.bullets.length === 0) {
       clearInterval(g.bulletHandler);
     }
-    socket.emit("hitPlayer", {bullet: bullet_id});
+    socket.emit("hitBullet", {bullet: bullet_id});
     // Damage player
     if (g.myPlayer.powerups.invincible <= 0) {
       g.myPlayer.hp -= 30;
@@ -1209,11 +1228,12 @@ function Bomb(x, y, player) {
   this.explosionHandler;
 }
 
-function Bullet(x, y, direction, player) {
+function Bullet(x, y, direction, player, id) {
   this.x = x;
   this.y = y;
   this.direction = direction;
   this.player = player;
+  this.id = id;
 }
 
 function findAngle(x, y) {

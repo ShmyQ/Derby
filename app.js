@@ -189,7 +189,7 @@ var game = io.of('/game').on("connection", function (socket) {
 	var map = games[usersGame[data.username]].map;
 
 	if (map[data.y - .5][data.x - .5] === "R") {
-		console.log("Removing rock");
+		// console.log("Removing rock");
 		if (Math.random() < powerupDropChance) {
 			newPowerup(data.x, data.y, data.username, data.x, data.y);
 		}
@@ -204,8 +204,8 @@ var game = io.of('/game').on("connection", function (socket) {
     socket.broadcast.emit("fireBullet", data);
   });
 
-  socket.on("hitPlayer", function (data) {
-    socket.broadcast.emit("playerHit", data);
+  socket.on("hitBullet", function (data) {
+    socket.broadcast.emit("bulletHit", data);
   });
 
   socket.on("damagedPlayer", function (data) {
