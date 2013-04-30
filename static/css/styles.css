@@ -36,7 +36,6 @@ input {
 	color: black;
 	background-color: #FFFFFF;
 	border-radius: 5px;
-	-moz-border-radius: 5px;
 	border: none;
     margin: 10px;
 
@@ -204,7 +203,7 @@ button:active {
 }
 
 .slideBox{
-    position:fixed;
+    position: fixed;
     left:-41%;
     top: 100px;
 	border: 5px solid rgba(44,44,44,.5);
@@ -214,7 +213,12 @@ button:active {
     height: 75%;
     width: 40%;
     display: inline-block;
-    z-index: 2;
+    z-index: 101;
+    
+   -webkit-transition: left  1s ease;  
+   -moz-transition: left  1s ease;  
+   -o-transition: left  1s ease;  
+   -ms-transition: left 1s ease; 
 
    -webkit-transition: left  1s ease;
    -moz-transition: left  1s ease;
@@ -295,13 +299,15 @@ button:active {
     margin-left: 5%;
     overflow-y: scroll;
     overflow-x: hidden;
-    height: 35%;
+    height: 20%;
+    position: relative;
+    display: block;
 }
 
 #friendRequestsList {
     text-align: center;
     margin-left: 5%;
-    overflow-y: scroll;
+    overflow-y: auto;
     overflow-x: hidden;
      height: 20%;
 
@@ -313,9 +319,14 @@ button:active {
 	background-color: rgb(30,30,30);
     width: 90%;
     padding: 5px;
-    margin-bottom: -20px;
+    
     padding-top: 5px;
     margin-top: 5px;
+    position: relative;
+    top: 15px;
+    z-index: 100;
+    display: block;
+
 }
 
 
@@ -326,6 +337,10 @@ button:active {
     width: 100%;
     height: 10%;
     border-radius: 10px 10px 0px 0px;
+    position: relative;
+    z-index: 100;
+    display: block;    
+
 }
 
 
@@ -362,6 +377,38 @@ button:active {
     margin-left: 30%;
 
 }
+
+#scrollDown1 {
+   top: 8%;
+
+}
+
+#scrollUp1 {
+   top: 16%;
+  
+}
+
+#scrollDown2{ 
+   top: 34%;
+    background: url(/images/downarrow.png) 4px 1px no-repeat;
+}
+
+#scrollUp2{
+   top: 42%;
+   background: url(/images/uparrow.png) 4px 2px no-repeat;
+}
+
+
+.scrollButton {
+   right: -4px;
+   z-index:100;
+   padding: 10px;
+   margin-bottom: -2px;
+   position: absolute;
+   display: block;
+}
+
+
 
 /*//////////////////////////////////
 //////////   TABLES /////////
@@ -402,12 +449,61 @@ button:active {
      -moz-perspective: 400px;
       -ms-perspective: 400px;
           perspective: 400px;
-  -webkit-transform: rotate3d(1, 1, 0, 180deg);
-     -moz-transform: rotate3d(1, 1, 0, 180deg);
-      -ms-transform: rotate3d(1, 1, 0, 180deg);
-          transform: rotate3d(1, 1, 0, 180deg);
+  -webkit-transform: rotate(180deg);
+     -moz-transform: rotate(180deg);
+      -ms-transform: rotate(180deg);
+          transform: rotate(180deg);
   -webkit-transition: all 0.5s ease-in-out;
      -moz-transition: all 0.5s ease-in-out;
        -o-transition: all 0.5s ease-in-out;
           transition: all 0.5s ease-in-out;
 }
+
+#myCanvas {
+  -webkit-transition: all 0.5s ease-in-out;
+     -moz-transition: all 0.5s ease-in-out;
+       -o-transition: all 0.5s ease-in-out;
+          transition: all 0.5s ease-in-out;
+}
+
+
+.tinyButton {
+    position: relative;
+    margin: 2px;
+    padding: 0px;
+    padding-right: 20px;
+    margin-right: 1px;
+    top: -5px;
+    z-index: 99;
+}
+
+.tinyButton:focus {
+    margin: 2px;
+    margin-right: 1px;
+}
+
+.leftAlign {
+    width: 100%;
+    text-align: left;
+    display: inline;
+    position: absolute;
+    left: 2px;  
+}
+
+.leftCenterAlign {
+    width: 50%;
+    text-align: center;
+    display: inline;
+    position: absolute;
+    left: 2px;  
+}
+
+.rightAlign {
+    width: 100%;
+    text-align: right;
+    position: absolute;
+    right: 2px;
+    margin-right: 2px;
+    display: inline;
+}
+

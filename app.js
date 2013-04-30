@@ -33,7 +33,7 @@ app.use(express.cookieParser());
 app.use(useragent.express());
 app.use(express.session({ secret: 'teamgamerssecretmsg' }));
 
-app.listen(8889);
+app.listen(8008);
 
 //===========================
 //  Routes
@@ -84,17 +84,17 @@ var map2 = [["O", "R", "R", "O", "O", "O", "R", "R", "R", "R"],
 			["R", "R", "O", "W", "P", "O", "O", "2", "O", "R"],
 			["R", "R", "R", "O", "O", "O", "R", "O", "O", "R"],
 			["R", "R", "R", "R", "O", "O", "O", "R", "R", "O"]];
-		
-			
+
+
 // ========================
 // === Socket.io server ===
 // ========================
-var io = require("socket.io").listen(8888,{ log: false });
+var io = require("socket.io").listen(8007);
 
 var Lobby = require('./lobbyServer.js'),
 myLobby = new Lobby(mongoExpressAuth,app,io,cloneMap(map1));
 
-// ** GAME ** (MOVED TO LOBBY SERVER)
+// ** GAME ** (some components in lobby server)
 
 // array of all the games
 var games = Lobby.games;
@@ -106,7 +106,7 @@ var usersGame = Lobby.usersGame;
 var playerData = new Object();
 
 var powerupDropChance = 0.4;
-var roundSeconds = 30;
+var roundSeconds = 120;
 
 var game = io.of('/game').on("connection", function (socket) {
   console.log("Player ", socket.id, " connected");
@@ -125,7 +125,7 @@ var game = io.of('/game').on("connection", function (socket) {
 		  var username = thisGame.players[i];
 		  stats[username] = {kills: 0, deaths: 0};
 	  }
-	  
+
 	  if (thisGame.started) {
 	    // send connected message to set up client side
 		socket.emit("connected", {id: socket.id, reconnecting: true, x: playerData[data.username].x, y: playerData[data.username].y, player: player.toString(), numPlayers: thisGame.players.length, map: thisGame.map, mapdata: map1data, stats: stats});
@@ -149,7 +149,7 @@ var game = io.of('/game').on("connection", function (socket) {
 					var username = thisGame.players[i];
 					stats[username] = {kills: playerData[username].kills, deaths: playerData[username].deaths};
 				}
-			  
+
 				game.emit("endGame", stats);
 			  }, roundSeconds*1000);
 		  }
@@ -212,7 +212,6 @@ var game = io.of('/game').on("connection", function (socket) {
 		var username = thisGame.players[i];
 		stats[username] = {kills: playerData[username].kills, deaths: playerData[username].deaths};
 	}
-		
 	game.emit("playerDied", {id: data.id, playerNum: data.player, x: map1positions[parseInt(data.player)].x, y: map1positions[parseInt(data.player)].y, stats: stats});
   });
 

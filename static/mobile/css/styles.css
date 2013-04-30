@@ -3,45 +3,55 @@
 //////////   MOBILE QUIRKS   ///////
 //////////////////////////////////*/
 
-/* turn off the annoying highlight on a tap*/
-input {
-  -webkit-tap-highlight-color: transparent;
-}
 /* prevent the user from highlighting any text */
 * {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
+    outline: none;
+   -webkit-tap-highlight-color: rgba(255, 255, 255, 0); 
+   -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
+
 /* allow highlighting text in inputs */
 input {
+  outline: none;
   -webkit-user-select: text;
   -moz-user-select: text;
   -ms-user-select: text;
+}
+
+#stopHighlight {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
 }
 
 
 
 /* Landscape */
 @media screen and (orientation:landscape) {
-      #menu {
+     #menu {
        top: 18%;
-       padding: 4% 5.2%;
+       padding: 4% 4.6%;
     }
 
-    #profile{
+    #friends{
        top: 40%;
-       padding: 4% 3.5%;
-    }
-
-    #friends {
-       top:62%;
-       padding: 4% 3%;
+       padding: 4% 1.2%;
+       
     }
 
     #learn {
-       left: -100%;
+       top:62%;
+       padding: 4% 3.4%;
     }
+
 
     #titlebar {
     height: 15%;
@@ -76,7 +86,7 @@ input {
 //////////////////////////////////*/
 
 body {
-	font-size: 25px;
+    font-size: 25px;
 	font-family: 'Iceland';
 	background-color: rgb(35,35,35);
 	color: white;
@@ -169,23 +179,20 @@ button:active {
 @media only screen and (orientation:portrait) {
    #menu {
    top: 12%;
-   padding: 5% 6.5%;
+   padding: 5% 5.8%;
     }
 
-    #profile{
+    #friends{
        top: 25%;
-       padding: 5% 4%;
-    }
-
-    #friends {
-       top: 38%;
-       padding: 5% 3%;
+        padding: 5% 2.6%;
+      
     }
 
     #learn {
-       top: 51%;
-       padding: 5% 5.3%;
+       top: 38%;
+       padding: 5% 5%;
     }
+
 }
 
 
@@ -204,9 +211,10 @@ button:active {
      font-size: 20px;
 }
 
-#findMatch {
-    padding: 8% 8% 8% 8%;
+#play {
+    padding: 12% 12% 12% 12%;
     font-size: 25px;
+    margin-top: 10%;
 }
 
 #sendChat {
@@ -241,6 +249,78 @@ button:active {
     left:69%
 }
 
+#scrollDownFriends {
+    top: 25%;
+    background: url(/images/downarrow.png) 50% 50% no-repeat;
+}
+
+
+#scrollUpFriends {
+   top: 8%;
+   background: url(/images/uparrow.png) 50% 50% no-repeat;
+}
+
+#scrollDownRequests{ 
+    top: 44%;
+    background: url(/images/downarrow.png) 50% 50% no-repeat;
+}
+
+#scrollUpRequests{
+   top: 56%;
+   background: url(/images/uparrow.png) 50% 50% no-repeat;
+}
+
+
+
+.scrollButton {
+   right: 0px;
+   z-index:100;
+   padding: 10px;
+   margin-bottom: -2px;
+   position: absolute;
+   display: block;
+}
+
+.tinyButton {
+    position: relative;
+    margin: 2px;
+    padding: 10px;
+    margin-right: 1px;
+    top: -5px;
+    z-index: 99;
+}
+
+.tinyButton:focus {
+    margin: 2px;
+    margin-right: 1px;
+}
+
+.removeFriend {
+     background: url(/images/remove.png) 50% 50% no-repeat;
+}
+
+.acceptFriend {
+    background: url(/images/accept.png) 50% 50% no-repeat;
+}
+
+.smallButton {
+    font-size: 12px;
+    padding: 4px;
+    margin: 8px;
+}
+
+.smallButton:focus {
+    margin: 8px;
+}
+
+.smallButton:active {
+    margin-bottom: 9px;
+}
+#logoutButton {
+    margin-top: 50%;
+    
+}
+
 /*//////////////////////////////////
 //////////   BOXES   /////////////
 //////////////////////////////////*/
@@ -269,7 +349,7 @@ button:active {
 }
 
 .slideBox{
-    position:fixed;
+    position: absolute;
     left:-73%;
     top: 9%;
 	border: 5px solid rgba(44,44,44,.5);
@@ -286,6 +366,8 @@ button:active {
    -moz-transition: left  1s ease;
    -o-transition: left  1s ease;
    -ms-transition: left 1s ease;
+   
+   overflow: scroll;
 
 }
 
@@ -311,6 +393,7 @@ button:active {
     position: absolute;
     left: 35%;
     bottom: 5%;
+   
 }
 
 #chatArea {
@@ -324,6 +407,10 @@ button:active {
     overflow-x: hidden;
     text-align: left;
     font-size: 15px;
+    overflow-y: scroll;
+    -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
 }
 
 #chatInput {
@@ -348,42 +435,53 @@ button:active {
     border: 3px solid rgba(64,64,64,.5);
 	border-radius: 10px 10px 10px 10px;
 	background-color: rgb(30,30,30);
-    overflow-y: hidden;
+    overflow-y: scroll;
     overflow-x: hidden;
     font-size: 10px;
 }
 
 #friendsList {
     text-align: center;
-    margin-left: 5%;
     overflow-x: hidden;
-    height: 30%;
+    height: 25%;
+    position: relative;
+    overflow-y: scroll;
 }
 
 #friendRequestsList {
     text-align: center;
-    margin-left: 5%;
     overflow-y: scroll;
     overflow-x: hidden;
      height: 20%;
 
 }
 
+
+#friendRequestInput {
+   margin: 1px;
+   margin-top: 5px;
+}
+
 .friendListing {
     border: 3px solid rgba(64,64,64,.5);
 	border-radius: 10px 10px 10px 10px;
 	background-color: rgb(30,30,30);
-    width: 90%;
-    padding: 5px;
-    padding-top: 5px;
-    margin-bottom: -5px;
-    margin-top: 5px;
+    width: 70%;
+    padding: 4px;
+    position: relative;
+    margin-left: 10px;
+    font-size: 9px;
+    height: 22px;
+    line-height: 22px;
+    margin-bottom: -7px;
+    
 }
 
 
 .topBar {
     background-color: rgb(25,25,25);
-    margin: 0px;
+    margin-bottom: -1px;
+    margin-top: -1px;
     padding-top:5px;
     padding-bottom:5px;
     width: 100%;
@@ -391,8 +489,19 @@ button:active {
     border-radius: 10px 10px 0px 0px;
 }
 
+.innerBar {
+    background-color: rgb(25,25,25);
+    margin-bottom: -1px;
+    margin-top: -1px;
+    padding-top:5px;
+    padding-bottom:5px;
+    width: 100%;
+    height: 8%;
+    border-radius: 0px 0px 0px 0px;  
+}
+
 /*//////////////////////////////////
-//////////  ATTRIBUTES   ///////////
+//////////  MISC        ///////////
 //////////////////////////////////*/
 
 .red {
@@ -404,24 +513,48 @@ button:active {
     display: inline;
 }
 
-.smallButton {
-    font-size: 12px;
-    padding: 4px;
-    margin: 8px;
-
+.leftAlign {
+    width: 100%;
+    text-align: left;
+    display: inline;
+    position: absolute;
+    left: 2px;  
 }
 
-.smallButton:focus {
-    margin: 8px;
-}
-
-.smallButton:active {
-    margin-bottom: 9px;
+.leftCenterAlign {
+    width: 50%;
+    text-align: center;
+    display: inline;
+    position: absolute;
+    left: 2px;  
 }
 
 .rightAlign {
+    width: 100%;
     text-align: right;
+    position: absolute;
+    right: 2px;
+    margin-right: 2px;
+    display: inline;
+}
 
+
+
+@media screen and (orientation:landscape) {
+
+    
+    h3 {
+	font-size: 15px;
+    }   
+    h1 {
+        font-size: 25px;
+
+    }
+    
+    .scrollButton {
+        right: 200%;
+    }
+   
 }
 
 .inverted {
@@ -429,12 +562,24 @@ button:active {
      -moz-perspective: 400px;
       -ms-perspective: 400px;
           perspective: 400px;
-  -webkit-transform: rotate3d(1, 1, 0, 180deg);
-     -moz-transform: rotate3d(1, 1, 0, 180deg);
-      -ms-transform: rotate3d(1, 1, 0, 180deg);
-          transform: rotate3d(1, 1, 0, 180deg);
+  -webkit-transform: rotate(180deg);
+     -moz-transform: rotate(180deg);
+      -ms-transform: rotate(180deg);
+          transform: rotate(180deg);
   -webkit-transition: all 0.5s ease-in-out;
      -moz-transition: all 0.5s ease-in-out;
        -o-transition: all 0.5s ease-in-out;
           transition: all 0.5s ease-in-out;
+}
+
+#myCanvas {
+  -webkit-transition: all 0.5s ease-in-out;
+     -moz-transition: all 0.5s ease-in-out;
+       -o-transition: all 0.5s ease-in-out;
+          transition: all 0.5s ease-in-out;
+}
+
+
+#message {
+    font-size: 20px;
 }

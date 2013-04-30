@@ -1,15 +1,9 @@
-
-var lobby = io.connect('http://128.237.139.190:8888/lobby');
-
-lobby.on('joinGame', function (data) {
-	console.log("joining game");
-    window.location = '/game';
-});
-
 $(document).ready(function() {
     //==================
     //  Button Events
     //==================
+     var lobby = io.connect('http://128.237.139.190:8007/lobby');
+     
      $("#logoutButton").click(function(e) {
         e.preventDefault();
         logoutPlayer();
@@ -40,27 +34,27 @@ $(document).ready(function() {
     });
 
      $("#findMatch").click(findMatchClick);
-	 
+
 	 function findMatchClick(e) {
 		console.log("Finding match");
         e.preventDefault();
         lobby.emit('findMatch', {username: sessionStorage["username"]});
-		  
+
 		$("#findMatch").remove();
 		$("#createGame").remove();
 		$("#joinGame").remove();
 		$("#logoutButton").remove();
-		  
+
 		var cancelButton = $("<button>");
 		cancelButton.html("Cancel");
 		cancelButton.attr("id", "cancelButton");
-	
+
 		cancelButton.click(function(e) {
 			e.preventDefault();
 			lobby.emit('cancelFindMatch', {username: sessionStorage["username"]});
-			
+
 			$("#cancelButton").remove();
-			
+
 			var findMatch = $("<button>");
 			findMatch.html("Find Match");
 			findMatch.attr("id", "findMatch");
@@ -74,27 +68,28 @@ $(document).ready(function() {
 			var logout = $("<button>");
 			logout.html("Logout");
 			logout.attr("id", "logoutButton");
-			
+
 			var menuBox = $("#menuBox");
 			menuBox.append(findMatch);
 			menuBox.append(createGame);
 			menuBox.append(joinGame);
 			menuBox.append(logout);
 		});
-		
+
 		$("#menuBox").append(cancelButton);
     }
 
      $("#sendChat").click(function(e) {
         e.preventDefault();
          sendChatToServer($("#chatInput").val());
+         $("#chatInput").val("")
     });
 
     $("#sendFriendRequest").click(function(e) {
         e.preventDefault();
          alert("Friend request sent to " +  $("#friendRequestInput").val());
          postFriendRequest();
-        
+
     });
 
 });
@@ -121,5 +116,10 @@ function createRemovePlayer(i,otherUser){
         alert("You are no longer friends with " + otherUser);
     });
 }
+
+lobby.on('joinGame', function (data) {
+	console.log("joining game");
+    window.location = '/game';
+});
 
 

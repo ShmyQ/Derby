@@ -20,45 +20,53 @@ module.exports = function appRoutes(mongoExpressAuth, app){
                                 result.friendsInfo.requestList = [];
                             var createFriendsInfo = { 'friendsInfo' : result.friendsInfo };
                             mongoExpressAuth.updateAccount(req,createFriendsInfo,standardErrChecker);
+                            delete createFriendsInfo;
                         }
                         // Get friend requests
                         if(friendRequests[req.cookies.username] !== undefined){ 
+                            var toUpdate = toArray(result.friendsInfo.requestList);
+                            var toCheck = toArray(result.friendsInfo.friendsList);
                             for(var i in friendRequests[req.cookies.username]){ 
-                                 var toUpdate = toArray(result.friendsInfo.requestList);
-                                 var toCheck = toArray(result.friendsInfo.friendsList);
                                  if(toUpdate.indexOf(friendRequests[req.cookies.username][i]) === -1 && toCheck.indexOf(friendRequests[req.cookies.username][i]) === -1) {
                                      toUpdate[toUpdate.length] = friendRequests[req.cookies.username][i];
-                                     var update =    {'friendsInfo.requestList': toUpdate} ;
-                                     mongoExpressAuth.updateAccount(req,update,standardErrChecker);
                                  }
                             }
-                             delete friendRequests[req.cookies.username];
+                            var update =    {'friendsInfo.requestList': toUpdate} ;
+                            mongoExpressAuth.updateAccount(req,update,standardErrChecker);
+                            delete friendRequests[req.cookies.username];
+                            delete update;
+                            delete toUpdate;
+                            delete toCheck;
                         }
                         
                         // Get accepted friend requests
                         if(acceptedRequests[req.cookies.username] !== undefined){ 
-                            for(var i in acceptedRequests[req.cookies.username]){ 
-                                 var toUpdate = toArray(result.friendsInfo.friendsList);
+                             var toUpdate = toArray(result.friendsInfo.friendsList);
+                            for(var i in acceptedRequests[req.cookies.username]){         
                                  if(toUpdate.indexOf(acceptedRequests[req.cookies.username][i]) === -1) {
                                      toUpdate.push(acceptedRequests[req.cookies.username][i]);
-                                     var update =    {'friendsInfo.friendsList': toUpdate} ;
-                                     mongoExpressAuth.updateAccount(req,update,standardErrChecker);
                                  }
                             }
+                             var update =    {'friendsInfo.friendsList': toUpdate} ;
+                             mongoExpressAuth.updateAccount(req,update,standardErrChecker);
                              delete acceptedRequests[req.cookies.username];
+                             delete toUpdate;
+                             delete update;
                         }
                         
                         // Get friend removals
-                        if(friendRemovals[req.cookies.username] !== undefined){ 
+                        if(friendRemovals[req.cookies.username] !== undefined){
+                             var toUpdate = toArray(result.friendsInfo.friendsList);
                             for(var i in friendRemovals[req.cookies.username]){ 
-                                 var toUpdate = toArray(result.friendsInfo.friendsList);
                                  if(toUpdate.indexOf(friendRemovals[req.cookies.username][i]) !== -1) {
-                                     toUpdate.splice(friendRemovals[req.cookies.username][i],1);
-                                     var update =    {'friendsInfo.friendsList': toUpdate} ;
-                                     mongoExpressAuth.updateAccount(req,update,standardErrChecker);
+                                     toUpdate.splice(toUpdate.indexOf(friendRemovals[req.cookies.username][i]),1); 
                                  }
                             }
-                             delete friendRemovals[req.cookies.username];
+                            var update =    {'friendsInfo.friendsList': toUpdate} ;
+                            mongoExpressAuth.updateAccount(req,update,standardErrChecker);
+                            delete friendRemovals[req.cookies.username];
+                            delete update;
+                            delete toUpdate;
                         }
                     }
                 });
@@ -68,15 +76,6 @@ module.exports = function appRoutes(mongoExpressAuth, app){
             }
         });
     });
-
-    app.get('/db', function(req, res){
-            mongoExpressAuth.getAccount(req, function(err, result){
-                if (err)
-                    res.send(err);
-                else
-                    res.send(result); // NOTE: for test only, remove later
-            });
-        });
 
 
     app.get('/game', function(req, res){
@@ -128,13 +127,9 @@ module.exports = function appRoutes(mongoExpressAuth, app){
                 removeFrom.splice(removeFrom.indexOf(req.body.otherUser),1);
                 var update = {'friendsInfo.requestList' : removeFrom};
                 mongoExpressAuth.updateAccount(req,update,standardErrChecker);
-            }
-        });
-       
-        mongoExpressAuth.getAccount(req, function(err, result){
-            if (err)
-                res.send(err);
-            else {
+                
+                result.friendsInfo.friendsList = toUpdate;
+                result.friendsInfo.requestList  = removeFrom;
                 result.friendsInfo.otherUser = req.body.otherUser;
                 res.send(result.friendsInfo);
             }
@@ -151,13 +146,8 @@ module.exports = function appRoutes(mongoExpressAuth, app){
                 removeFrom.splice(removeFrom.indexOf(req.body.otherUser),1);
                 var update = {'friendsInfo.requestList' : removeFrom};
                 mongoExpressAuth.updateAccount(req,update,standardErrChecker);
-            }
-        });
-       
-        mongoExpressAuth.getAccount(req, function(err, result){
-            if (err)
-                res.send(err);
-            else {
+                
+                result.friendsInfo.requestsList  = removeFrom;
                 result.friendsInfo.otherUser = req.body.otherUser;
                 res.send(result.friendsInfo);
             }
@@ -174,17 +164,13 @@ module.exports = function appRoutes(mongoExpressAuth, app){
                 removeFrom.splice(removeFrom.indexOf(req.body.otherUser),1);
                 var update = {'friendsInfo.friendsList' : removeFrom};
                 mongoExpressAuth.updateAccount(req,update,standardErrChecker);
-            }
-        });
-       
-        mongoExpressAuth.getAccount(req, function(err, result){
-            if (err)
-                res.send(err);
-            else {
+                
+                result.friendsInfo.friendsList  = removeFrom;
                 friendRemovals[req.body.otherUser] = toArray(friendRemovals[req.body.otherUser]);
                 friendRemovals[req.body.otherUser].push(req.cookies.username);
                 result.friendsInfo.otherUser = req.body.otherUser;
                 res.send(result.friendsInfo);
+                
             }
         });
     });
@@ -205,6 +191,8 @@ module.exports = function appRoutes(mongoExpressAuth, app){
             }
         });
     });
+    
+ 
 
     app.get('/favicon.ico', function(req,res){
         res.sendfile('favicon.ico');
@@ -221,6 +209,7 @@ function standardErrChecker (err,result){
         console.log(err);
 }
 
+// Returns the appropriate prefix for req.useragent
 function mobileDesktopPrefixer(req){
     var reqPrefix = 'static/desktop/';
     if(req.useragent.isMobile)
@@ -230,7 +219,7 @@ function mobileDesktopPrefixer(req){
 }
 
 
-// Returns a blank array if undefined or makes into a single element array
+// Returns a blank array if undefined or makes into a single element array if is a string. Otherwise does nothing.
 function toArray(input){
     if(input === undefined)
         return [];

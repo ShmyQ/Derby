@@ -28,10 +28,9 @@ $(document).ready(function() {
 });
 
 
-// Taken from https://github.com/es92/mongo-express-auth
+// Adapted from https://github.com/es92/mongo-express-auth
 /*=============================================
      self loading login manager
-
 =============================================*/
 
 window.addEventListener('load', function(){
