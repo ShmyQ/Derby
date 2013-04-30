@@ -33,7 +33,7 @@ app.use(express.cookieParser());
 app.use(useragent.express());
 app.use(express.session({ secret: 'teamgamerssecretmsg' }));
 
-app.listen(8889);
+app.listen(8008);
 
 //===========================
 //  Routes
@@ -89,12 +89,12 @@ var map2 = [["O", "R", "R", "O", "O", "O", "R", "R", "R", "R"],
 // ========================
 // === Socket.io server ===
 // ========================
-var io = require("socket.io").listen(8888,{ log: false });
+var io = require("socket.io").listen(8007);
 
 var Lobby = require('./lobbyServer.js'),
 myLobby = new Lobby(mongoExpressAuth,app,io,map1);
 
-// ** GAME ** (MOVED TO LOBBY SERVER)
+// ** GAME ** (some components in lobby server)
 
 // array of all the games
 var games = Lobby.games;

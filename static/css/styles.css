@@ -446,3 +446,44 @@ button:active {
           transition: all 0.5s ease-in-out;
 }
 
+
+.tinyButton {
+    position: relative;
+    margin: 2px;
+    padding: 0px;
+    padding-right: 20px;
+    margin-right: 1px;
+    top: -5px;
+    z-index: 99;
+}
+
+.tinyButton:focus {
+    margin: 2px;
+    margin-right: 1px;
+}
+
+.leftAlign {
+    width: 100%;
+    text-align: left;
+    display: inline;
+    position: absolute;
+    left: 2px;  
+}
+
+.leftCenterAlign {
+    width: 50%;
+    text-align: center;
+    display: inline;
+    position: absolute;
+    left: 2px;  
+}
+
+.rightAlign {
+    width: 100%;
+    text-align: right;
+    position: absolute;
+    right: 2px;
+    margin-right: 2px;
+    display: inline;
+}
+

@@ -1,8 +1,9 @@
-$(document).ready(function() {
+  var lobby = io.connect('http://128.237.87.127:8007/lobby');
+  
+$(document).ready(function() {  
     //==================
     //  Button Events
     //==================
-    var lobby = io.connect('http://128.237.87.127:8888/lobby');
     $("#logoutButton").on('tap', function(e) {
         e.preventDefault();
         logoutPlayer();
@@ -33,14 +34,14 @@ $(document).ready(function() {
         $("#learnBox").toggleClass("slide");
     });
 
-    $("#findMatch").click(findMatchClick);
+    $("#play").on('tap',findMatchClick);
 	 
 	 function findMatchClick(e) {
 		console.log("Finding match");
         e.preventDefault();
         lobby.emit('findMatch', {username: sessionStorage["username"]});
 		  
-		$("#findMatch").remove();
+		$("#play").remove();
 		$("#createGame").remove();
 		$("#joinGame").remove();
 		$("#logoutButton").remove();
@@ -81,8 +82,11 @@ $(document).ready(function() {
 
      $("#sendChat").on('tap', function(e) {
          e.preventDefault();
-        sendChatToServer($("#chatInput").val());
-        $("#chatInput").val("");
+        if($("#chatInput").val() !== "") {
+            sendChatToServer($("#chatInput").val());
+            $("#chatInput").val("");
+        }
+        
 
     });
     
@@ -111,6 +115,17 @@ $(document).ready(function() {
     $("#stopHighlight").on('tap', function(e) {
         e.preventDefault();
     });
+    
+     $("#sendFriendRequest").on('tap', function(e) {
+        e.preventDefault();
+        if($("#friendRequestInput").val() !== "") {
+             alert("Friend request sent to " +  $("#friendRequestInput").val());
+             postFriendRequest();
+        }
+    });
+    
+    // To make all css on the page load.
+    $("#sendChat").focus();
 });
 
 function createAcceptPlayer(i,otherUser){
