@@ -1,22 +1,8 @@
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
-
-$(document).ready(function() {
-	$("#gamemenu").click(function(e) {
-        e.preventDefault();
-        $("#gamemenu").toggleClass("clicked");
-        $("#gameBox").toggleClass("slide");
-    });
-	
-	$("#quitMatch").click(function(e) {
-        e.preventDefault();
-		window.location = '/';
-    });
-});
-
 // sockets
-var socket = io.connect("http://128.237.121.146:8888/game");
+var socket = io.connect("http://128.237.139.190:8888/game");
 // socket.heartbeatTimeout = 20;
 
 socket.on("connected", function (data) {
@@ -36,9 +22,14 @@ socket.on("connected", function (data) {
 
 	// Create map and start drawing
 	createMap();
-	if (data.reconnecting)
-		g.myPlayer = new Player(data.x, data.y);
-	else
+	if (data.reconnecting) {
+		if (data.x === -1 && data.y === -1)
+			g.myPlayer = new Player(c.SPAWN_X, c.SPAWN_Y);
+		else
+			g.myPlayer = new Player(data.x, data.y);
+		g.isStarted = true;
+	}
+	else 
 		g.myPlayer = new Player(data.x*c.GRID_WIDTH, data.y*c.GRID_HEIGHT);
 	g.drawHandler = setInterval(draw, 25);
 });
@@ -57,8 +48,8 @@ socket.on("receivePosition", function (data) {
 		console.log("cannot find player " + data.playerNum);
 	}
 	else {
-		g.enemies[data.playerNum].x = player.x/player.gridx * c.GRID_WIDTH;
-		g.enemies[data.playerNum].y = player.y/player.gridy * c.GRID_HEIGHT;
+		g.enemies[data.playerNum].x = player.x / player.gridx * c.GRID_WIDTH;
+		g.enemies[data.playerNum].y = player.y / player.gridy * c.GRID_HEIGHT;
 		g.enemies[data.playerNum].hp = player.hp;
 	}
 });
@@ -88,10 +79,6 @@ socket.on("placePowerup", function (data) {
 	}
 });
 
-socket.on("respawn", function (data) {
-	g.myPlayer = new Player(c.SPAWN_X, c.SPAWN_Y);
-});
-
 socket.on("playerDied", function (data) {
 	g.stats = data.stats;
 	drawTable();
@@ -102,7 +89,7 @@ socket.on("playerDied", function (data) {
 });
 
 socket.on("playerLeft", function (data) {
-	delete g.enemies[data.id];
+	delete g.enemies[data.player];
 });
 
 socket.on("fireBullet", function (data) {
@@ -122,13 +109,30 @@ socket.on("damagePlayer", function (data) {
 
 socket.on("endGame", function(data) {
 	$("#gamemenu").remove();
+	$("#gameBox").remove();
 	isOver = true;
 	clearInterval(g.drawHandler);
 	drawEndScreen(data);
 });
 
+$(document).ready(function() {
+	$("#gamemenu").click(function(e) {
+        e.preventDefault();
+        $("#gamemenu").toggleClass("clicked");
+        $("#gameBox").toggleClass("slide");
+    });
+	
+	$("#quitMatch").click(function(e) {
+        e.preventDefault();
+		
+		socket.emit("leaveGame", {player: g.player});
+
+		window.location = '/';
+    });
+});
+
 // Globals
-var g = {
+g = {
 	devicePlatform: "",
 	drawHandler: null,
   bulletHandler: null,
@@ -405,11 +409,8 @@ function draw() {
 				ctx.beginPath();
 				ctx.arc(xpos, ypos, c.BOMB_RADIUS, 0, 2*Math.PI, true);
 				ctx.fill();
-
 				ctx.save();
-				ctx.translate(xpos, ypos);
-				ctx.rotate(Math.PI/2);
-				ctx.translate(-xpos, -ypos);
+
 				ctx.fillStyle = "white";
 				ctx.font = c.BOMB_RADIUS + "px Arial";
 				ctx.textAlign = "center";
@@ -677,7 +678,6 @@ function drawTable() {
 	
 	var swap = true;
 	for (var username in g.stats) {
-		console.log(username);
 		var row = $("<tr>");
 		var name = $("<td>");
 		var kills = $("<td>");
@@ -772,8 +772,19 @@ function createMap() {
 				if (parseInt(g.map[j][i]) <= g.numPlayers)
 					g.enemies[g.map[j][i]] = new Player(i*c.GRID_WIDTH + c.GRID_WIDTH/2, j*c.GRID_HEIGHT + c.GRID_HEIGHT/2);
 			}
-
-			// TODO POWERUPS
+			// Powerups
+			else if (g.map[j][i] === "B") {
+				g.powerups.push(new Powerup(i*c.GRID_WIDTH + c.GRID_WIDTH/2, j*c.GRID_HEIGHT + c.GRID_HEIGHT/2, "bullet"));
+			}
+			else if (g.map[j][i] === "I") {
+				g.powerups.push(new Powerup(i*c.GRID_WIDTH + c.GRID_WIDTH/2, j*c.GRID_HEIGHT + c.GRID_HEIGHT/2, "invincible"));
+			}
+			else if (g.map[j][i] === "H") {
+				g.powerups.push(new Powerup(i*c.GRID_WIDTH + c.GRID_WIDTH/2, j*c.GRID_HEIGHT + c.GRID_HEIGHT/2, "health"));
+			}
+			else if (g.map[j][i] === "C") {
+				g.powerups.push(new Powerup(i*c.GRID_WIDTH + c.GRID_WIDTH/2, j*c.GRID_HEIGHT + c.GRID_HEIGHT/2, "invert"));
+			}
 		}
 	}
 }
@@ -787,7 +798,6 @@ function dropMyBomb(x, y) {
 	if (!g.bombCooldown) {
 		g.bombCooldown = true;
 		setTimeout( function() {
-			console.log("resetting cooldown");
 			g.bombCooldown = false;
 		}, c.BOMB_COOLDOWN_TIME);
 
@@ -852,6 +862,9 @@ function checkForDeath(attacker) {
 function die(attacker) {
 	g.isDead = true;
 
+	// respawn
+	g.myPlayer = new Player(c.SPAWN_X, c.SPAWN_Y);
+	
 	socket.emit("sendDeath", {id: g.myID, player: g.player, killer: attacker, username: sessionStorage["username"]});
 }
 

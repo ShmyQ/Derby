@@ -1,6 +1,9 @@
 
-module.exports = function (mongoExpressAuth, app,io, map){
+module.exports = function (mongoExpressAuth, app,io, mapInitial){
     /* GAME PIECES NEEDED */
+	
+	// get map
+	var map = mapInitial.slice(0);
 	
     // array of all the games
     var games = [];
@@ -44,14 +47,12 @@ module.exports = function (mongoExpressAuth, app,io, map){
         });
 
         socket.on('findMatch', function(data){
-            console.log("finding match");
             curGame.players[newGamePlayerCount] = data.username;
             curGame.sockets[data.username] = socket;
             newGamePlayerCount++;
 
             // if there are enough players waiting
             if (newGamePlayerCount === playersToStart) {
-                console.log("creating match");
                 gameNumber++;
 
                 for (var i = 0; i < curGame.players.length; i++) {
@@ -59,7 +60,6 @@ module.exports = function (mongoExpressAuth, app,io, map){
                     curGame.sockets[curGame.players[i]].emit('joinGame');
 
                     // add hash from players username to game id
-                    console.log("adding ", curGame.players[i], " to usersGame");
                     usersGame[curGame.players[i]] = gameNumber;
                 }
                 games[gameNumber] = curGame;
@@ -74,8 +74,6 @@ module.exports = function (mongoExpressAuth, app,io, map){
 			newGamePlayerCount--;
 			delete curGame.sockets[data.username];
 			curGame.players.splice(curGame.players.indexOf(data.username), 1);
-			
-			console.log("Remainging queued players: ", curGame.players);
 		});
         
         socket.on('disconnect', function(data){
