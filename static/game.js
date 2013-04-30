@@ -112,9 +112,7 @@ socket.on("fireBullet", function (data) {
 
 socket.on("bulletHit", function (data) {
   var bullet_index;
-  console.log("data.bullet_id = " + data.bullet);
   for (bullet_index in g.bullets) {
-    console.log("g.bullets[bullet_index].id = " + g.bullets[bullet_index].id);
     if (g.bullets[bullet_index].id === data.bullet) {
       g.bullets.splice(bullet_index, 1);
       if (g.bullets.length === 0) {
@@ -225,6 +223,8 @@ var explosionSprite = new Image();
 explosionSprite.src = "images/explosion.png";
 var playerSprite = new Image();
 playerSprite.src = "images/player.png";
+var blackSprite = new Image();
+blackSprite.src = "images/player-black.png";
 var s = {
   rocks: [{
     x: 5, y: 21, width: 104, height: 94
@@ -273,6 +273,9 @@ var s = {
     x: 20, y: 30, width: 27, height: 27
   }],
   player: [{
+    x: 0, y: 2, width: 69, height: 50
+  }],
+  black: [{
     x: 0, y: 2, width: 69, height: 50
   }]
 }
@@ -577,9 +580,9 @@ function draw() {
 	// ctx.beginPath();
 	// ctx.arc(canvas.width/2, canvas.height/2, c.BALL_RADIUS, 0, 2*Math.PI, true);
 	// ctx.fill();
-  ctx.drawImage(playerSprite,
-    s.player[0].x, s.player[0].y,
-    s.player[0].width, s.player[0].height,
+  ctx.drawImage(blackSprite,
+    s.black[0].x, s.black[0].y,
+    s.black[0].width, s.black[0].height,
     canvas.width/2 - c.BALL_RADIUS, canvas.height/2 - c.BALL_RADIUS, c.BALL_RADIUS * 2, c.BALL_RADIUS * 2);
 
 	// hp
@@ -587,6 +590,13 @@ function draw() {
 	// ctx.beginPath();
 	// ctx.arc(canvas.width/2, canvas.height/2, c.BALL_RADIUS * (1 - ((c.BASE_HP - g.myPlayer.hp) / c.BASE_HP)), 0, 2*Math.PI, true);
 	// ctx.fill();
+  ctx.drawImage(playerSprite,
+    s.player[0].x, s.player[0].y,
+    s.player[0].width, s.player[0].height,
+    canvas.width/2 - c.BALL_RADIUS + c.BALL_RADIUS * (((c.BASE_HP - g.myPlayer.hp) / c.BASE_HP)),
+    canvas.height/2 - c.BALL_RADIUS + c.BALL_RADIUS * (((c.BASE_HP - g.myPlayer.hp) / c.BASE_HP)),
+    c.BALL_RADIUS * 2 * (1 - ((c.BASE_HP - g.myPlayer.hp) / c.BASE_HP)),
+    c.BALL_RADIUS * 2 * (1 - ((c.BASE_HP - g.myPlayer.hp) / c.BASE_HP)));
 
   // invincible
   if (g.myPlayer.powerups.invincible > 0) {
@@ -1117,7 +1127,6 @@ function checkBulletCollision(bullet_id) {
       if (g.bullets.length === 0) {
         clearInterval(g.bulletHandler);
       }
-      console.log("bullet_id might be undefined here? " + bullet_id);
       socket.emit("hitBullet", {bullet: bullet_id});
       return;
     }
