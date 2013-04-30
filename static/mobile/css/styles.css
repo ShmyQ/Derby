@@ -562,10 +562,17 @@ button:active {
      -moz-perspective: 400px;
       -ms-perspective: 400px;
           perspective: 400px;
-  -webkit-transform: rotate3d(1, 1, 0, 180deg);
-     -moz-transform: rotate3d(1, 1, 0, 180deg);
-      -ms-transform: rotate3d(1, 1, 0, 180deg);
-          transform: rotate3d(1, 1, 0, 180deg);
+  -webkit-transform: rotate(180deg);
+     -moz-transform: rotate(180deg);
+      -ms-transform: rotate(180deg);
+          transform: rotate(180deg);
+  -webkit-transition: all 0.5s ease-in-out;
+     -moz-transition: all 0.5s ease-in-out;
+       -o-transition: all 0.5s ease-in-out;
+          transition: all 0.5s ease-in-out;
+}
+
+#myCanvas {
   -webkit-transition: all 0.5s ease-in-out;
      -moz-transition: all 0.5s ease-in-out;
        -o-transition: all 0.5s ease-in-out;

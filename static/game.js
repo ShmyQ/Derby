@@ -1,6 +1,20 @@
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
+
+$(document).ready(function() {
+	$("#gamemenu").click(function(e) {
+        e.preventDefault();
+        $("#gamemenu").toggleClass("clicked");
+        $("#gameBox").toggleClass("slide");
+    });
+	
+	$("#quitMatch").click(function(e) {
+        e.preventDefault();
+		window.location = '/';
+    });
+});
+
 // sockets
 var socket = io.connect("http://128.237.121.146:8888/game");
 // socket.heartbeatTimeout = 20;
@@ -9,6 +23,9 @@ socket.on("connected", function (data) {
 	g.myID = data.id;
 	g.player = data.player;
 	g.numPlayers = data.numPlayers;
+	
+	g.stats = data.stats;
+	drawTable();
 
 	g.map = data.map;
 	g.mapdata = data.mapdata;
@@ -76,7 +93,12 @@ socket.on("respawn", function (data) {
 });
 
 socket.on("playerDied", function (data) {
-	g.enemies[data.playerNum] = new Player(data.x/g.mapdata.gridx * c.GRID_WIDTH, data.y/g.mapdata.gridy * c.GRID_HEIGHT);
+	g.stats = data.stats;
+	drawTable();
+	
+	if (data.playerNum != g.player) {
+		g.enemies[data.playerNum] = new Player(data.x/g.mapdata.gridx * c.GRID_WIDTH, data.y/g.mapdata.gridy * c.GRID_HEIGHT);
+	}
 });
 
 socket.on("playerLeft", function (data) {
@@ -99,6 +121,7 @@ socket.on("damagePlayer", function (data) {
 });
 
 socket.on("endGame", function(data) {
+	$("#gamemenu").remove();
 	isOver = true;
 	clearInterval(g.drawHandler);
 	drawEndScreen(data);
@@ -133,6 +156,7 @@ var g = {
 	isStarted: false,
 	isOver: false,
 	bombCooldown: false,
+	stats: null,
 }
 
 // Constants
@@ -146,7 +170,7 @@ var c = {
 	ROCK_HEIGHT: 0,
 
 	BOMB_RADIUS: 0,
-	BOMB_TIME: 5,
+	BOMB_TIME: 6,
 	BOMB_EXPLOSION_RADIUS: 0,
 
 	POWERUP_WIDTH: 0,
@@ -185,6 +209,10 @@ var healthSprite = new Image();
 healthSprite.src = "images/health.png";
 var invertSprite = new Image();
 invertSprite.src = "images/invert.png";
+var bombSprite = new Image();
+bombSprite.src = "images/bombs.png";
+var explosionSprite = new Image();
+explosionSprite.src = "images/explosion.png";
 var s = {
   rocks: [{
     x: 5, y: 21, width: 104, height: 94
@@ -209,6 +237,28 @@ var s = {
   }],
   invert: [{
     x: 0, y: 0, width: 50, height: 50
+  }],
+  bombs: [{
+    x: 278, y: 15, width: 42, height: 51
+  },{
+    x: 230, y: 9, width: 42, height: 57
+  },{
+    x: 182, y: 9, width: 42, height: 57
+  },{
+    x: 129, y: 9, width: 47, height: 57
+  },{
+    x: 73, y: 9, width: 50, height: 57
+  },{
+    x: 14, y: 10, width: 50, height: 57
+  }],
+  explosion: [{
+    x: 270, y: 5, width: 162, height: 162
+  },{
+    x: 109, y: 10, width: 147, height: 147
+  },{
+    x: 10, y: 73, width: 87, height: 87
+  },{
+    x: 20, y: 30, width: 27, height: 27
   }]
 }
 
@@ -224,8 +274,8 @@ function init() {
 	canvas.width  = window.innerWidth;
 	canvas.height = window.innerHeight;
 
-	var blockHeight = window.innerHeight/8;
-	var blockWidth = window.innerWidth/12;
+	var blockHeight = window.innerHeight/12;
+	var blockWidth = window.innerWidth/8;
 	c.MAP_WIDTH = blockWidth*16;
 	c.MAP_HEIGHT = blockHeight*16;
 	c.BALL_RADIUS = Math.min(blockWidth, blockHeight)/3;
@@ -370,24 +420,19 @@ function draw() {
 			var xpos = canvas.width/2 - (g.myPlayer.x - bomb.x);
 			var ypos = canvas.height/2 - (g.myPlayer.y - bomb.y);
 
-			if (bomb.isExploding) {
-				ctx.fillStyle = "orange";
-				ctx.beginPath();
-				ctx.arc(xpos, ypos, c.BOMB_EXPLOSION_RADIUS, 0, 2*Math.PI, true);
-				ctx.fill();
+			if (bomb.isExploding > 0) {
+        var ratio = s.explosion[bomb.isExploding - 1].width / 162;
+        ctx.drawImage(explosionSprite,
+        s.explosion[bomb.isExploding - 1].x, s.explosion[bomb.isExploding - 1].y,
+        s.explosion[bomb.isExploding - 1].width, s.explosion[bomb.isExploding - 1].height,
+        xpos - (c.BOMB_EXPLOSION_RADIUS * ratio), ypos - (c.BOMB_EXPLOSION_RADIUS * ratio),
+        (c.BOMB_EXPLOSION_RADIUS * 2 * ratio), (c.BOMB_EXPLOSION_RADIUS * 2 * ratio));
 			}
 			else {
-				ctx.fillStyle = "red";
-				ctx.beginPath();
-				ctx.arc(xpos, ypos, c.BOMB_RADIUS, 0, 2*Math.PI, true);
-				ctx.fill();
-
-				ctx.save();
-				ctx.fillStyle = "white";
-				ctx.font = c.BOMB_RADIUS + "px Arial";
-				ctx.textAlign = "center";
-				ctx.fillText(bomb.time + "", xpos, ypos);
-				ctx.restore();
+        ctx.drawImage(bombSprite,
+        s.bombs[bomb.time - 1].x, s.bombs[bomb.time - 1].y,
+        s.bombs[bomb.time - 1].width, s.bombs[bomb.time - 1].height,
+        xpos - c.POWERUP_WIDTH/2, ypos - c.POWERUP_HEIGHT/2, c.POWERUP_WIDTH, c.POWERUP_HEIGHT);
 			}
 		}
 	});
@@ -399,8 +444,6 @@ function draw() {
 			var xpos = canvas.width/2 - (g.myPlayer.x - powerup.x);
 			var ypos = canvas.height/2 - (g.myPlayer.y - powerup.y);
 
-			// ctx.fillStyle = "yellow";
-			// ctx.fillRect(xpos - c.POWERUP_SIZE/2, ypos - c.POWERUP_SIZE/2, c.POWERUP_SIZE, c.POWERUP_SIZE);
       if (powerup.power === "bullet") {
         ctx.drawImage(ammoSprite,
         s.ammo[0].x, s.ammo[0].y,
@@ -612,6 +655,7 @@ function drawEndScreen(stats) {
 	
 	var buttonDiv = $("#buttonDiv");
 	var backButton = $("<button>");
+	backButton.attr("id", "backButton");
 	backButton.html("Done");
 
 	backButton.click(function(e) {
@@ -619,8 +663,65 @@ function drawEndScreen(stats) {
 		window.location = '/';
     });
 
-	buttonDiv.append(backButton);
 	buttonDiv.append(table);
+	buttonDiv.append(backButton);
+}
+
+function drawTable() {
+	var gameBox = $("#gameBox");
+
+	$("#scoreTable").remove();
+	
+	var table = $("<table>");
+	var firstRow = $("<tr>");
+	var nameCol = $("<td>");
+	var killsCol = $("<td>");
+	var deathsCol = $("<td>");
+	
+	table.attr("id", "scoreTable");
+	nameCol.html("Username");
+	nameCol.addClass("cell1");
+	killsCol.html("Kills");
+	killsCol.addClass("cell2");
+	deathsCol.html("Deaths");
+	deathsCol.addClass("cell1");
+	
+	firstRow.append(nameCol);
+	firstRow.append(killsCol);
+	firstRow.append(deathsCol);
+	table.append(firstRow);
+	
+	var swap = true;
+	for (var username in g.stats) {
+		console.log(username);
+		var row = $("<tr>");
+		var name = $("<td>");
+		var kills = $("<td>");
+		var deaths = $("<td>");
+		
+		name.html(username);
+		kills.html(g.stats[username].kills);
+		deaths.html(g.stats[username].deaths);
+		
+		if (swap) {
+			name.addClass("cell2");
+			kills.addClass("cell1");
+			deaths.addClass("cell2");
+		}
+		else {
+			name.addClass("cell1");
+			kills.addClass("cell2");
+			deaths.addClass("cell1");
+		}
+		swap = !swap;
+		
+		row.append(name);
+		row.append(kills);
+		row.append(deaths);
+		table.append(row);
+	}
+	
+	gameBox.append(table);
 }
 
 function drawGrid(x, y, width, height) {
@@ -732,17 +833,21 @@ function explodeBomb(bomb) {
 	if (dist < c.BOMB_EXPLOSION_RADIUS) {
     if (g.myPlayer.powerups.invincible <= 0) {
       g.myPlayer.hp -= 50;
-      // TODO: emit damage here?
       checkForDeath(bomb.player);
     }
 	}
 
-	// explode the bomb then remove
-	bomb.isExploding = true;
-	setTimeout( function() {
-		bomb.isExploding = false;
-		g.bombs.splice(g.bombs.indexOf(bomb), 1);
-	}, 1000);
+  // explode the bomb then remove
+  bomb.isExploding = 4;
+  bomb.explosionHandler = setInterval(function() { explodeAnimation(bomb); }, 40);
+}
+
+function explodeAnimation(bomb) {
+  if(--bomb.isExploding <= 0) {
+    bomb.isExploding = 0;
+    g.bombs.splice(g.bombs.indexOf(bomb), 1);
+    clearInterval(bomb.explosionHandler);
+  }
 }
 
 function removeRocks(rocks) {
@@ -1053,7 +1158,7 @@ function decrementInvinvible() {
 
 // Better to have 2 setintervals that individually stop when not needed but will run at the same time?
 function decrementInvert() {
-  console.log("Invert counter: " + g.myPlayer.powerups.invert);
+  // console.log("Invert counter: " + g.myPlayer.powerups.invert);
   if (g.myPlayer.powerups.invert-- <= 0) {
     canvas.classList.remove('inverted');
     g.myPlayer.powerups.invert = 0;
@@ -1097,9 +1202,10 @@ function Bomb(x, y, player) {
 	this.x = x;
 	this.y = y;
 	this.time = c.BOMB_TIME;
-	this.timerHandler = setInterval( function() { decrementTimer(bomb); }, 1000 );
+	this.timerHandler = setInterval( function() { decrementTimer(bomb); }, 550 );
 	this.player = player;
-	this.isExploding = false;
+	this.isExploding = 0;
+  this.explosionHandler;
 }
 
 function Bullet(x, y, direction, player) {

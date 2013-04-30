@@ -34,27 +34,27 @@ $(document).ready(function() {
     });
 
      $("#findMatch").click(findMatchClick);
-	 
+
 	 function findMatchClick(e) {
 		console.log("Finding match");
         e.preventDefault();
         lobby.emit('findMatch', {username: sessionStorage["username"]});
-		  
+
 		$("#findMatch").remove();
 		$("#createGame").remove();
 		$("#joinGame").remove();
 		$("#logoutButton").remove();
-		  
+
 		var cancelButton = $("<button>");
 		cancelButton.html("Cancel");
 		cancelButton.attr("id", "cancelButton");
-	
+
 		cancelButton.click(function(e) {
 			e.preventDefault();
 			lobby.emit('cancelFindMatch', {username: sessionStorage["username"]});
-			
+
 			$("#cancelButton").remove();
-			
+
 			var findMatch = $("<button>");
 			findMatch.html("Find Match");
 			findMatch.attr("id", "findMatch");
@@ -68,14 +68,14 @@ $(document).ready(function() {
 			var logout = $("<button>");
 			logout.html("Logout");
 			logout.attr("id", "logoutButton");
-			
+
 			var menuBox = $("#menuBox");
 			menuBox.append(findMatch);
 			menuBox.append(createGame);
 			menuBox.append(joinGame);
 			menuBox.append(logout);
 		});
-		
+
 		$("#menuBox").append(cancelButton);
     }
 
@@ -89,7 +89,7 @@ $(document).ready(function() {
         e.preventDefault();
          alert("Friend request sent to " +  $("#friendRequestInput").val());
          postFriendRequest();
-        
+
     });
 
 });
