@@ -1,6 +1,6 @@
 
 // Connects to lobby 'room' in server
-var lobby = io.connect('http://128.237.139.190:8007/lobby');
+var lobby = io.connect('http://128.237.246.237:8007/lobby');
 
 // Global attributes of the clients instance of lobby
 var g = {
