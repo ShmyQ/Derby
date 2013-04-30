@@ -1,5 +1,4 @@
 var lobby = io.connect('http://128.237.246.237:8007/lobby');
-  
 $(document).ready(function() {
     //==================
     //  Button Events
@@ -86,36 +85,36 @@ $(document).ready(function() {
             sendChatToServer($("#chatInput").val());
             $("#chatInput").val("");
         }
-        
+
 
     });
-    
+
     $("#scrollUpFriends").on('tap', function(e) {
          e.preventDefault();
          $('#friendsList').scrollTo( '-=20px' );
     });
-    
+
     $("#scrollUpRequests").on('tap', function(e) {
          e.preventDefault();
          $('#requestList').scrollTo( '-=20px' );
 
     });
-    
-    $("#scrollDownFriends").on('tap', function(e) {     
+
+    $("#scrollDownFriends").on('tap', function(e) {
         e.preventDefault();
         $('#friendsList').scrollTo( '+=20px' );
     });
-    
+
     $("#scrollDownRequests").on('tap', function(e) {
         e.preventDefault();
         $('#requestList').scrollTo( '+=20px' );
- 
+
     });
-    
+
     $("#stopHighlight").on('tap', function(e) {
         e.preventDefault();
     });
-    
+
      $("#sendFriendRequest").on('tap', function(e) {
         e.preventDefault();
         if($("#friendRequestInput").val() !== "") {
@@ -123,7 +122,7 @@ $(document).ready(function() {
              postFriendRequest();
         }
     });
-    
+
     // To make all css on the page load.
     $("#sendChat").focus();
 });
@@ -153,7 +152,7 @@ function createRemovePlayer(i,otherUser){
         var r=confirm("Are you sure you want to remove " + otherUser + " from your friends?");
         if (r===true){
           removeFriendRequest(otherUser);
-        }      
+        }
     });
 }
 

@@ -214,11 +214,11 @@ button:active {
     width: 40%;
     display: inline-block;
     z-index: 101;
-    
-   -webkit-transition: left  1s ease;  
-   -moz-transition: left  1s ease;  
-   -o-transition: left  1s ease;  
-   -ms-transition: left 1s ease; 
+
+   -webkit-transition: left  1s ease;
+   -moz-transition: left  1s ease;
+   -o-transition: left  1s ease;
+   -ms-transition: left 1s ease;
 
    -webkit-transition: left  1s ease;
    -moz-transition: left  1s ease;
@@ -228,7 +228,7 @@ button:active {
 }
 
 #gameBox {
-  top: 1%;
+  top: 1px;
 }
 
 .slide{
@@ -319,7 +319,7 @@ button:active {
 	background-color: rgb(30,30,30);
     width: 90%;
     padding: 5px;
-    
+
     padding-top: 5px;
     margin-top: 5px;
     position: relative;
@@ -339,7 +339,7 @@ button:active {
     border-radius: 10px 10px 0px 0px;
     position: relative;
     z-index: 100;
-    display: block;    
+    display: block;
 
 }
 
@@ -385,10 +385,10 @@ button:active {
 
 #scrollUp1 {
    top: 16%;
-  
+
 }
 
-#scrollDown2{ 
+#scrollDown2{
    top: 34%;
     background: url(/images/downarrow.png) 4px 1px no-repeat;
 }
@@ -428,8 +428,38 @@ button:active {
     right:0;
     margin-left:auto;
     margin-right:auto;
+
+  -webkit-border-radius: 15px;
+          border-radius: 15px;
+  background-clip: padding-box;
 }
 
+#scoreTable tr:nth-child(odd) {
+  background-color: #111;
+}
+
+#scoreTable tr:nth-child(even) {
+  background-color: #333;
+}
+
+#scoreTable tr:hover {
+  background-color: #444;
+}
+
+#scoreTable th {
+  border: 1px solid #999;
+  text-align: center;
+  padding: 5px;
+  width: 100px;
+}
+
+#scoreTable td {
+  border: 1px solid #999;
+  text-align: center;
+  padding: 5px;
+  width: 100px;
+}
+/*
 .cell1 {
 	background-color: #111;
 	text-align: center;
@@ -442,7 +472,7 @@ button:active {
 	text-align: center;
 	padding: 5px;
 	width: 100px;
-}
+}*/
 
 .inverted {
   -webkit-perspective: 400px;
@@ -487,7 +517,7 @@ button:active {
     text-align: left;
     display: inline;
     position: absolute;
-    left: 2px;  
+    left: 2px;
 }
 
 .leftCenterAlign {
@@ -495,7 +525,7 @@ button:active {
     text-align: center;
     display: inline;
     position: absolute;
-    left: 2px;  
+    left: 2px;
 }
 
 .rightAlign {

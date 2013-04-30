@@ -106,7 +106,7 @@ var usersGame = Lobby.usersGame;
 var playerData = new Object();
 
 var powerupDropChance = 0.4;
-var roundSeconds = 120;
+var roundSeconds = 10;
 
 var game = io.of('/game').on("connection", function (socket) {
   console.log("Player ", socket.id, " connected");
@@ -188,8 +188,8 @@ var game = io.of('/game').on("connection", function (socket) {
     socket.broadcast.emit("fireBullet", data);
   });
 
-  socket.on("hitPlayer", function (data) {
-    socket.broadcast.emit("playerHit", data);
+  socket.on("hitBullet", function (data) {
+    socket.broadcast.emit("bulletHit", data);
   });
 
   socket.on("damagedPlayer", function (data) {
@@ -216,9 +216,9 @@ var game = io.of('/game').on("connection", function (socket) {
   });
 
   socket.on("disconnect", function () {
-  
+
   });
-  
+
   socket.on("leaveGame", function(data) {
 	socket.broadcast.emit("playerLeft", data);
   });

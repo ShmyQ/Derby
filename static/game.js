@@ -9,7 +9,7 @@ socket.on("connected", function (data) {
 	g.myID = data.id;
 	g.player = data.player;
 	g.numPlayers = data.numPlayers;
-	
+
 	g.stats = data.stats;
 	drawTable();
 
@@ -29,7 +29,7 @@ socket.on("connected", function (data) {
 			g.myPlayer = new Player(data.x, data.y);
 		g.isStarted = true;
 	}
-	else 
+	else
 		g.myPlayer = new Player(data.x*c.GRID_WIDTH, data.y*c.GRID_HEIGHT);
 	g.drawHandler = setInterval(draw, 25);
 });
@@ -82,7 +82,7 @@ socket.on("placePowerup", function (data) {
 socket.on("playerDied", function (data) {
 	g.stats = data.stats;
 	drawTable();
-	
+
 	if (data.playerNum != g.player) {
 		g.enemies[data.playerNum] = new Player(data.x/g.mapdata.gridx * c.GRID_WIDTH, data.y/g.mapdata.gridy * c.GRID_HEIGHT);
 	}
@@ -93,13 +93,20 @@ socket.on("playerLeft", function (data) {
 });
 
 socket.on("fireBullet", function (data) {
-  fireBullet(data.playerX, data.playerY, data.angle, data.player);
+  fireBullet(data.playerX, data.playerY, data.angle, data.player, data.id);
+  // console.log("data.id = " + data.id);
 });
 
-socket.on("playerHit", function (data) {
-  g.bullets.splice(data.bullet_index, 1);
-  if (g.bullets.length === 0) {
-    clearInterval(g.bulletHandler);
+socket.on("bulletHit", function (data) {
+  var bullet_index;
+  for (bullet_index in g.bullets) {
+    if (g.bullets[bullet_index].id === data.bullet) {
+      g.bullets.splice(bullet_index, 1);
+      if (g.bullets.length === 0) {
+        clearInterval(g.bulletHandler);
+      }
+      return;
+    }
   }
 });
 
@@ -109,7 +116,7 @@ socket.on("damagePlayer", function (data) {
 
 socket.on("endGame", function(data) {
 	$("#gamemenu").remove();
-	$("#gameBox").remove();
+  $("#gameBox").remove();
 	isOver = true;
 	clearInterval(g.drawHandler);
 	drawEndScreen(data);
@@ -121,10 +128,10 @@ $(document).ready(function() {
         $("#gamemenu").toggleClass("clicked");
         $("#gameBox").toggleClass("slide");
     });
-	
+
 	$("#quitMatch").click(function(e) {
         e.preventDefault();
-		
+
 		socket.emit("leaveGame", {player: g.player});
 
 		window.location = '/';
@@ -197,7 +204,7 @@ var c = {
 	SPAWN_X: 0,
 	SPAWN_Y: 0,
 
-	BOMB_COOLDOWN_TIME: 5000,
+	BOMB_COOLDOWN_TIME: 4000,
 }
 
 // Sprites
@@ -217,6 +224,10 @@ var bombSprite = new Image();
 bombSprite.src = "images/bombs.png";
 var explosionSprite = new Image();
 explosionSprite.src = "images/explosion.png";
+var playerSprite = new Image();
+playerSprite.src = "images/player.png";
+var blackSprite = new Image();
+blackSprite.src = "images/player-black.png";
 var s = {
   rocks: [{
     x: 5, y: 21, width: 104, height: 94
@@ -263,6 +274,12 @@ var s = {
     x: 10, y: 73, width: 87, height: 87
   },{
     x: 20, y: 30, width: 27, height: 27
+  }],
+  player: [{
+    x: 0, y: 2, width: 69, height: 50
+  }],
+  black: [{
+    x: 0, y: 2, width: 69, height: 50
   }]
 }
 
@@ -436,7 +453,7 @@ function draw() {
         ctx.drawImage(bombSprite,
         s.bombs[bomb.time - 1].x, s.bombs[bomb.time - 1].y,
         s.bombs[bomb.time - 1].width, s.bombs[bomb.time - 1].height,
-        xpos - c.POWERUP_WIDTH/2, ypos - c.POWERUP_HEIGHT/2, c.POWERUP_WIDTH, c.POWERUP_HEIGHT);
+        xpos - c.BOMB_RADIUS/2, ypos - c.BOMB_RADIUS/2, c.BOMB_RADIUS, c.BOMB_RADIUS);
 			}
 		}
 	});
@@ -558,29 +575,31 @@ function draw() {
       //   s.star[0].width, s.star[0].height,
       //   xpos - c.BALL_RADIUS/2, ypos - c.BALL_RADIUS/2, c.POWERUP_WIDTH, c.POWERUP_HEIGHT);
       // }
-
-      // copy pasted for invert possibly
-      // TODO: need to emit invincibility or have server handle it to draw on enemies
-      // if (g.enemies[enemyID].powerups.invincible > 0) {
-      //   ctx.drawImage(starSprite,
-      //   s.star[0].x, s.star[0].y,
-      //   s.star[0].width, s.star[0].height,
-      //   xpos - c.BALL_RADIUS/2, ypos - c.BALL_RADIUS/2, c.POWERUP_WIDTH, c.POWERUP_HEIGHT);
-      // }
 		}
 	}
 
 	// draw player
-	ctx.fillStyle = "black";
-	ctx.beginPath();
-	ctx.arc(canvas.width/2, canvas.height/2, c.BALL_RADIUS, 0, 2*Math.PI, true);
-	ctx.fill();
+	// ctx.fillStyle = "black";
+	// ctx.beginPath();
+	// ctx.arc(canvas.width/2, canvas.height/2, c.BALL_RADIUS, 0, 2*Math.PI, true);
+	// ctx.fill();
+  ctx.drawImage(blackSprite,
+    s.black[0].x, s.black[0].y,
+    s.black[0].width, s.black[0].height,
+    canvas.width/2 - c.BALL_RADIUS, canvas.height/2 - c.BALL_RADIUS, c.BALL_RADIUS * 2, c.BALL_RADIUS * 2);
 
 	// hp
-	ctx.fillStyle = "blue";
-	ctx.beginPath();
-	ctx.arc(canvas.width/2, canvas.height/2, c.BALL_RADIUS * (1 - ((c.BASE_HP - g.myPlayer.hp) / c.BASE_HP)), 0, 2*Math.PI, true);
-	ctx.fill();
+	// ctx.fillStyle = "blue";
+	// ctx.beginPath();
+	// ctx.arc(canvas.width/2, canvas.height/2, c.BALL_RADIUS * (1 - ((c.BASE_HP - g.myPlayer.hp) / c.BASE_HP)), 0, 2*Math.PI, true);
+	// ctx.fill();
+  ctx.drawImage(playerSprite,
+    s.player[0].x, s.player[0].y,
+    s.player[0].width, s.player[0].height,
+    canvas.width/2 - c.BALL_RADIUS + c.BALL_RADIUS * (((c.BASE_HP - g.myPlayer.hp) / c.BASE_HP)),
+    canvas.height/2 - c.BALL_RADIUS + c.BALL_RADIUS * (((c.BASE_HP - g.myPlayer.hp) / c.BASE_HP)),
+    c.BALL_RADIUS * 2 * (1 - ((c.BASE_HP - g.myPlayer.hp) / c.BASE_HP)),
+    c.BALL_RADIUS * 2 * (1 - ((c.BASE_HP - g.myPlayer.hp) / c.BASE_HP)));
 
   // invincible
   if (g.myPlayer.powerups.invincible > 0) {
@@ -608,55 +627,55 @@ function drawEndScreen(stats) {
 	ctx.clearRect(0,0,canvas.width, canvas.height);
 	canvas.width = 0;
 	canvas.height = 0;
-	
+
 	var table = $("<table>");
 	var firstRow = $("<tr>");
-	var nameCol = $("<td>");
-	var killsCol = $("<td>");
-	var deathsCol = $("<td>");
-	
+	var nameCol = $("<th>");
+	var killsCol = $("<th>");
+	var deathsCol = $("<th>");
+
 	table.attr("id", "scoreTable");
 	nameCol.html("Username");
-	nameCol.addClass("cell1");
+	// nameCol.addClass("cell1");
 	killsCol.html("Kills");
-	killsCol.addClass("cell2");
+	// killsCol.addClass("cell2");
 	deathsCol.html("Deaths");
-	deathsCol.addClass("cell1");
-	
+	// deathsCol.addClass("cell1");
+
 	firstRow.append(nameCol);
 	firstRow.append(killsCol);
 	firstRow.append(deathsCol);
 	table.append(firstRow);
-	
+
 	var swap = true;
 	for (var username in stats) {
 		var row = $("<tr>");
 		var name = $("<td>");
 		var kills = $("<td>");
 		var deaths = $("<td>");
-		
+
 		name.html(username);
 		kills.html(stats[username].kills);
 		deaths.html(stats[username].deaths);
-		
+
 		if (swap) {
-			name.addClass("cell2");
-			kills.addClass("cell1");
-			deaths.addClass("cell2");
+			// name.addClass("cell2");
+			// kills.addClass("cell1");
+			// deaths.addClass("cell2");
 		}
 		else {
-			name.addClass("cell1");
-			kills.addClass("cell2");
-			deaths.addClass("cell1");
+			// name.addClass("cell1");
+			// kills.addClass("cell2");
+			// deaths.addClass("cell1");
 		}
 		swap = !swap;
-		
+
 		row.append(name);
 		row.append(kills);
 		row.append(deaths);
 		table.append(row);
 	}
-	
+
 	var buttonDiv = $("#buttonDiv");
 	var backButton = $("<button>");
 	backButton.attr("id", "backButton");
@@ -675,13 +694,13 @@ function drawTable() {
 	var gameBox = $("#gameBox");
 
 	$("#scoreTable").remove();
-	
+
 	var table = $("<table>");
 	var firstRow = $("<tr>");
 	var nameCol = $("<td>");
 	var killsCol = $("<td>");
 	var deathsCol = $("<td>");
-	
+
 	table.attr("id", "scoreTable");
 	nameCol.html("Username");
 	nameCol.addClass("cell1");
@@ -689,23 +708,23 @@ function drawTable() {
 	killsCol.addClass("cell2");
 	deathsCol.html("Deaths");
 	deathsCol.addClass("cell1");
-	
+
 	firstRow.append(nameCol);
 	firstRow.append(killsCol);
 	firstRow.append(deathsCol);
 	table.append(firstRow);
-	
+
 	var swap = true;
 	for (var username in g.stats) {
 		var row = $("<tr>");
 		var name = $("<td>");
 		var kills = $("<td>");
 		var deaths = $("<td>");
-		
+
 		name.html(username);
 		kills.html(g.stats[username].kills);
 		deaths.html(g.stats[username].deaths);
-		
+
 		if (swap) {
 			name.addClass("cell2");
 			kills.addClass("cell1");
@@ -717,13 +736,13 @@ function drawTable() {
 			deaths.addClass("cell1");
 		}
 		swap = !swap;
-		
+
 		row.append(name);
 		row.append(kills);
 		row.append(deaths);
 		table.append(row);
 	}
-	
+
 	gameBox.append(table);
 }
 
@@ -887,7 +906,7 @@ function die(attacker) {
 
 	// respawn
 	g.myPlayer = new Player(c.SPAWN_X, c.SPAWN_Y);
-	
+
 	socket.emit("sendDeath", {id: g.myID, player: g.player, killer: attacker, username: sessionStorage["username"]});
 }
 
@@ -900,20 +919,19 @@ function decrementTimer(bomb) {
 	}
 }
 
-function fireBullet(playerX, playerY, angle, player) {
+function fireBullet(playerX, playerY, angle, player, id) {
   var moveX = c.BALL_RADIUS * 2 * Math.cos(angle * Math.PI / 180);
   var moveY = c.BALL_RADIUS * 2 * Math.sin(angle * Math.PI / 180);
   // console.log("START\nbullet.x = " + (playerX + moveX) + "\nbullet.y = " + (playerY - moveY) + "\nangle = " + angle);
-  g.bullets.push(new Bullet(playerX * c.GRID_WIDTH + moveX, playerY * c.GRID_HEIGHT - moveY, angle, player));
+  g.bullets.push(new Bullet(playerX * c.GRID_WIDTH + moveX, playerY * c.GRID_HEIGHT - moveY, angle, player, id));
   if (g.bullets.length === 1) {
     g.bulletHandler = setInterval(moveBullets, 30);
   }
 }
 
 function moveBullets() {
-  // TODO: move bullets relative to grid size (deltaX = cos * c.GRID_WIDTH, deltaY = "")
-  g.bullets.forEach(function (bullet, index) {
-    checkBulletCollision(index);
+  g.bullets.forEach(function (bullet) {
+    checkBulletCollision(bullet.id);
     var deltaX = c.BULLET_X_MOVE * Math.cos(bullet.direction * Math.PI / 180);
     var deltaY = c.BULLET_Y_MOVE * Math.sin(bullet.direction * Math.PI / 180);
     bullet.x += deltaX;
@@ -1096,13 +1114,22 @@ function checkPowerupCollision(xvel, yvel) {
   });
 }
 
-function checkBulletCollision(bullet_index) {
-  bullet = g.bullets[bullet_index];
+function checkBulletCollision(bullet_id) {
+  var bullet;
+  var bullet_index;
+  for (bullet_index in g.bullets) {
+    if (g.bullets[bullet_index].id === bullet_id) {
+      bullet = g.bullets[bullet_index];
+      break;
+    }
+    return;
+  }
   if (bullet.x < 0 || bullet.y < 0 || bullet.x > c.MAP_WIDTH || bullet.y > c.MAP_HEIGHT) {
     g.bullets.splice(bullet_index, 1);
     if (g.bullets.length === 0) {
       clearInterval(g.bulletHandler);
     }
+    socket.emit("hitBullet", {bullet: bullet_id});
   }
   // TODO: Must be a more efficient way to do this
   g.rocks.forEach( function(rock) {
@@ -1115,6 +1142,7 @@ function checkBulletCollision(bullet_index) {
       if (g.bullets.length === 0) {
         clearInterval(g.bulletHandler);
       }
+      socket.emit("hitBullet", {bullet: bullet_id});
       return;
     }
   });
@@ -1124,12 +1152,12 @@ function checkBulletCollision(bullet_index) {
     if (g.bullets.length === 0) {
       clearInterval(g.bulletHandler);
     }
-    socket.emit("hitPlayer", {bullet: bullet_index});
+    socket.emit("hitBullet", {bullet: bullet_id});
     // Damage player
     if (g.myPlayer.powerups.invincible <= 0) {
       g.myPlayer.hp -= 30;
       socket.emit("damagedPlayer", {id: g.myID, playerNum: g.player, damage: 30})
-      checkForDeath(bullet.player); 
+      checkForDeath(bullet.player);
     }
   }
 }
@@ -1224,11 +1252,12 @@ function Bomb(x, y, player) {
   this.explosionHandler;
 }
 
-function Bullet(x, y, direction, player) {
+function Bullet(x, y, direction, player, id) {
   this.x = x;
   this.y = y;
   this.direction = direction;
   this.player = player;
+  this.id = id;
 }
 
 function findAngle(x, y) {

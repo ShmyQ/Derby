@@ -16,17 +16,17 @@ $(document).ready(function(){
     //==================
     //  App Related
     //==================
-    
+
     g.originalLogin = sessionStorage["username"];
-    
+
     // Tell the lobby you have succesfully joined
     lobby.emit('joined', {
             username: sessionStorage["username"],
     });
-    
+
     // Populate the list of players in the lobby and the array of lobby players
     getPlayersRequest();
-   
+
 
     // Write username in top bar of side menu bars
     $("#menuBar").html(sessionStorage["username"]);
@@ -47,14 +47,14 @@ $(document).ready(function(){
             postFriendRequest();
 		}
      });
-     
+
     // Send chat on enter key up
      $("#chatInput").keyup(function(event){
         event.preventDefault();
         // Ignore blank input
         if($("#chatInput").val() === "")
             return;
-            
+
 		if(event.which === 13){
             event.preventDefault();
 			sendChatToServer($("#chatInput").val());
@@ -66,9 +66,9 @@ $(document).ready(function(){
     //  Button Events
     //==================
 
-    // See /mobile/scripts/lobbyButtons.js or /desktop/scripts/lobbyButtons.js for specific button implementations. 
-   
-  
+    // See /mobile/scripts/lobbyButtons.js or /desktop/scripts/lobbyButtons.js for specific button implementations.
+
+
 });
 
 
@@ -119,11 +119,11 @@ lobby.on("end", function() {
     logoutPlayer();
 });
 
-// 
+//
 lobby.on("error", function(data) {
     location.reload();
     alert("An unknown error occured while communicating with the server. The page is now being reloaded.");
-   
+
 });
 
 //==================
@@ -158,7 +158,7 @@ function readCookie(name) {
 function del_cookie() {
    document.cookie = 'username=; expires=Thu, 01-Jan-70 00:00:01 GMT;';
    document.cookie = 'password=; expires=Thu, 01-Jan-70 00:00:01 GMT;';
-} 
+}
 
 function updateFriendsPanel(friends,requests){
 
@@ -169,7 +169,7 @@ function updateFriendsPanel(friends,requests){
         var friendsHTML = "";
 
         for(var i = 0; i < friends.length; i++){
-       
+
             var statusPic = "<img src = 'images/offline.png' alt = 'Offline' />"
             if(g.players.indexOf(friends[i]) !== -1){
                 statusPic = "<img src = 'images/online.png' alt = 'Online' />"
@@ -235,14 +235,14 @@ function handleGetFriendsInfo(err, result){
 function playersListHTML(players){
     players.sort();
     var finalHTML = "<p class='topBar' > PLAYERS </p>"
-    
+
     g.players = [];
 
     for(var i = 0; i < players.length; i++){
         g.players[g.players.length] = players[i];
         finalHTML = finalHTML + "<p>" + players[i] + "</p>";
     }
-    
+
     $("#playerList").html(finalHTML);
 }
 
@@ -365,8 +365,8 @@ function handleRemoveFriend(err,result){
 
 function getPlayersRequest(){
      post(
-        '/getPlayers', 
-        {   
+        '/getPlayers',
+        {
            username: sessionStorage["username"],
         },
         handleGetPlayers
@@ -378,10 +378,10 @@ function handleGetPlayers(err,result){
         console.log(err);
     else {
         var parsedResult = $.parseJSON(result);
-        
+
         var playerList = toArray(parsedResult);
-        
-        g.players = playerList;  
+
+        g.players = playerList;
     }
 
 }
