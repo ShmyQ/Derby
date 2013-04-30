@@ -14,34 +14,34 @@
         <link href="mobile/css/styles.css" rel="stylesheet" type="text/css">
     </head>
     <body>
+    <div id = "stopHighlight"></div>
          <!-- Top Bar -->
          <h1 id = "titlebar"> Mobile Derby </h1>
 
           <!-- Side Menu-->
         <button id="menu" class = "slideButton"> Menu </button>
-        <button id="profile" class = "slideButton"> Profile </button>
         <button id="friends" class = "slideButton"> Friends </button>
         <button id="learn" class = "slideButton"> Learn </button>
 
          <!-- Side Menu Pullouts-->
         <div id="menuBox" class="slideBox">
              <h3 id="menuBar" class = "topBar"></h3>
-            <button id="findMatch"> Find Match </button>
-            <button id="createGame"> Create Game </button>
-            <button id="joinGame"> Join Game </button>
+            <button id="play"> Play </button>
             <button id="logoutButton"> Logout</button>
         </div>
-        <div id="profileBox" class="slideBox">
-            <h3 id="profileBar" class = "topBar"></h3>
-        </div>
+
         <div id="friendsBox" class="slideBox">
-            <p> To send a friend request, type in their name below </p>
-            <input id="friendRequestInput"  type="text" autocapitalize="off" autocorrect="off" autocomplete="off" x-webkit-speech />
-            <button id="sendFriendRequest" class = "smallButton"> Send Request</button>
             <h3 id="friendsBar" class = "topBar"> Friends </h3>
+            <button id = "scrollUpFriends" class = "scrollButton"></button>
+            <button id = "scrollDownFriends" class = "scrollButton"></button>
             <p id = "friendsList">None</p>
-             <h3 id="friendsRequestBar" class = "topBar">Friend Requests</h3>
-             <p id = "friendRequestsList"> None</p>
+            <h3 id="friendsRequestBar" class = "innerBar">Friend Requests</h3>
+            <button id = "scrollUpRequests" class = "scrollButton"></button>
+            <button id = "scrollDownRequests" class = "scrollButton"></button>
+            <p id = "friendRequestsList"> None</p>
+            <h3 class = "innerBar"> Add Friend </h3>
+            <input id="friendRequestInput"  type="text" autocapitalize="off" autocorrect="off" autocomplete="off" x-webkit-speech placeholder = "Your friend's username"/>
+            <button id="sendFriendRequest" class = "smallButton"> Send Request</button>
         </div>
         <div id="learnBox" class="slideBox">
             <h3 class = "topBar"> Power Ups </h3>
@@ -58,15 +58,13 @@
                 <div id= "playerList">
                      <p class = "topBar"> PLAYERS </p>
                 </div>
-            </div>
         </div>
 
-
          <!--Scripts -->
-
         <script type="text/javascript" src="scripts/libs/jquery-1.9.1.min.js"></script>
         <script type="text/javascript" src="scripts/libs/jquery.tap.js"></script>
-        <script type="text/javascript" src="http://192.168.1.108:8888/socket.io/socket.io.js"></script>
+        <script type="text/javascript" src="scripts/libs/jquery.scrollTo-1.4.3.1-min.js"></script>
+        <script type="text/javascript" src="http://192.168.1.108:8007/socket.io/socket.io.js"></script>
         <script type="text/javascript" src="scripts/lobby.js"></script>
         <script type="text/javascript" src="mobile/scripts/lobbyButtons.js"></script>
     </body>

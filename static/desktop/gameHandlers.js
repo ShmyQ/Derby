@@ -10,7 +10,6 @@ function clicked(e) {
       var rand = Math.floor(Math.random() * 100);
       fireBullet(g.myPlayer.x / c.GRID_WIDTH, g.myPlayer.y / c.GRID_HEIGHT, angle, g.player, rand);
       socket.emit("bulletFired", {id: rand, playerX: g.myPlayer.x / c.GRID_WIDTH, playerY: g.myPlayer.y / c.GRID_HEIGHT, angle: angle, player: g.player});
-      // console.log("rand = " + rand);
     }
     else {
       dropMyBomb(g.myPlayer.x, g.myPlayer.y);

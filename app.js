@@ -33,7 +33,7 @@ app.use(express.cookieParser());
 app.use(useragent.express());
 app.use(express.session({ secret: 'teamgamerssecretmsg' }));
 
-app.listen(8889);
+app.listen(8008);
 
 //===========================
 //  Routes
@@ -89,12 +89,12 @@ var map2 = [["O", "R", "R", "O", "O", "O", "R", "R", "R", "R"],
 // ========================
 // === Socket.io server ===
 // ========================
-var io = require("socket.io").listen(8888,{ log: false });
+var io = require("socket.io").listen(8007);
 
 var Lobby = require('./lobbyServer.js'),
-myLobby = new Lobby(mongoExpressAuth,app,io,map1);
+myLobby = new Lobby(mongoExpressAuth,app,io,cloneMap(map1));
 
-// ** GAME ** (MOVED TO LOBBY SERVER)
+// ** GAME ** (some components in lobby server)
 
 // array of all the games
 var games = Lobby.games;
@@ -111,16 +111,6 @@ var roundSeconds = 60;
 var game = io.of('/game').on("connection", function (socket) {
   console.log("Player ", socket.id, " connected");
 
-  /*temp++;
-  socket.emit("connected", {id: socket.id, player: (temp).toString(), numPlayers: 1, map: map1, mapdata: map1data});
-
-  if (temp === 1) {
-	console.log("starting game");
-	game.emit("start", {});
-	setTimeout( function() { game.emit("endGame", {}); }, 60000);
-  }*/
-
-
   socket.emit("getUsername", {});
 
   socket.on("username", function(data) {
@@ -136,23 +126,20 @@ var game = io.of('/game').on("connection", function (socket) {
 		  stats[username] = {kills: 0, deaths: 0};
 	  }
 
-	  console.log("Beginning stats: ", stats);
-
 	  if (thisGame.started) {
 	    // send connected message to set up client side
 		socket.emit("connected", {id: socket.id, reconnecting: true, x: playerData[data.username].x, y: playerData[data.username].y, player: player.toString(), numPlayers: thisGame.players.length, map: thisGame.map, mapdata: map1data, stats: stats});
 	  }
 	  else {
 		  // send connected message to set up client side
-		  socket.emit("connected", {id: socket.id, reconnecting: false, x: map1positions[player].x/map1data.gridx, y: map1positions[player].y/map1data.gridy, player: player.toString(), numPlayers: thisGame.players.length, map: map1, mapdata: map1data, stats: stats});
+		  socket.emit("connected", {id: socket.id, reconnecting: false, x: map1positions[player].x/map1data.gridx, y: map1positions[player].y/map1data.gridy, player: player.toString(), numPlayers: thisGame.players.length, map: map1.slice(0), mapdata: map1data, stats: stats});
 
 		  // save new player
-		  playerData[data.username] = {kills: 0, deaths: 0, x: map1positions[player].x, y: map1positions[player].y};
+		  playerData[data.username] = {kills: 0, deaths: 0, x: -1, y: -1};
 
 		  thisGame.connected++;
 		  // if all players connect, start game
 		  if (thisGame.connected === thisGame.players.length) {
-			  console.log("starting game");
 			  game.emit("start", {});
 			  thisGame.started = true;
 			  setTimeout( function() {
@@ -184,12 +171,9 @@ var game = io.of('/game').on("connection", function (socket) {
   });
 
   socket.on("rockDestroyed", function (data) {
-	console.log("Rock ", data.x, " ", data.y, " destroyed");
-
 	var map = games[usersGame[data.username]].map;
 
 	if (map[data.y - .5][data.x - .5] === "R") {
-		// console.log("Removing rock");
 		if (Math.random() < powerupDropChance) {
 			newPowerup(data.x, data.y, data.username, data.x, data.y);
 		}
@@ -213,9 +197,6 @@ var game = io.of('/game').on("connection", function (socket) {
   });
 
   socket.on("sendDeath", function (data) {
-	socket.emit("respawn", {});
-
-	console.log("Killer ", data.killer);
 
 	playerData[data.username].deaths++;
 	// suicide
@@ -231,15 +212,15 @@ var game = io.of('/game').on("connection", function (socket) {
 		var username = thisGame.players[i];
 		stats[username] = {kills: playerData[username].kills, deaths: playerData[username].deaths};
 	}
-
-	console.log("Sending stats: ", stats);
-
 	game.emit("playerDied", {id: data.id, playerNum: data.player, x: map1positions[parseInt(data.player)].x, y: map1positions[parseInt(data.player)].y, stats: stats});
   });
 
   socket.on("disconnect", function () {
-	delete playerData[socket.id];
-	socket.broadcast.emit("playerLeft", {id: socket.id});
+
+  });
+
+  socket.on("leaveGame", function(data) {
+	socket.broadcast.emit("playerLeft", data);
   });
 });
 
@@ -268,4 +249,12 @@ function newPowerup (xPos, yPos, username, x, y) {
         game.emit("placePowerup", {x: xPos, y: yPos, power: "invert"});
         // console.log("INVERT");
     }
+}
+
+function cloneMap(map) {
+	var newmap = [];
+	for(var i = 0; i < map.length; i++) {
+		newmap.push(map[i].slice(0));
+	}
+	return newmap;
 }

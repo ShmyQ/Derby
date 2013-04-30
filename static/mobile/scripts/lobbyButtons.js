@@ -1,16 +1,9 @@
-
-var lobby = io.connect('http://192.168.1.108:8888/lobby');
-
-lobby.on('joinGame', function (data) {
-	console.log("joining game");
-    window.location = '/game';
-});
+var lobby = io.connect('http://192.168.1.108:8007/lobby');
 
 $(document).ready(function() {
     //==================
     //  Button Events
     //==================
-
     $("#logoutButton").on('tap', function(e) {
         e.preventDefault();
         logoutPlayer();
@@ -41,14 +34,14 @@ $(document).ready(function() {
         $("#learnBox").toggleClass("slide");
     });
 
-    $("#findMatch").click(findMatchClick);
+
+    $("#play").on('tap',findMatchClick);
 
 	 function findMatchClick(e) {
 		console.log("Finding match");
         e.preventDefault();
         lobby.emit('findMatch', {username: sessionStorage["username"]});
-
-		$("#findMatch").remove();
+		$("#play").remove();
 		$("#createGame").remove();
 		$("#joinGame").remove();
 		$("#logoutButton").remove();
@@ -89,30 +82,82 @@ $(document).ready(function() {
 
      $("#sendChat").on('tap', function(e) {
          e.preventDefault();
-        sendChatToServer($("#chatInput").val());
-        $("#chatInput").val("");
+        if($("#chatInput").val() !== "") {
+            sendChatToServer($("#chatInput").val());
+            $("#chatInput").val("");
+        }
+
 
     });
+
+    $("#scrollUpFriends").on('tap', function(e) {
+         e.preventDefault();
+         $('#friendsList').scrollTo( '-=20px' );
+    });
+
+    $("#scrollUpRequests").on('tap', function(e) {
+         e.preventDefault();
+         $('#requestList').scrollTo( '-=20px' );
+
+    });
+
+    $("#scrollDownFriends").on('tap', function(e) {
+        e.preventDefault();
+        $('#friendsList').scrollTo( '+=20px' );
+    });
+
+    $("#scrollDownRequests").on('tap', function(e) {
+        e.preventDefault();
+        $('#requestList').scrollTo( '+=20px' );
+
+    });
+
+    $("#stopHighlight").on('tap', function(e) {
+        e.preventDefault();
+    });
+
+     $("#sendFriendRequest").on('tap', function(e) {
+        e.preventDefault();
+        if($("#friendRequestInput").val() !== "") {
+             alert("Friend request sent to " +  $("#friendRequestInput").val());
+             postFriendRequest();
+        }
+    });
+
+    // To make all css on the page load.
+    $("#sendChat").focus();
 });
 
 function createAcceptPlayer(i,otherUser){
     $("#addPlayer" + i).on('tap', function(e) {
         e.preventDefault();
-        acceptFriendRequest(otherUser);
-        alert("You are now friends with " + otherUser);
+        var r=confirm("Are you sure you want to accept " + otherUser + "'s friend request?");
+        if (r===true){
+            acceptFriendRequest(otherUser);
+        }
     });
 }
 
 function createRejectPlayer(i,otherUser){
     $("#rejectPlayer" + i).on('tap', function(e) {
         e.preventDefault();
-        rejectFriendRequest(otherUser);
+        var r=confirm("Are you sure you want to reject " + otherUser + "'s friend request?");
+        if (r===true){
+           rejectFriendRequest(otherUser);
+        }
     });
 }
 function createRemovePlayer(i,otherUser){
     $("#removePlayer" + i).on('tap', function(e) {
         e.preventDefault();
-        removeFriendRequest(otherUser);
-        alert("You are no longer friends with " + otherUser);
+        var r=confirm("Are you sure you want to remove " + otherUser + " from your friends?");
+        if (r===true){
+          removeFriendRequest(otherUser);
+        }
     });
 }
+
+lobby.on('joinGame', function (data) {
+	console.log("joining game");
+    window.location = '/game';
+});

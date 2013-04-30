@@ -1,8 +1,16 @@
+
+// Connects to lobby 'room' in server
+var lobby = io.connect('http://192.168.1.108:8007/lobby');
+
+// Global attributes of the clients instance of lobby
 var g = {
-    originalLogin: null,
-    log: "",
+    originalLogin: null, // Username the client logged into the lobby with
+    log: "",             // A string representing the chat in HTML
+    players: [],         // An array of the players connected to the lobby
+    kicked: false,       // A boolean representing if the player has already been kicked (to avoid issuing multiple disconnection alerts)
 };
 
+setInterval(logoutOnDisconnect,20000); // Checks every 20 seconds if the user has disconnected
 
 $(document).ready(function(){
     //==================
@@ -11,16 +19,26 @@ $(document).ready(function(){
 
     g.originalLogin = sessionStorage["username"];
 
+    // Tell the lobby you have succesfully joined
+    lobby.emit('joined', {
+            username: sessionStorage["username"],
+    });
+
+    // Populate the list of players in the lobby and the array of lobby players
+    getPlayersRequest();
+
+
     // Write username in top bar of side menu bars
     $("#menuBar").html(sessionStorage["username"]);
     $("#profileBar").html(sessionStorage["username"] +  "'s Profile");
-    getFriendsInfo(document.cookie.username,document.cookie.password);
 
     //==================
     //  Key Events
     //==================
+    // Send frend request on enter key up
     $("#friendRequestInput").keyup(function(event){
         event.preventDefault();
+        // Ignore blank request
         if($("#friendRequestInput").val() === "")
             return;
 		if(event.which === 13){
@@ -30,11 +48,13 @@ $(document).ready(function(){
 		}
      });
 
+    // Send chat on enter key up
      $("#chatInput").keyup(function(event){
         event.preventDefault();
-    /*    // Blank input
+        // Ignore blank input
         if($("#chatInput").val() === "")
-            return;*/
+            return;
+
 		if(event.which === 13){
             event.preventDefault();
 			sendChatToServer($("#chatInput").val());
@@ -46,46 +66,64 @@ $(document).ready(function(){
     //  Button Events
     //==================
 
-    // See /mobile/scripts/lobbyButtons.js or /desktop/scripts/lobbyButtons.js
+    // See /mobile/scripts/lobbyButtons.js or /desktop/scripts/lobbyButtons.js for specific button implementations.
 
-    $("#chatBox").focus();
+
 });
 
 
 //==================
 //  Lobby Chat Server
 //==================
-var lobby = io.connect('http://192.168.1.108:8888/lobby');
 
-lobby.emit('joined', {
-        username: sessionStorage["username"],
-});
-
-window.onbeforeunload = function() {
-   lobby.emit('disconnect',{
-        username: sessionStorage["username"],
-   });
-};
-
+// Recieve players list and update playerList as well as friendsBox
 lobby.on('receivePlayers', function (data) {
     playersListHTML(data.players);
-    logoutOnDisconnect(g.originalLogin);
+    getFriendsInfo();
 });
 
+// Game response from server
 lobby.on('joinGame', function (data) {
     window.location = '/game';
 });
 
+// Recieve chat input
 lobby.on('receiveChat',function(data){
     addChatToLog(data.user,data.msg);
-    logoutOnDisconnect(g.originalLogin);
 });
 
+// Two instances of the same username in the lobby
 lobby.on('twoInstances',function(data){
-    if(data.username === sessionStorage["username"]) {
-        alert("This account is logged in twice! Loggout out...");
-        logoutPlayer();
+    if(g.kicked === false) {
+        if(data.username === sessionStorage["username"]) {
+            g.kicked === true;
+            logoutPlayer();
+            alert("This account is logged in twice! Logging out...");
+        }
     }
+});
+
+// Connection closed normally
+lobby.on("close", function() {
+    lobby.emit('disconnect',{
+        username: g.originalLogin,
+   });
+   logoutPlayer();
+});
+
+// Connection closed unexpectedly
+lobby.on("end", function() {
+    lobby.emit('disconnect',{
+        username: g.originalLogin,
+    });
+    logoutPlayer();
+});
+
+//
+lobby.on("error", function(data) {
+    location.reload();
+    alert("An unknown error occured while communicating with the server. The page is now being reloaded.");
+
 });
 
 //==================
@@ -93,11 +131,14 @@ lobby.on('twoInstances',function(data){
 //==================
 
 // Logs out when username is illegal
-function logoutOnDisconnect(originalLogin){
-    sessionStorage["username"] = readCookie("username");
-    if(sessionStorage["username"] === undefined || sessionStorage["username"] === "" || sessionStorage["username"] !== originalLogin){
-        alert("You have disconnected from the server!");
-        logoutPlayer();
+function logoutOnDisconnect(){
+    if(g.kicked === false){
+        sessionStorage["username"] = readCookie("username");
+        if(sessionStorage["username"] === undefined || sessionStorage["username"] === "" || sessionStorage["username"] !== g.originalLogin || $("#playersList").html === "" ){
+            g.kicked === true;
+            logoutPlayer();
+            alert("You have disconnected from the server!");
+        }
     }
 }
 
@@ -113,15 +154,30 @@ function readCookie(name) {
     return null;
 }
 
+// Deletes username and password from document.cookie
+function del_cookie() {
+   document.cookie = 'username=; expires=Thu, 01-Jan-70 00:00:01 GMT;';
+   document.cookie = 'password=; expires=Thu, 01-Jan-70 00:00:01 GMT;';
+}
+
 function updateFriendsPanel(friends,requests){
-    friends = toArray(friends);
+
+    friends = toArray(friends).sort();
     if(friends.length !== 0) {
+
         // Add friends from list
         var friendsHTML = "";
 
         for(var i = 0; i < friends.length; i++){
-           friendsHTML = friendsHTML +"<div class='friendListing'>"+  friends[i]
-           + "<span class = 'rightAlign'><button id = 'removePlayer" + i + "' class='smallButton'> Remove </button>" + "</span></div><br />";
+
+            var statusPic = "<img src = 'images/offline.png' alt = 'Offline' />"
+            if(g.players.indexOf(friends[i]) !== -1){
+                statusPic = "<img src = 'images/online.png' alt = 'Online' />"
+            }
+            friendsHTML = friendsHTML +"<div class='friendListing'>"
+            + "<div class = 'leftAlign'><button id = 'removePlayer" + i + "' class='tinyButton removeFriend'></button></div>"
+            +  friends[i] + "<div class='rightAlign'>" + statusPic + "</div></div><br />";
+
         }
 
          friendsHTML = friendsHTML + "<br />";
@@ -135,14 +191,15 @@ function updateFriendsPanel(friends,requests){
        $("#friendsList").html("None");
     }
 
-    requests = toArray(requests);
+    requests = toArray(requests).sort();
     if(requests.length !== 0) {
         var requestsHTML = "";
 
         for(var i in requests){
-           requestsHTML = requestsHTML +"<div class='friendListing'>" + requests[i]
-           + "<span class = 'rightAlign'> <button id = 'addPlayer" + i + "' class='smallButton'>Accept </button>"
-           + "<button id = 'rejectPlayer" + i + "' class='smallButton'>Reject </button></span></div><br />";
+           requestsHTML = requestsHTML +"<div class='friendListing'><div class = 'leftCenterAlign'>" + requests[i] + "</div>"
+           + "<div class='rightAlign'><button id = 'addPlayer" + i + "' class='acceptFriend tinyButton'> </button>"
+           + "<button id = 'rejectPlayer" + i + "' class='removeFriend tinyButton'> </button></div></div><br />";
+
         }
 
         $("#friendRequestsList").html(requestsHTML);
@@ -159,15 +216,8 @@ function updateFriendsPanel(friends,requests){
 }
 
 
-function getFriendsInfo(username, password){
-    post(
-        '/friends',
-        {
-            username: username,
-            password: password,
-        },
-        handleGetFriendsInfo
-    );
+function getFriendsInfo(){
+    post('/friends',undefined, handleGetFriendsInfo);
 }
 
 function handleGetFriendsInfo(err, result){
@@ -184,11 +234,15 @@ function handleGetFriendsInfo(err, result){
 //==================
 function playersListHTML(players){
     players.sort();
-    var finalHTML = "<p class='topBar' > PLAYERS </p>";
+    var finalHTML = "<p class='topBar' > PLAYERS </p>"
+
+    g.players = [];
 
     for(var i = 0; i < players.length; i++){
+        g.players[g.players.length] = players[i];
         finalHTML = finalHTML + "<p>" + players[i] + "</p>";
     }
+
     $("#playerList").html(finalHTML);
 }
 
@@ -203,12 +257,10 @@ function addChatToLog(user,msg){
 
 function sendChatToServer(msg){
     lobby.emit('sendChat',{
-        username: sessionStorage["username"],
+        username: g.originalLogin,
         msg: msg
     });
 }
-
-
 
  function post(url, data, done){
     var request = new XMLHttpRequest();
@@ -216,8 +268,13 @@ function sendChatToServer(msg){
     request.open('post', url, async);
     request.onload = function(){
         if (done !== undefined){
-            var res = request.responseText
-            done(null, res);
+            try {
+                var res = request.responseText
+                done(null, res);
+             }
+             catch(err){
+                done(err,null);
+             }
         }
     }
     request.onerror = function(err){
@@ -241,6 +298,7 @@ function logoutPlayer(){
 
  function handleLogoutResult(err, result){
     sessionStorage["username"] = undefined;
+    del_cookie();
     window.location = '/';
 }
 
@@ -263,18 +321,7 @@ function handleAcceptFriend(err,result){
     if(err)
         console.log(err);
     else {
-        var parsedResult = $.parseJSON(result);
-        var otherUser = parsedResult.otherUser;
-        var friendsList = toArray(parsedResult.friendsList);
-        var requestList = toArray(parsedResult.requestList);
-        if(friendsList.indexOf(otherUser) === -1){
-            friendsList.push(otherUser);
-        }
-        requestList.splice(requestList.indexOf(otherUser),1);
-
-        updateFriendsPanel(friendsList,requestList);
-
-
+       parseResultAndUpdate(result);
     }
 }
 
@@ -292,16 +339,7 @@ function handleRejectFriend(err,result){
     if(err)
         console.log(err);
     else {
-        var parsedResult = $.parseJSON(result);
-
-        var otherUser = parsedResult.otherUser;
-        var friendsList = toArray(parsedResult.friendsList);
-        var requestList = toArray(parsedResult.requestList);
-
-        requestList.splice(requestList.indexOf(otherUser),1);
-        updateFriendsPanel(friendsList,requestList);
-
-
+       parseResultAndUpdate(result);
     }
 
 }
@@ -320,16 +358,30 @@ function handleRemoveFriend(err,result){
     if(err)
         console.log(err);
     else {
+        parseResultAndUpdate(result);
+    }
+
+}
+
+function getPlayersRequest(){
+     post(
+        '/getPlayers',
+        {
+           username: sessionStorage["username"],
+        },
+        handleGetPlayers
+    );
+}
+
+function handleGetPlayers(err,result){
+    if(err)
+        console.log(err);
+    else {
         var parsedResult = $.parseJSON(result);
 
-        var otherUser = parsedResult.otherUser;
-        var friendsList = toArray(parsedResult.friendsList);
-        var requestList = toArray(parsedResult.requestList);
+        var playerList = toArray(parsedResult);
 
-        friendsList.splice(friendsList.indexOf(otherUser),1);
-        updateFriendsPanel(friendsList,requestList);
-
-
+        g.players = playerList;
     }
 
 }
@@ -342,5 +394,15 @@ function toArray(input){
     }
 
     return input;
+}
+
+function parseResultAndUpdate(result){
+     var parsedResult = $.parseJSON(result);
+
+    var friendsList = toArray(parsedResult.friendsList);
+    var requestList = toArray(parsedResult.requestList);
+
+    updateFriendsPanel(friendsList,requestList);
+
 }
 
