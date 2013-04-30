@@ -38,3 +38,15 @@ From user testing:
 - Get rid of top and bottom thing with a viewport tag
 - More powerups
 - Matching art styles
+
+For README:
+static/game.js:5
+static/mobile/game.html:30
+static/desktop/game.html:25
+static/game.html:12
+static/mobile/index.html:67
+static/desktop/index.html:60
+static/login.html:36
+static/scripts/lobby.js:3
+static/mobile/scripts/lobbyButtons.js:1
+static/desktop/scripts/lobbyButtons.js:5

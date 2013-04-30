@@ -106,7 +106,7 @@ var usersGame = Lobby.usersGame;
 var playerData = new Object();
 
 var powerupDropChance = 0.4;
-var roundSeconds = 10;
+var roundSeconds = 90;
 
 var game = io.of('/game').on("connection", function (socket) {
   console.log("Player ", socket.id, " connected");
@@ -132,7 +132,7 @@ var game = io.of('/game').on("connection", function (socket) {
 	  }
 	  else {
 		  // send connected message to set up client side
-		  socket.emit("connected", {id: socket.id, reconnecting: false, x: map1positions[player].x/map1data.gridx, y: map1positions[player].y/map1data.gridy, player: player.toString(), numPlayers: thisGame.players.length, map: map1.slice(0), mapdata: map1data, stats: stats});
+		  socket.emit("connected", {id: socket.id, reconnecting: false, x: map1positions[player].x/map1data.gridx, y: map1positions[player].y/map1data.gridy, player: player.toString(), numPlayers: thisGame.players.length, map: thisGame.map, mapdata: map1data, stats: stats});
 
 		  // save new player
 		  playerData[data.username] = {kills: 0, deaths: 0, x: -1, y: -1};

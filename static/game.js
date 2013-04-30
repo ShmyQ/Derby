@@ -2,7 +2,7 @@ var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
 // sockets
-var socket = io.connect("http://192.168.1.100:8007/game");
+var socket = io.connect("http://128.237.253.79:8007/game");
 // socket.heartbeatTimeout = 20;
 
 socket.on("connected", function (data) {
@@ -228,6 +228,8 @@ var playerSprite = new Image();
 playerSprite.src = "images/player.png";
 var blackSprite = new Image();
 blackSprite.src = "images/player-black.png";
+var enemySprite = new Image();
+enemySprite.src = "images/enemy.png";
 var s = {
   rocks: [{
     x: 5, y: 21, width: 104, height: 94
@@ -279,6 +281,9 @@ var s = {
     x: 0, y: 2, width: 69, height: 50
   }],
   black: [{
+    x: 0, y: 2, width: 69, height: 50
+  }],
+  enemy: [{
     x: 0, y: 2, width: 69, height: 50
   }]
 }
@@ -556,16 +561,27 @@ function draw() {
 			var xpos = canvas.width/2 - (g.myPlayer.x - enemy.x);
 			var ypos = canvas.height/2 - (g.myPlayer.y - enemy.y);
 
-			ctx.fillStyle = "black";
-			ctx.beginPath();
-			ctx.arc(xpos, ypos, c.BALL_RADIUS, 0, 2*Math.PI, true);
-			ctx.fill();
+      ctx.drawImage(blackSprite,
+        s.black[0].x, s.black[0].y,
+        s.black[0].width, s.black[0].height,
+        xpos - c.BALL_RADIUS, ypos - c.BALL_RADIUS, c.BALL_RADIUS * 2, c.BALL_RADIUS * 2);
+			// ctx.fillStyle = "black";
+			// ctx.beginPath();
+			// ctx.arc(xpos, ypos, c.BALL_RADIUS, 0, 2*Math.PI, true);
+			// ctx.fill();
 
 			// hp
-			ctx.fillStyle = "red";
-			ctx.beginPath();
-			ctx.arc(xpos, ypos, c.BALL_RADIUS * (1 - ((c.BASE_HP - enemy.hp) / c.BASE_HP)), 0, 2*Math.PI, true);
-			ctx.fill();
+      ctx.drawImage(enemySprite,
+        s.enemy[0].x, s.enemy[0].y,
+        s.enemy[0].width, s.enemy[0].height,
+        xpos - c.BALL_RADIUS + c.BALL_RADIUS * (((c.BASE_HP - enemy.hp) / c.BASE_HP)),
+        ypos - c.BALL_RADIUS + c.BALL_RADIUS * (((c.BASE_HP - enemy.hp) / c.BASE_HP)),
+        c.BALL_RADIUS * 2 * (1 - ((c.BASE_HP - enemy.hp) / c.BASE_HP)),
+        c.BALL_RADIUS * 2 * (1 - ((c.BASE_HP - enemy.hp) / c.BASE_HP)));
+			// ctx.fillStyle = "red";
+			// ctx.beginPath();
+			// ctx.arc(xpos, ypos, c.BALL_RADIUS * (1 - ((c.BASE_HP - enemy.hp) / c.BASE_HP)), 0, 2*Math.PI, true);
+			// ctx.fill();
 
       // invincible
       // TODO: need to emit invincibility or have server handle it to draw on enemies

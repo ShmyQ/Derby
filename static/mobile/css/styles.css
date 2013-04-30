@@ -589,6 +589,7 @@ button:active {
 }
 
 #scoreTable {
+  font-size: 14px;
   left:0;
     right:0;
     margin-left:auto;
@@ -614,13 +615,13 @@ button:active {
 #scoreTable th {
   border: 1px solid #999;
   text-align: center;
-  padding: 5px;
+  padding: 3px;
   width: 100px;
 }
 
 #scoreTable td {
   border: 1px solid #999;
   text-align: center;
-  padding: 5px;
+  padding: 3px;
   width: 100px;
 }
