@@ -587,3 +587,40 @@ button:active {
 #message {
     font-size: 20px;
 }
+
+#scoreTable {
+  left:0;
+    right:0;
+    margin-left:auto;
+    margin-right:auto;
+
+  -webkit-border-radius: 15px;
+          border-radius: 15px;
+  background-clip: padding-box;
+}
+
+#scoreTable tr:nth-child(odd) {
+  background-color: #111;
+}
+
+#scoreTable tr:nth-child(even) {
+  background-color: #333;
+}
+
+#scoreTable tr:hover {
+  background-color: #444;
+}
+
+#scoreTable th {
+  border: 1px solid #999;
+  text-align: center;
+  padding: 5px;
+  width: 100px;
+}
+
+#scoreTable td {
+  border: 1px solid #999;
+  text-align: center;
+  padding: 5px;
+  width: 100px;
+}

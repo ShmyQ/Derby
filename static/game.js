@@ -630,17 +630,17 @@ function drawEndScreen(stats) {
 
 	var table = $("<table>");
 	var firstRow = $("<tr>");
-	var nameCol = $("<td>");
-	var killsCol = $("<td>");
-	var deathsCol = $("<td>");
+	var nameCol = $("<th>");
+	var killsCol = $("<th>");
+	var deathsCol = $("<th>");
 
 	table.attr("id", "scoreTable");
 	nameCol.html("Username");
-	nameCol.addClass("cell1");
+	// nameCol.addClass("cell1");
 	killsCol.html("Kills");
-	killsCol.addClass("cell2");
+	// killsCol.addClass("cell2");
 	deathsCol.html("Deaths");
-	deathsCol.addClass("cell1");
+	// deathsCol.addClass("cell1");
 
 	firstRow.append(nameCol);
 	firstRow.append(killsCol);
@@ -659,14 +659,14 @@ function drawEndScreen(stats) {
 		deaths.html(stats[username].deaths);
 
 		if (swap) {
-			name.addClass("cell2");
-			kills.addClass("cell1");
-			deaths.addClass("cell2");
+			// name.addClass("cell2");
+			// kills.addClass("cell1");
+			// deaths.addClass("cell2");
 		}
 		else {
-			name.addClass("cell1");
-			kills.addClass("cell2");
-			deaths.addClass("cell1");
+			// name.addClass("cell1");
+			// kills.addClass("cell2");
+			// deaths.addClass("cell1");
 		}
 		swap = !swap;
 
