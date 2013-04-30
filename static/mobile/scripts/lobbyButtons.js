@@ -1,4 +1,4 @@
-var lobby = io.connect('http://192.168.1.108:8007/lobby');
+var lobby = io.connect('http://192.168.1.100:8007/lobby');
 
 $(document).ready(function() {
     //==================

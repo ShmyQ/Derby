@@ -106,7 +106,7 @@ var usersGame = Lobby.usersGame;
 var playerData = new Object();
 
 var powerupDropChance = 0.4;
-var roundSeconds = 60;
+var roundSeconds = 120;
 
 var game = io.of('/game').on("connection", function (socket) {
   console.log("Player ", socket.id, " connected");

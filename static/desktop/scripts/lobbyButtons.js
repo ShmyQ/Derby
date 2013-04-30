@@ -2,7 +2,7 @@ $(document).ready(function() {
     //==================
     //  Button Events
     //==================
-     var lobby = io.connect('http://192.168.1.108:8007/lobby');
+     var lobby = io.connect('http://192.168.1.100:8007/lobby');
 
      $("#logoutButton").click(function(e) {
         e.preventDefault();

@@ -6,7 +6,7 @@
 /* prevent the user from highlighting any text */
 * {
     outline: none;
-   -webkit-tap-highlight-color: rgba(255, 255, 255, 0); 
+   -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
    -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -44,7 +44,7 @@ input {
     #friends{
        top: 40%;
        padding: 4% 1.2%;
-       
+
     }
 
     #learn {
@@ -185,7 +185,7 @@ button:active {
     #friends{
        top: 25%;
         padding: 5% 2.6%;
-      
+
     }
 
     #learn {
@@ -260,7 +260,7 @@ button:active {
    background: url(/images/uparrow.png) 50% 50% no-repeat;
 }
 
-#scrollDownRequests{ 
+#scrollDownRequests{
     top: 44%;
     background: url(/images/downarrow.png) 50% 50% no-repeat;
 }
@@ -318,7 +318,7 @@ button:active {
 }
 #logoutButton {
     margin-top: 50%;
-    
+
 }
 
 /*//////////////////////////////////
@@ -366,9 +366,13 @@ button:active {
    -moz-transition: left  1s ease;
    -o-transition: left  1s ease;
    -ms-transition: left 1s ease;
-   
+
    overflow: scroll;
 
+}
+
+#gameBox {
+  top: -10px;
 }
 
 .slide{
@@ -393,7 +397,7 @@ button:active {
     position: absolute;
     left: 35%;
     bottom: 5%;
-   
+
 }
 
 #chatArea {
@@ -474,7 +478,7 @@ button:active {
     height: 22px;
     line-height: 22px;
     margin-bottom: -7px;
-    
+
 }
 
 
@@ -497,7 +501,7 @@ button:active {
     padding-bottom:5px;
     width: 100%;
     height: 8%;
-    border-radius: 0px 0px 0px 0px;  
+    border-radius: 0px 0px 0px 0px;
 }
 
 /*//////////////////////////////////
@@ -518,7 +522,7 @@ button:active {
     text-align: left;
     display: inline;
     position: absolute;
-    left: 2px;  
+    left: 2px;
 }
 
 .leftCenterAlign {
@@ -526,7 +530,7 @@ button:active {
     text-align: center;
     display: inline;
     position: absolute;
-    left: 2px;  
+    left: 2px;
 }
 
 .rightAlign {
@@ -542,19 +546,19 @@ button:active {
 
 @media screen and (orientation:landscape) {
 
-    
+
     h3 {
 	font-size: 15px;
-    }   
+    }
     h1 {
         font-size: 25px;
 
     }
-    
+
     .scrollButton {
         right: 200%;
     }
-   
+
 }
 
 .inverted {
